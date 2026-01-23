@@ -1,9 +1,15 @@
 ---
 import { getCollection } from 'astro:content';
 
-const posts = (await getCollection('build-logs')).sort(
+const allPosts = (await getCollection('build-logs')).sort(
 	(a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
 );
+
+const featured = allPosts.filter(post => post.data.featured);
+const others = allPosts.filter(post => !post.data.featured);
+
+// Combine: Featured first, then the rest (sorted by date), max 3
+const posts = [...featured, ...others].slice(0, 3);
 ---
 
 <section class="max-w-4xl mx-auto px-6 py-20" id="blog">
@@ -27,5 +33,15 @@ const posts = (await getCollection('build-logs')).sort(
                 </a>
             </article>
         ))}
+    </div>
+    
+    <div class="mt-12 flex justify-center">
+        <a 
+            href="/buildlogs" 
+            class="inline-flex items-center px-6 py-3 border border-surface-highlight rounded-lg text-text hover:text-white hover:border-primary/50 transition-all duration-300 group"
+        >
+            View All Build Logs
+            <span class="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
+        </a>
     </div>
 </section>

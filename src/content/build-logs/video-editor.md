@@ -3,6 +3,7 @@ title: "Say Play: Building an AI Director for Video"
 pubDate: "January 20, 2026"
 tags: ["AI", "LangGraph", "Remotion", "Generative UI", "Agents", "Say Play"]
 description: "How I built an agentic video editor that writes React code instead of just generating pixels."
+featured: true
 ---
 
 I’ve always loved the creative potential of short-form video, but let’s be honest: I am not a video editor. I don't have the skills to make things look professional in Premiere or DaVinci, and frankly, I don't have the patience for the grind.
