@@ -18,7 +18,7 @@ export const AuroraBackground = () => {
     }, []);
 
     return (
-        <div ref={containerRef} className="absolute inset-0 top-[80vh] -z-10 w-full overflow-hidden preserve-3d">
+        <div ref={containerRef} className="absolute inset-0 -z-10 w-full overflow-hidden preserve-3d">
             {isVisible && (
                 <>
                     {/* 

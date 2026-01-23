@@ -6,9 +6,10 @@ import { AuroraBackground } from '../components/AuroraBackground';
 interface Props {
 	title: string;
     description?: string;
+    showBackground?: boolean;
 }
 
-const { title, description = "Cody Maughan - Technical Founder & Product Engineer" } = Astro.props;
+const { title, description = "Cody Maughan - Technical Founder & Product Engineer", showBackground = true } = Astro.props;
 
 // Inject theme colors as CSS variables
 const cssVariables = Object.entries(theme.colors).map(([key, value]) => {
@@ -35,7 +36,7 @@ const cssVariables = Object.entries(theme.colors).map(([key, value]) => {
 	</head>
 	<body style={cssVariables} class="relative min-h-screen text-text bg-background selection:bg-primary selection:text-black">
         
-        <AuroraBackground client:load />
+        {showBackground && <AuroraBackground client:load />}
         
 		<slot />
         
