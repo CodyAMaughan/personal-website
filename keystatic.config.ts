@@ -52,9 +52,18 @@ export default config({
         homePage: singleton({
             label: 'Home Page',
             path: 'src/content/home/index',
+            format: 'yaml',
             schema: {
-                headline: fields.text({ label: 'Headline' }),
-                subheadline: fields.text({ label: 'Subheadline' }),
+                // Hero Section
+                tagline: fields.text({ label: 'Tagline', description: 'The small text above the headline (e.g., "Technical Founder & Product Engineer")' }),
+                headline: fields.text({ label: 'Headline', description: 'Main headline text' }),
+                headlineHighlight: fields.text({ label: 'Headline Highlight', description: 'The gradient-highlighted part of the headline' }),
+                subheadline: fields.text({ label: 'Subheadline', description: 'Introduction paragraph below the headline', multiline: true }),
+                heroImage: fields.image({
+                    label: 'Hero Image',
+                    directory: 'public/images',
+                    publicPath: '/images/',
+                }),
             }
         }),
         aboutPage: singleton({
@@ -80,6 +89,7 @@ export default config({
                     directory: 'public/images',
                     publicPath: '/images/',
                 }),
+                originImageCaption: fields.text({ label: 'Section 1 Image Caption', description: 'Optional attribution/caption for the image' }),
 
                 // Section 2: The Builder
                 builderTitle: fields.text({ label: 'Section 2 Title' }),
@@ -91,6 +101,7 @@ export default config({
                     directory: 'public/images',
                     publicPath: '/images/',
                 }),
+                builderImageCaption: fields.text({ label: 'Section 2 Image Caption', description: 'Optional attribution/caption for the image' }),
 
                 // Section 3: The Strategist
                 strategistTitle: fields.text({ label: 'Section 3 Title' }),
@@ -102,6 +113,7 @@ export default config({
                     directory: 'public/images',
                     publicPath: '/images/',
                 }),
+                strategistImageCaption: fields.text({ label: 'Section 3 Image Caption', description: 'Optional attribution/caption for the image' }),
 
                 // Section 4: The Foundation
                 foundationTitle: fields.text({ label: 'Section 4 Title' }),
@@ -113,6 +125,7 @@ export default config({
                     directory: 'public/images',
                     publicPath: '/images/',
                 }),
+                foundationImageCaption: fields.text({ label: 'Section 4 Image Caption', description: 'Optional attribution/caption for the image' }),
             }
         })
     }

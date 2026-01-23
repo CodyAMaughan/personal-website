@@ -2,7 +2,21 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { HeroBackground } from './HeroBackground';
 
-export const Hero = () => {
+interface HeroProps {
+    tagline?: string;
+    headline?: string;
+    headlineHighlight?: string;
+    subheadline?: string;
+    heroImage?: string;
+}
+
+export const Hero = ({
+    tagline = 'Technical Founder & Product Engineer',
+    headline = 'Building the future of',
+    headlineHighlight = 'Agentic AI & SaaS.',
+    subheadline = "I'm <strong>Cody Maughan</strong>. I bridge the gap between Enterprise Data Science and Creative Product Engineering. Currently building AI-powered video tools and medical coding solutions.",
+    heroImage = '/images/cody-maughan-headshot.jpeg',
+}: HeroProps) => {
     return (
         <section className="min-h-[90vh] flex items-center justify-center w-full relative overflow-hidden py-20">
             <HeroBackground />
@@ -19,7 +33,7 @@ export const Hero = () => {
                         <div className="shrink-0 relative group">
                             <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
                             <img
-                                src="/images/cody-maughan-headshot.jpeg"
+                                src={heroImage}
                                 alt="Cody Maughan"
                                 className="relative h-48 w-48 md:h-64 md:w-64 rounded-full object-cover border-4 border-surface shadow-2xl"
                             />
@@ -33,20 +47,21 @@ export const Hero = () => {
                                     <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
                                 </span>
                                 <span className="text-primary font-mono text-sm tracking-wide uppercase font-semibold">
-                                    Technical Founder & Product Engineer
+                                    {tagline}
                                 </span>
                             </div>
 
                             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
-                                Building the future of <br />
+                                {headline} <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x">
-                                    Agentic AI & SaaS.
+                                    {headlineHighlight}
                                 </span>
                             </h1>
 
-                            <p className="text-lg md:text-xl text-gray-300 max-w-2xl mb-8 leading-relaxed font-sans mx-auto md:mx-0">
-                                I’m <strong className="text-white font-semibold">Cody Maughan</strong>. I bridge the gap between Enterprise Data Science and Creative Product Engineering. Currently building AI-powered video tools and medical coding solutions.
-                            </p>
+                            <p
+                                className="text-lg md:text-xl text-gray-300 max-w-2xl mb-8 leading-relaxed font-sans mx-auto md:mx-0"
+                                dangerouslySetInnerHTML={{ __html: subheadline }}
+                            />
 
                             <div className="flex flex-wrap justify-center md:justify-start gap-4">
                                 <button

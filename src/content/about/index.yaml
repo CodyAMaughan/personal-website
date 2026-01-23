@@ -1,41 +1,74 @@
 heroHeadline: Beyond the Code
 heroSubheadline: Builder. Strategist. Father. Believer.
-heroImage: /images/cody-maughan-headshot.jpeg
-
+heroImage: /images/heroImage.jpeg
 originTitle: 01. The Origin Story
-originContent: |
-  I’ve always seen the world through numbers. From a young age, math wasn't just homework, it was a language that explained how things worked. That fascination led me to **Biological Engineering**, where I was captivated by the idea of applying mathematical rigor to the messiness of biology.
-  
-  I chased that curiosity all the way to a PhD program in Bioengineering. But somewhere between the labs and the lectures, I realized my path was different. I left with my Master’s for personal reasons, but I didn't leave empty-handed.
-  
-  In grad school, I stumbled upon **Data Science**. It was a revelation: using real-world data to solve real-world problems. It felt like a superpower. That discovery launched my career, eventually leading me to my current role at **Mastercard**.
-originImage: /images/bio-data-abstract.png
+originContent: >
+  I’ve always seen the world through numbers. From a young age, math wasn't just
+  homework, it was a language that explained how things worked. That fascination
+  led me to **Biological Engineering**, where I was captivated by the idea of
+  applying mathematical rigor to the messiness of biology.
 
+
+  I chased that curiosity all the way to a PhD program in Bioengineering. But
+  somewhere between the labs and the lectures, I realized my path was different.
+  I left with my Master’s for personal reasons, but I didn't leave empty-handed.
+
+
+  In grad school, I stumbled upon **Data Science**. It was a revelation: using
+  real-world data to solve real-world problems. It felt like a superpower. That
+  discovery launched my career, eventually leading me to my current role at
+  **Mastercard**.
+originImage: /images/originImage.png
 builderTitle: 02. The Builder
-builderContent: |
-  While I love the analytical rigor of data, my true passion is *building*. I grew up loving video games, not just for the play, but for the creation. They were worlds where I could make things happen.
-  
-  Today, AI has replaced that gaming itch. It’s the ultimate sandbox. With modern AI, it’s not just about training models, it’s about imagination. It allows me to build real tools for the real world, like "Say Play", faster than I ever could in a game engine.
-  
-  Python has always been my home base for AI, but recently, I’ve been using AI to unlock frontend development. It’s bridging the gap, allowing me to become a true **full-stack builder**, turning ideas into deployed reality at the speed of thought.
-builderImage: /images/builder-abstract.png
+builderContent: >
+  While I love the analytical rigor of data, my true passion is *building*. I
+  grew up loving video games, not just for the play, but for the creation. They
+  were worlds where I could make things happen.
 
+
+  Today, AI has replaced that gaming itch. It’s the ultimate sandbox. With
+  modern AI, it’s not just about training models, it’s about imagination. It
+  allows me to build real tools for the real world, like "Say Play", faster than
+  I ever could in a game engine.
+
+
+  Python has always been my home base for AI, but recently, I’ve been using AI
+  to unlock frontend development. It’s bridging the gap, allowing me to become a
+  true **full-stack builder**, turning ideas into deployed reality at the speed
+  of thought.
+builderImage: /images/builderImage.png
 strategistTitle: 03. The Strategist
-strategistContent: |
-  I like systems, rules, and the human element within them. Back in the day, that manifested as a 1st place win in the 9th-grade division at the **Utah State Chess Championship**. (I promise I’m still humble about it).
-  
-  That strategic mindset extends beyond the board. I’ve run **two marathons**, learning that true endurance is a mental game as much as a physical one. It’s about pacing, discipline, and the refusal to quit when the miles get long.
-  
-  Nowadays, my obsession is board games, specifically social deduction games like *Blood on the Clocktower*. It’s the perfect blend of logic, strategy, and human psychology. It keeps my mind sharp and my poker face sharper.
-strategistImage: /images/strategy-endurance-abstract.png
+strategistContent: >
+  I like systems, rules, and the human element within them. Back in the day,
+  that manifested as a 1st place win in the 9th-grade division at the **Utah
+  State Chess Championship**. (I promise I’m still humble about it).
 
+
+  That strategic mindset extends beyond the board. I’ve run **two marathons**,
+  learning that true endurance is a mental game as much as a physical one. It’s
+  about pacing, discipline, and the refusal to quit when the miles get long.
+
+
+  Nowadays, my obsession is board games, specifically social deduction games
+  like *Blood on the Clocktower*. It’s the perfect blend of logic, strategy, and
+  human psychology. It keeps my mind sharp and my poker face sharper.
+strategistImage: /images/strategistImage.png
 foundationTitle: 04. The Foundation
-foundationContent: |
-  This is the most important part. I am a husband and a father to **three** children.
+foundationContent: >
+  Most importantly, I am **husband** and a **father** to **three** children.
 
-  Life hasn't always been easy. We lost one of our sons when he was just 6 months old. It was a tragedy that could have broken me.
 
-  But I am grounded by something stronger than myself. I am a member of **The Church of Jesus Christ of Latter-day Saints**. My relationship with Jesus Christ is what pulled me through that darkness. Without my faith, I wouldn't have the resilience or the perspective I have today. It is the bedrock of everything I do.
+  Life hasn't always been easy. We lost one of our children when he was just 6
+  months old. It was a tragedy that could have broken me.
+
+
+  But I am grounded by something stronger than myself. I am a member of **The
+  Church of Jesus Christ of Latter-day Saints**. My relationship with Jesus
+  Christ is what pulled me through that darkness. Without my faith, I wouldn't
+  have the resilience or the perspective I have today. It is the bedrock of
+  everything I do.
+
 
   [Learn more about my faith →](https://www.churchofjesuschrist.org/?lang=eng)
-foundationImage: /images/foundation-light-abstract.png
+foundationImage: /images/foundationImage.jpeg
+foundationImageCaption: '*Art by [Jeff Chandler](https://www.instagram.com/chandler_creative_studio/)*'

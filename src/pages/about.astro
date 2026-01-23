@@ -13,6 +13,12 @@ const originHtml = await marked.parse(data.originContent || '');
 const builderHtml = await marked.parse(data.builderContent || '');
 const strategistHtml = await marked.parse(data.strategistContent || '');
 const foundationHtml = await marked.parse(data.foundationContent || '');
+
+// Parse markdown captions to HTML (inline to avoid wrapping in <p> tags)
+const originCaptionHtml = data.originImageCaption ? await marked.parseInline(data.originImageCaption) : '';
+const builderCaptionHtml = data.builderImageCaption ? await marked.parseInline(data.builderImageCaption) : '';
+const strategistCaptionHtml = data.strategistImageCaption ? await marked.parseInline(data.strategistImageCaption) : '';
+const foundationCaptionHtml = data.foundationImageCaption ? await marked.parseInline(data.foundationImageCaption) : '';
 ---
 
 <Layout title="About Me | Cody Maughan">
@@ -60,10 +66,15 @@ const foundationHtml = await marked.parse(data.foundationContent || '');
                         <div class="space-y-6 text-lg text-text-muted leading-relaxed prose prose-invert" set:html={originHtml} />
                     </div>
                     <div class="order-1 md:order-2 flex justify-center md:justify-end animate-on-scroll fade-in-right delay-200">
-                        <div class="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-                             <div class="absolute inset-0 bg-primary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                             <img src={data.originImage} alt="Abstract Data Helix" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
-                        </div>
+                        <figure class="w-full max-w-md">
+                            <div class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                                 <div class="absolute inset-0 bg-primary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                 <img src={data.originImage} alt="Abstract Data Helix" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                            </div>
+                            {originCaptionHtml && (
+                                <figcaption class="mt-3 text-sm text-text-muted/70 text-center italic" set:html={originCaptionHtml} />
+                            )}
+                        </figure>
                     </div>
                 </div>
             </section>
@@ -72,10 +83,15 @@ const foundationHtml = await marked.parse(data.foundationContent || '');
             <section class="relative py-20 overflow-hidden bg-white/[0.02]">
                 <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                      <div class="order-1 flex justify-center md:justify-start animate-on-scroll fade-in-left">
-                        <div class="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-                             <div class="absolute inset-0 bg-secondary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                             <img src={data.builderImage} alt="Building Tools Abstract" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
-                        </div>
+                        <figure class="w-full max-w-md">
+                            <div class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                                 <div class="absolute inset-0 bg-secondary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                 <img src={data.builderImage} alt="Building Tools Abstract" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                            </div>
+                            {builderCaptionHtml && (
+                                <figcaption class="mt-3 text-sm text-text-muted/70 text-center italic" set:html={builderCaptionHtml} />
+                            )}
+                        </figure>
                     </div>
                     <div class="order-2 animate-on-scroll fade-in-right delay-200">
                         <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
@@ -96,10 +112,15 @@ const foundationHtml = await marked.parse(data.foundationContent || '');
                         <div class="space-y-6 text-lg text-text-muted leading-relaxed prose prose-invert" set:html={strategistHtml} />
                     </div>
                     <div class="order-1 md:order-2 flex justify-center md:justify-end animate-on-scroll fade-in-right delay-200">
-                        <div class="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-                             <div class="absolute inset-0 bg-accent/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                             <img src={data.strategistImage} alt="Chess Strategy and Endurance" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
-                        </div>
+                        <figure class="w-full max-w-md">
+                            <div class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                                 <div class="absolute inset-0 bg-accent/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                 <img src={data.strategistImage} alt="Chess Strategy and Endurance" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                            </div>
+                            {strategistCaptionHtml && (
+                                <figcaption class="mt-3 text-sm text-text-muted/70 text-center italic" set:html={strategistCaptionHtml} />
+                            )}
+                        </figure>
                     </div>
                 </div>
             </section>
@@ -108,10 +129,15 @@ const foundationHtml = await marked.parse(data.foundationContent || '');
             <section class="relative py-20 overflow-hidden bg-white/[0.02]">
                 <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                     <div class="order-1 flex justify-center md:justify-start animate-on-scroll fade-in-left">
-                        <div class="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-                             <div class="absolute inset-0 bg-yellow-500/10 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                             <img src={data.foundationImage} alt="Light and Foundation" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
-                        </div>
+                        <figure class="w-full max-w-md">
+                            <div class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                                 <div class="absolute inset-0 bg-yellow-500/10 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                 <img src={data.foundationImage} alt="Light and Foundation" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                            </div>
+                            {foundationCaptionHtml && (
+                                <figcaption class="mt-3 text-sm text-text-muted/70 text-center italic" set:html={foundationCaptionHtml} />
+                            )}
+                        </figure>
                     </div>
                     <div class="order-2 animate-on-scroll fade-in-right delay-200">
                         <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">

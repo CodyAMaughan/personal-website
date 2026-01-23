@@ -23,8 +23,11 @@ const music = defineCollection({
 const homePage = defineCollection({
     type: 'data',
     schema: z.object({
+        tagline: z.string().optional(),
         headline: z.string(),
+        headlineHighlight: z.string().optional(),
         subheadline: z.string(),
+        heroImage: z.string().optional(),
     })
 });
 
@@ -38,18 +41,22 @@ const aboutPage = defineCollection({
         originTitle: z.string(),
         originContent: z.any(),
         originImage: z.string().optional(),
+        originImageCaption: z.string().optional(),
 
         builderTitle: z.string(),
         builderContent: z.any(),
         builderImage: z.string().optional(),
+        builderImageCaption: z.string().optional(),
 
         strategistTitle: z.string(),
         strategistContent: z.any(),
         strategistImage: z.string().optional(),
+        strategistImageCaption: z.string().optional(),
 
         foundationTitle: z.string(),
         foundationContent: z.any(),
         foundationImage: z.string().optional(),
+        foundationImageCaption: z.string().optional(),
     })
 });
 

@@ -5,12 +5,29 @@ import { BentoGrid } from '../components/BentoGrid';
 import { TechStack } from '../components/TechStack';
 import { AuroraBackground } from '../components/AuroraBackground';
 import BuildLogs from '../components/BuildLogs.astro';
+import { getEntry } from 'astro:content';
+import { marked } from 'marked';
+
+// Fetch home page content from Keystatic
+const homePage = await getEntry('home', 'index');
+const { data } = homePage;
+
+// Parse markdown in subheadline to HTML (inline to avoid wrapping in <p> tags)
+const subheadlineHtml = data.subheadline ? await marked.parseInline(data.subheadline) : '';
+
+const heroData = {
+    tagline: data.tagline || 'Technical Founder & Product Engineer',
+    headline: data.headline || 'Building the future of',
+    headlineHighlight: data.headlineHighlight || 'Agentic AI & SaaS.',
+    subheadline: subheadlineHtml,
+    heroImage: data.heroImage || '/images/cody-maughan-headshot.jpeg',
+};
 ---
 
 <Layout title="Cody Maughan | Technical Founder & Product Engineer" showBackground={false}>
 	<main class="overflow-x-hidden selection:bg-primary selection:text-white">
         <!-- Hero Section -->
-        <Hero client:load />
+        <Hero client:load {...heroData} />
         
         <!-- Projects Section -->
         <BentoGrid client:visible />
