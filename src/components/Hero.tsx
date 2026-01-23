@@ -4,20 +4,25 @@ import { motion } from 'framer-motion';
 export const Hero = () => {
     return (
         <section className="min-h-[80vh] flex flex-col justify-center max-w-4xl mx-auto px-6 py-20 relative">
-            {/* Glow effect */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full -z-10 pointer-events-none" />
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
             >
-                <span className="text-accent font-medium tracking-wide text-sm uppercase mb-4 block">
-                    Technical Founder & Product Engineer
-                </span>
+                <div className="flex items-center gap-2 mb-6">
+                    <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                    </span>
+                    <span className="text-primary font-mono text-sm tracking-wide uppercase">
+                        Technical Founder & Product Engineer
+                    </span>
+                </div>
+
                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
                     Building the future of <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x">
                         Agentic AI & SaaS.
                     </span>
                 </h1>

@@ -45,21 +45,74 @@ const featuredProjects: Project[] = [
 ];
 
 const Card = ({ project }: { project: Project }) => {
+    const divRef = React.useRef<HTMLDivElement>(null);
+    const [isFocused, setIsFocused] = React.useState(false);
+    const [position, setPosition] = React.useState({ x: 0, y: 0 });
+    const [opacity, setOpacity] = React.useState(0);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!divRef.current) return;
+
+        const div = divRef.current;
+        const rect = div.getBoundingClientRect();
+
+        setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    };
+
+    const handleFocus = () => {
+        setIsFocused(true);
+        setOpacity(1);
+    };
+
+    const handleBlur = () => {
+        setIsFocused(false);
+        setOpacity(0);
+    };
+
+    const handleMouseEnter = () => {
+        setOpacity(1);
+    };
+
+    const handleMouseLeave = () => {
+        setOpacity(0);
+    };
+
     return (
         <motion.div
+            ref={divRef}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             whileHover={{ y: -5 }}
+            onMouseMove={handleMouseMove}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             className={`
-                group relative p-8 rounded-2xl border border-border bg-surface-highlight overflow-hidden flex flex-col justify-between
+                group relative p-8 rounded-[1.25rem] overflow-hidden flex flex-col justify-between
+                bg-surface/50 backdrop-blur-md border border-white/10
                 ${project.className || "md:col-span-1"}
-                ${project.isWaitlist ? "hover:border-primary/50" : "hover:border-border"}
                 transition-all duration-300
             `}
         >
-            {/* Spotlight Effect helper (simplified) */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            {/* Spotlight Border Effect */}
+            <div
+                className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                style={{
+                    opacity,
+                    background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(255,255,255,0.15), transparent 40%)`,
+                }}
+            />
+
+            {/* Inner Content Glow */}
+            <div
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                style={{
+                    opacity,
+                    background: `radial-gradient(800px circle at ${position.x}px ${position.y}px, rgba(255,255,255,0.03), transparent 40%)`,
+                }}
+            />
 
             <div>
                 <div className="flex flex-wrap gap-2 mb-4">

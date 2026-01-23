@@ -1,24 +1,49 @@
+// Palette Primitives
+const colors = {
+  obsidian: '#05050A', // Deepest black-blue
+  charcoal: '#0F1115', // Card background
+
+  // Accents
+  cyan: '#00F0FF',     // Electric Cyan (Code/Logic)
+  violet: '#7000FF',   // Deep Violet (Creative)
+  magenta: '#FF003C',  // Hot Magenta (Action)
+
+  // Neutrals
+  white: '#FFFFFF',
+  gray200: '#E4E4E7',
+  gray400: '#A1A1AA',
+  gray600: '#52525B',
+  gray800: '#27272A',
+  gray900: '#18181B',
+};
+
 export const theme = {
   colors: {
-    background: '#0a0a0a', // Zinc-950
-    surface: '#18181b', // Zinc-900
-    surfaceHighlight: '#27272a', // Zinc-800
-    primary: '#3b82f6', // Blue-500
-    primaryHover: '#2563eb', // Blue-600
-    secondary: '#a1a1aa', // Zinc-400
-    secondaryHover: '#d4d4d8', // Zinc-300
-    accent: '#8b5cf6', // Violet-500
-    text: '#f4f4f5', // Zinc-100
-    textMuted: '#71717a', // Zinc-500
-    border: '#27272a', // Zinc-800
+    background: colors.obsidian,
+
+    // Surface & Glass
+    surface: 'rgba(255, 255, 255, 0.03)',
+    surfaceHighlight: 'rgba(255, 255, 255, 0.08)',
+    border: 'rgba(255, 255, 255, 0.1)',
+
+    // Brand
+    primary: colors.cyan,
+    primaryHover: '#33F3FF',
+
+    secondary: colors.violet,
+    accent: colors.magenta,
+
+    // Text
+    text: colors.white,
+    textMuted: colors.gray400,
   },
   fonts: {
     sans: '"Inter", sans-serif',
-    mono: '"JetBrains Mono", monospace', // Good for technical founder vibe
+    mono: '"JetBrains Mono", monospace',
   },
   borderRadius: {
-    default: '0.75rem', // Rounded-xl
-    card: '1rem', // Rounded-2xl
+    default: '0.75rem',
+    card: '1.25rem',
   }
 };
 
