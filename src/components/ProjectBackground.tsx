@@ -1,7 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 
-export const ProjectBackground = () => {
+interface Props {
+    pulseColors?: string[];
+}
+
+export const ProjectBackground = ({ pulseColors }: Props) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    // Default colors if none provided
+    const defaultColors = ['#4ade80', '#3b82f6', '#f59e0b', '#D62566']; // Green, Blue, Amber, Pink
+    const activeColors = pulseColors || defaultColors;
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -31,7 +38,6 @@ export const ProjectBackground = () => {
         }
 
         const pulses: Pulse[] = [];
-        const pulseColors = ['#4ade80', '#3b82f6', '#f59e0b', '#D62566']; // Green, Blue, Amber, Pink
 
         const init = () => {
             width = window.innerWidth;
@@ -47,7 +53,7 @@ export const ProjectBackground = () => {
             const isHorizontal = Math.random() > 0.5;
             const x = Math.floor(Math.random() * (width / gridSize)) * gridSize;
             const y = Math.floor(Math.random() * (height / gridSize)) * gridSize;
-            const color = pulseColors[Math.floor(Math.random() * pulseColors.length)];
+            const color = activeColors[Math.floor(Math.random() * activeColors.length)];
 
             pulses.push({
                 x,

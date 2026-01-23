@@ -1,66 +1,159 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { HeroBackground } from '../components/HeroBackground';
+import { MusicBackground } from '../components/MusicBackground';
 ---
 
 <Layout title="About Me | Cody Maughan">
-    <main class="max-w-3xl mx-auto px-6 py-20 animation-fade-in">
-        <header class="mb-16">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">About Me</h1>
-            <p class="text-xl text-text-muted leading-relaxed">
-                Builder. Data Scientist. Believer.
-            </p>
-        </header>
+    <div class="relative w-full overflow-x-hidden">
+        <!-- Hero Section -->
+        <div class="relative min-h-[60vh] flex items-center justify-center py-20">
+            <HeroBackground client:load />
+            
+             <div class="w-full max-w-4xl mx-auto px-6 relative z-10">
+                <div class="relative p-8 md:p-12 rounded-card bg-surface/90 border border-surface-highlight/50 backdrop-blur-xl shadow-2xl animation-fade-in flex flex-col md:flex-row items-center gap-10">
+                    <!-- Headshot -->
+                     <div class="shrink-0 relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
+                        <img
+                            src="/images/cody-maughan-headshot.jpeg"
+                            alt="Cody Maughan"
+                            class="relative h-40 w-40 md:h-56 md:w-56 rounded-full object-cover border-4 border-surface shadow-2xl"
+                        />
+                    </div>
 
-        <section class="mb-20">
-            <h2 class="text-2xl font-semibold text-white mb-6">The Journey</h2>
-            <div class="space-y-6 text-lg text-text-muted leading-relaxed">
-                <p>
-                    I started as a Data Scientist, crunching numbers and building models. But I realized I didn't just want to analyze data—I wanted to build products with it.
-                </p>
-                <p>
-                    Currently, I work as a Data Science Manager at Mastercard, where I lead teams in deploying large-scale AI. On the side, I am a serial builder, obsessing over Agentic AI workflows, full-stack development, and game design.
-                </p>
-                <p>
-                    I thrive in the messy middle of '0 to 1' product development. I believe the best software feels like magic. It should be intuitive, fast, and empowering. That's why I'm focusing heavily on "Agentic AI"—tools that don't just chat, but <em>do</em>.
-                </p>
-            </div>
-        </section>
-
-        <section class="mb-20">
-            <h2 class="text-2xl font-semibold text-white mb-8 border-b border-surface-highlight pb-4">Career Path</h2>
-            <div class="space-y-12 border-l-2 border-surface-highlight pl-8 ml-3 relative">
-                 <div class="relative group">
-                    <span class="absolute -left-[41px] top-1.5 h-5 w-5 rounded-full bg-primary border-4 border-background group-hover:scale-110 transition-transform"></span>
-                    <h3 class="text-xl font-bold text-white group-hover:text-primary transition-colors">Data Science Manager</h3>
-                    <div class="text-primary font-medium mb-1">Mastercard • Present</div>
-                    <p class="text-text-muted">Leading teams to deploy large-scale AI solutions in the enterprise.</p>
-                </div>
-                <div class="relative group">
-                     <span class="absolute -left-[41px] top-1.5 h-5 w-5 rounded-full bg-surface-highlight border-4 border-background group-hover:bg-text-muted transition-colors"></span>
-                    <h3 class="text-xl font-bold text-white">Senior Data Scientist</h3>
-                    <div class="text-text-muted font-medium mb-1">Previous Experience</div>
-                    <p class="text-text-muted">Developed predictive models, data pipelines, and analytical tools.</p>
+                    <div class="text-center md:text-left">
+                        <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-white">
+                            Beyond the Code
+                        </h1>
+                        <p class="text-xl md:text-2xl text-gray-200 leading-relaxed max-w-2xl mx-auto md:mx-0">
+                            Builder. Strategist. Father. Believer.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </section>
 
-        <section>
-            <h2 class="text-2xl font-semibold text-white mb-6 border-b border-surface-highlight pb-4">Faith & Values</h2>
-            <div class="bg-surface-highlight/30 p-8 rounded-2xl border border-surface-highlight hover:border-surface-highlight/80 transition-colors">
-                <p class="text-text-muted italic leading-relaxed mb-4">
-                    "My faith is a core part of who I am. It grounds my work in purpose, integrity, and service to others. I believe that technology should elevate the human spirit."
-                </p>
-                <div class="text-sm text-text-muted font-medium opacity-60">
-                    More specific thoughts on this coming soon.
-                </div>
-            </div>
-        </section>
-
-        <div class="mt-20 pt-10 border-t border-surface-highlight flex justify-between items-center text-sm">
-             <a href="/" class="text-primary hover:text-primary-hover font-medium transition-colors flex items-center gap-2">
-                <span>←</span> Back to Home
-            </a>
-            <span class="text-text-muted">Based in SLC, Utah</span>
+            <!-- Fade to black at bottom of hero -->
+            <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
         </div>
-    </main>
+
+        <main class="w-full">
+            <div class="max-w-4xl mx-auto px-6 pb-32 space-y-32">
+                
+                <!-- Section 1: The Origin Story -->
+                <section class="relative">
+                    <div class="absolute -left-20 top-0 w-1 h-32 bg-gradient-to-b from-primary/50 to-transparent hidden md:block"></div>
+                    <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                        <span class="text-primary">01.</span> The Origin Story
+                    </h2>
+                    <div class="space-y-6 text-lg text-text-muted leading-relaxed">
+                        <p>
+                            I’ve always seen the world through numbers. From a young age, math wasn't just homework, it was a language that explained how things worked. That fascination led me to <strong class="text-white">Biological Engineering</strong>, where I was captivated by the idea of applying mathematical rigor to the messiness of biology.
+                        </p>
+                        <p>
+                            I chased that curiosity all the way to a PhD program in Bioengineering. But somewhere between the labs and the lectures, I realized my path was different. I left with my Master’s for personal reasons, but I didn't leave empty-handed.
+                        </p>
+                        <p>
+                            In grad school, I stumbled upon <strong class="text-white">Data Science</strong>. It was a revelation: using real-world data to solve real-world problems. It felt like a superpower. That discovery launched my career, eventually leading me to my current role at <strong class="text-white">Mastercard</strong>.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Section 2: The Builder -->
+                <section class="relative group">
+                    <!-- Subtle background ambient light -->
+                    <div class="absolute -right-[20%] top-[10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[100px] pointer-events-none"></div>
+                    
+                    <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                        <span class="text-secondary">02.</span> The Builder
+                    </h2>
+                    <div class="space-y-6 text-lg text-text-muted leading-relaxed relative z-10">
+                        <p>
+                            While I love the analytical rigor of data, my true passion is <em class="text-white italic">building</em>. I grew up loving video games, not just for the play, but for the creation. They were worlds where I could make things happen.
+                        </p>
+                        <p>
+                            Today, AI has replaced that gaming itch. It’s the ultimate sandbox. With modern AI, it’s not just about training models, it’s about imagination. It allows me to build real tools for the real world, like "Say Play", faster than I ever could in a game engine.
+                        </p>
+                        <p>
+                            Python has always been my home base for AI, but recently, I’ve been using AI to unlock frontend development. It’s bridging the gap, allowing me to become a true <strong class="text-white">full-stack builder</strong>, turning ideas into deployed reality at the speed of thought.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Section 3: The Strategist -->
+                <section class="relative">
+                     <div class="absolute -left-[20%] bottom-[10%] w-[500px] h-[500px] bg-accent/5 rounded-full blur-[100px] pointer-events-none"></div>
+                    <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                        <span class="text-accent">03.</span> The Strategist
+                    </h2>
+                    <div class="grid md:grid-cols-2 gap-12 items-center">
+                        <div class="space-y-6 text-lg text-text-muted leading-relaxed">
+                             <p>
+                                I like systems, rules, and the human element within them.
+                            </p>
+                            <p>
+                                Back in the day, that manifested as a 1st place win in the 9th-grade division at the <strong class="text-white">Utah State Chess Championship</strong>. (I promise I’m still humble about it).
+                            </p>
+                            <p>
+                                Nowadays, my obsession is board games, specifically social deduction games like <em class="text-white">Blood on the Clocktower</em>. It’s the perfect blend of logic, strategy, and human psychology. It keeps my mind sharp and my poker face sharper.
+                            </p>
+                        </div>
+                         <div class="bg-surface-card border border-surface-highlight p-6 rounded-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                            <div class="aspect-video bg-surface-highlight/20 rounded-lg flex items-center justify-center">
+                                <span class="text-surface-highlight text-6xl opacity-50">♟️</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 4: The Foundation -->
+                <section class="relative">
+                    <div class="bg-gradient-to-br from-surface-highlight/10 to-transparent p-8 md:p-12 rounded-3xl border border-surface-highlight/30">
+                        <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                            <span class="text-white/60">04.</span> The Foundation
+                        </h2>
+                        <div class="space-y-6 text-lg text-text-muted leading-relaxed">
+                            <p>
+                                This is the most important part. I am a husband and a father to <strong class="text-white">three</strong> children.
+                            </p>
+                            <p>
+                                Life hasn't always been easy. We lost one of our sons when he was just 6 months old. It was a tragedy that could have broken me.
+                            </p>
+                            <p>
+                                But I am grounded by something stronger than myself. I am a member of <strong class="text-white">The Church of Jesus Christ of Latter-day Saints</strong>. My relationship with Jesus Christ is what pulled me through that darkness. Without my faith, I wouldn't have the resilience or the perspective I have today. It is the bedrock of everything I do.
+                            </p>
+                             <p class="pt-4">
+                                <a href="https://www.churchofjesuschrist.org/?lang=eng" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1 group">
+                                    Learn more about my faith 
+                                    <span class="transform group-hover:translate-x-1 transition-transform">→</span>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Section 5: Music -->
+            <section class="relative w-full py-40 min-h-[500px] flex items-center justify-center overflow-hidden">
+                <!-- Dynamic Music Background - Full Width -->
+                <div class="absolute inset-0 z-0">
+                     <MusicBackground client:visible />
+                </div>
+                
+                <div class="relative z-10 w-full max-w-4xl px-6">
+                    <div class="p-8 md:p-12 rounded-card bg-surface/30 border border-surface-highlight/50 backdrop-blur-xl shadow-2xl text-center">
+                        <h2 class="text-3xl font-bold text-white mb-6">The B-Sides</h2>
+                         <p class="text-white/90 mb-10 max-w-lg mx-auto text-lg leading-relaxed">
+                            In a past life, I wrote songs in high school and college. The guitar gathers dust sometimes, but the music never really stops.
+                        </p>
+                        <a href="/music" class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-surface-card border border-surface-highlight hover:border-primary/50 text-white transition-all duration-300 group hover:shadow-lg hover:shadow-primary/10">
+                            <span class="text-2xl">🎵</span>
+                            <span class="font-medium">Listen to the Archives</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-surface-highlight text-text-muted">Coming Soon</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
 </Layout>

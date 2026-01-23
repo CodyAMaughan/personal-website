@@ -1,0 +1,64 @@
+---
+import Layout from './Layout.astro';
+import { ProjectBackground } from '../components/ProjectBackground';
+import { theme } from '../config/theme';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+
+// Use theme colors for the background pulses
+const pulseColors = [
+    theme.colors.primary,
+    theme.colors.secondary,
+    theme.colors.accent
+];
+---
+
+<Layout title={`${title} | Coming Soon`}>
+  <main class="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+    {/* Background with theme colors */}
+    <ProjectBackground client:load pulseColors={pulseColors} />
+    
+    <div class="relative z-10 w-full max-w-2xl px-6">
+        <div 
+            class="relative p-8 md:p-12 rounded-[1.5rem] bg-surface/30 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden group text-center"
+        >
+             {/* Spotlight Border Effect similar to BentoGrid cards */}
+            <div
+                class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            />
+            
+            <div class="relative z-10">
+                <div 
+                    class="inline-block mb-6 px-4 py-1.5 rounded-full bg-surface-elevation-low border border-surface-highlight text-text-muted text-sm font-mono tracking-wide"
+                >
+                    Under Construction
+                </div>
+                
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 tracking-tight">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x">
+                        {title}
+                    </span>
+                </h1>
+                
+                <p class="text-lg text-white mb-10 max-w-lg mx-auto leading-relaxed">
+                    I'm currently crafting this section of the site. <br/>Check back soon for updates.
+                </p>
+                
+                <a 
+                    href="/" 
+                    class="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-primary hover:bg-primary-hover text-black font-bold transition-all duration-300 group shadow-lg hover:shadow-primary/25"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-1 transition-transform">
+                    <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                    <span>Back to Home</span>
+                </a>
+            </div>
+        </div>
+    </div>
+  </main>
+</Layout>
