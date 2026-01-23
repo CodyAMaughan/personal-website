@@ -31,6 +31,7 @@ export const theme = {
     // Surface & Glass
     // We use a slight green tint in the surface to mesh with the primary
     surface: 'rgba(23, 23, 23, 0.6)',
+    glass: 'rgba(23, 23, 23, 0.9)', // High opacity glass for cards
     surfaceHighlight: 'rgba(74, 222, 128, 0.05)', // Very faint green glow
     border: colors.gray800,
     borderHighlight: colors.forest, // Greenish border for active items
