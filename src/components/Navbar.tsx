@@ -30,7 +30,11 @@ export const Navbar = () => {
                     {/* Logo */}
                     <div className="flex-shrink-0">
                         <a href="/" className="flex items-center gap-2 group">
-                            <div className="h-8 w-8 bg-gradient-to-br from-primary to-accent rounded-lg opacity-80 group-hover:opacity-100 transition-opacity" />
+                            <img
+                                src="/favicon.svg"
+                                alt="Cody Maughan Logo"
+                                className="h-8 w-8 rounded-lg opacity-80 group-hover:opacity-100 transition-opacity"
+                            />
                             <span className="text-lg font-bold font-heading text-text tracking-tight group-hover:text-primary transition-colors">
                                 Cody Maughan
                             </span>

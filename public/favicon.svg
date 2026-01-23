@@ -1,6 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="128" fill="#0a0a0a"/>
-  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <linearGradient id="shimmer" x1="-100%" y1="0%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="white" stop-opacity="0" />
+      <stop offset="50%" stop-color="white" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="white" stop-opacity="0" />
+      <animateTransform 
+        attributeName="gradientTransform" 
+        type="translate" 
+        from="0,0" 
+        to="2,0" 
+        dur="4s" 
+        repeatCount="indefinite" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bgGradient)"/>
+  <!-- Subtle shimmer overlay -->
+  <rect width="512" height="512" rx="128" fill="url(#shimmer)" />
+  <text x="50%" y="50.5%" dominant-baseline="middle" text-anchor="middle" 
         font-family="JetBrains Mono, monospace" font-weight="bold" font-size="280">
     <tspan fill="#ffffff">C</tspan><tspan fill="#4ade80">_<animate attributeName="opacity" values="1;0;1" dur="1.2s" repeatCount="indefinite" /></tspan>
   </text>
