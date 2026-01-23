@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "*.mdoc": "markdoc"
+    },
+    "[markdoc]": {
+        "editor.formatOnSave": false,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "never"
+        }
+    },
+    "editor.formatOnSave": true
+}

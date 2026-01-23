@@ -59,7 +59,7 @@ export const HeroBackground = () => {
                 this.width = width * 0.4 + Math.random() * (width * 0.3); // Wide beams
                 this.speed = 0.2 + Math.random() * 0.3; // Slow drift
                 this.offset = Math.random() * 1000;
-                this.opacity = 0.15 + Math.random() * 0.15; // Low opacity for blending
+                this.opacity = 0.2 + Math.random() * 0.2; // Slightly higher opacity (0.2 to 0.4)
             }
 
             draw(ctx: CanvasRenderingContext2D, time: number) {

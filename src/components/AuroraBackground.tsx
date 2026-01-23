@@ -31,9 +31,9 @@ export const AuroraBackground = () => {
 
                     {/* Blob 1: Primary (Cyan) - Top Left */}
                     <motion.div
-                        initial={{ opacity: 0.1, scale: 0.9, x: -50, y: -50 }}
+                        initial={{ opacity: 0.15, scale: 0.9, x: -50, y: -50 }}
                         animate={{
-                            opacity: [0.2, 0.4, 0.2],
+                            opacity: [0.3, 0.5, 0.3],
                             scale: [0.9, 1.2, 0.9],
                             x: [-50, 50, -50],
                             y: [-50, 50, -50],
@@ -41,14 +41,14 @@ export const AuroraBackground = () => {
                             borderRadius: ["20% 80% 20% 80% / 80% 20% 80% 20%", "60% 40% 30% 70% / 60% 30% 70% 40%", "20% 80% 20% 80% / 80% 20% 80% 20%"]
                         }}
                         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute top-[0%] left-[5%] w-[45vw] h-[45vw] bg-primary/20 blur-[100px] mix-blend-plus-lighter"
+                        className="absolute top-[0%] left-[5%] w-[45vw] h-[45vw] bg-primary/25 blur-[100px] mix-blend-plus-lighter"
                     />
 
                     {/* Blob 2: Primary (Cyan) - Bottom Right Duplicate */}
                     <motion.div
-                        initial={{ opacity: 0.1, scale: 1, x: 50, y: 50 }}
+                        initial={{ opacity: 0.15, scale: 1, x: 50, y: 50 }}
                         animate={{
-                            opacity: [0.2, 0.35, 0.2],
+                            opacity: [0.3, 0.45, 0.3],
                             scale: [1, 1.3, 1],
                             x: [50, -50, 50],
                             y: [50, -50, 50],
@@ -56,14 +56,14 @@ export const AuroraBackground = () => {
                             borderRadius: ["70% 30% 70% 30% / 30% 70% 30% 70%", "30% 60% 70% 40% / 50% 60% 30% 60%", "70% 30% 70% 30% / 30% 70% 30% 70%"]
                         }}
                         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                        className="absolute top-[40%] right-[10%] w-[40vw] h-[40vw] bg-primary/15 blur-[90px] mix-blend-plus-lighter"
+                        className="absolute top-[40%] right-[10%] w-[40vw] h-[40vw] bg-primary/20 blur-[90px] mix-blend-plus-lighter"
                     />
 
                     {/* Blob 3: Secondary (Violet) - Top Right */}
                     <motion.div
-                        initial={{ opacity: 0.15, scale: 0.8, x: 50, y: -50 }}
+                        initial={{ opacity: 0.2, scale: 0.8, x: 50, y: -50 }}
                         animate={{
-                            opacity: [0.25, 0.4, 0.25],
+                            opacity: [0.35, 0.5, 0.35],
                             scale: [0.8, 1.1, 0.8],
                             x: [50, -50, 50],
                             y: [-50, 50, -50],
@@ -71,14 +71,14 @@ export const AuroraBackground = () => {
                             borderRadius: ["50% 50% 50% 50%", "30% 70% 70% 30% / 30% 30% 70% 70%", "50% 50% 50% 50%"]
                         }}
                         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                        className="absolute top-[10%] right-[5%] w-[50vw] h-[50vw] bg-secondary/20 blur-[110px] mix-blend-plus-lighter"
+                        className="absolute top-[10%] right-[5%] w-[50vw] h-[50vw] bg-secondary/25 blur-[110px] mix-blend-plus-lighter"
                     />
 
                     {/* Blob 4: Secondary (Violet) - Bottom Left */}
                     <motion.div
-                        initial={{ opacity: 0.1, scale: 0.9, x: -50, y: 50 }}
+                        initial={{ opacity: 0.15, scale: 0.9, x: -50, y: 50 }}
                         animate={{
-                            opacity: [0.2, 0.35, 0.2],
+                            opacity: [0.3, 0.45, 0.3],
                             scale: [0.9, 1.2, 0.9],
                             x: [-50, 50, -50],
                             y: [50, -50, 50],
@@ -86,7 +86,7 @@ export const AuroraBackground = () => {
                             borderRadius: ["60% 40% 30% 70% / 60% 30% 70% 40%", "20% 80% 20% 80% / 80% 20% 80% 20%", "60% 40% 30% 70% / 60% 30% 70% 40%"]
                         }}
                         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                        className="absolute top-[50%] left-[10%] w-[45vw] h-[45vw] bg-secondary/15 blur-[100px] mix-blend-plus-lighter"
+                        className="absolute top-[50%] left-[10%] w-[45vw] h-[45vw] bg-secondary/20 blur-[100px] mix-blend-plus-lighter"
                     />
 
                     {/* Noise Texture - Keep this or optional? Cheap so maybe keep, but let's hide it too to be safe */}
