@@ -2,63 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { WaitlistForm } from './WaitlistForm';
 import { ProjectBackground } from './ProjectBackground';
-import { Ghost, Terminal, Activity, Clapperboard, BadgeCheck, ArrowRight } from 'lucide-react';
-
-interface Project {
-    title: string;
-    hook: string; // "The Hook" logic
-    link?: string;
-    tags: string[];
-    primaryColor: string;
-    secondaryColor: string;
-    logo?: string; // Path to image or URL
-    logoIsExternal?: boolean; // If true, treat as full URL
-    icon: React.ElementType; // Lucide icon fallback
-    isWaitlist?: boolean;
-}
-
-const projects: Project[] = [
-    {
-        title: "Say Play",
-        hook: "Orchestrates autonomous video production agents to compile raw text into dynamic Remotion code, bridging high-level intent with pixel-perfect execution via LangGraph and Python.",
-        tags: ["Remotion", "Video AI", "Tool"],
-        isWaitlist: true,
-        primaryColor: "#4ade80", // Terminal Green
-        secondaryColor: "#60a5fa", // Process Blue
-        logo: "/images/say-play-logo.png",
-        icon: Clapperboard,
-    },
-    {
-        title: "ProCode",
-        hook: "Orchestrates an AI-powered pipeline to ingest clinical notes and generate high-precision ICD-10/CPT code predictions. Leverages a FastAPI backend with a custom pgvector-based RAG architecture.",
-        link: "https://procode.health",
-        tags: ["Healthcare", "RAG", "SaaS"],
-        primaryColor: "#D62566", // Brand Pink
-        secondaryColor: "#2563EB", // Medical Blue
-        logo: "/images/procode-logo.png",
-        icon: Activity,
-    },
-    {
-        title: "Ghost Writer",
-        hook: "Engineers a serverless P2P social deduction arena where players deploy AI agents to deceive human opponents. Leverages PeerJS for zero-backend WebRTC synchronization and orchestrates client-side LLMs.",
-        link: "https://playghostwriter.online",
-        tags: ["Game Dev", "Agents", "Realtime"],
-        primaryColor: "#4ade80", // Terminal Green
-        secondaryColor: "#06b6d4", // Cyan-500
-        logo: "/images/ghost-writer-logo.png",
-        icon: Ghost,
-    },
-    {
-        title: "Autograph",
-        hook: "The 'Blue Check' for human creativity. A blockchain-based provenance protocol that allows artists to cryptographically sign their work, distinguishing human effort from AI-generated noise.",
-        link: "https://autograph.art",
-        tags: ["Blockchain", "Web3", "Provenance"],
-        primaryColor: "#ffffff", // Pure White
-        secondaryColor: "#f59e0b", // Amber/Gold
-        logo: "/images/autograph-logo.png",
-        icon: BadgeCheck,
-    }
-];
+import { ArrowRight } from 'lucide-react';
+import { PROJECTS, type Project } from '../data/projects';
 
 const Card = ({ project }: { project: Project }) => {
     const divRef = React.useRef<HTMLDivElement>(null);
@@ -90,6 +35,7 @@ const Card = ({ project }: { project: Project }) => {
         setOpacity(0);
     };
 
+    // Assuming project.icon is still a React.ElementType from the imported Project type
     const Icon = project.icon;
 
     return (
@@ -167,7 +113,7 @@ const Card = ({ project }: { project: Project }) => {
             {/* Content Bottom */}
             <div className="relative z-10 mt-auto">
                 {project.isWaitlist ? (
-                    <WaitlistForm product={project.title} />
+                    <WaitlistForm product={project.title} customColor={project.primaryColor} />
                 ) : (
                     project.link && (
                         <a
@@ -187,6 +133,9 @@ const Card = ({ project }: { project: Project }) => {
 };
 
 export const BentoGrid = () => {
+    // Filter featured projects
+    const featuredProjects = PROJECTS.filter(p => p.featured).slice(0, 4);
+
     return (
         <section id="projects" className="relative w-full py-24 overflow-hidden">
             {/* Unique Background for this section */}
@@ -210,7 +159,7 @@ export const BentoGrid = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-fr">
-                    {projects.map((project, idx) => (
+                    {featuredProjects.map((project, idx) => (
                         <Card key={idx} project={project} />
                     ))}
                 </div>

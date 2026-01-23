@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ErrorHero } from '../components/ErrorHero';
+
+// Explicitly prevent search indexing for 404 page
+const title = "404 - Page Not Found | Cody Maughan";
+const description = "The page you are looking for does not exist.";
+---
+
+<Layout title={title} description={description}>
+    <main>
+        <ErrorHero 
+            client:load 
+            code="404" 
+            title="Page Not Found" 
+            description="I'm busy building the future of Agentic AI, so this page might still be in the backlog. Or maybe it just doesn't exist." 
+        />
+    </main>
+</Layout>

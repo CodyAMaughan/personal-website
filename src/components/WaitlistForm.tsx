@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-export const WaitlistForm = ({ product = "General" }: { product?: string }) => {
+export const WaitlistForm = ({ product = "General", customColor }: { product?: string; customColor?: string }) => {
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
@@ -51,7 +51,10 @@ export const WaitlistForm = ({ product = "General" }: { product?: string }) => {
                         <button
                             type="submit"
                             disabled={status === 'submitting'}
-                            className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                            className="text-white px-5 py-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap hover:brightness-110"
+                            style={{
+                                backgroundColor: customColor || undefined,
+                            }}
                         >
                             {status === 'submitting' ? '...' : 'Join Waitlist'}
                         </button>
