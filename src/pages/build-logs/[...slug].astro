@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('build-logs');
+	return posts.map((post) => ({
+		params: { slug: post.slug },
+		props: post,
+	}));
+}
+
+const post = Astro.props;
+const { Content } = await post.render();
+---
+
+<Layout title={`${post.data.title} | Cody Maughan`}>
+	<main class="max-w-3xl mx-auto px-6 py-20 animation-fade-in">
+        <a href="/#blog" class="text-primary hover:text-primary-hover mb-8 inline-flex items-center gap-2 font-medium transition-colors">
+            <span>←</span> Back to Build Logs
+        </a>
+        
+        <article class="prose prose-invert prose-lg prose-headings:text-white prose-p:text-text-muted prose-a:text-primary hover:prose-a:text-primary-hover prose-strong:text-white max-w-none prose-img:rounded-xl">
+            <header class="mb-10 not-prose border-b border-surface-highlight pb-8">
+                <h1 class="text-3xl md:text-5xl font-bold text-white mb-6 leading-[1.1]">{post.data.title}</h1>
+                <div class="flex items-center gap-4 text-sm">
+                    <div class="px-3 py-1 rounded-full bg-surface-highlight text-text-muted font-mono">
+                        {post.data.pubDate}
+                    </div>
+                </div>
+            </header>
+            
+            <Content />
+        </article>
+	</main>
+</Layout>

@@ -1,0 +1,51 @@
+---
+import '../styles/global.css';
+import { theme } from '../config/theme';
+
+interface Props {
+	title: string;
+    description?: string;
+}
+
+const { title, description = "Cody Maughan - Technical Founder & Product Engineer" } = Astro.props;
+
+const cssVariables = Object.entries(theme.colors).map(([key, value]) => {
+    const kebabKey = key.replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+    return `--color-${kebabKey}: ${value};`;
+}).join(' ');
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+        
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+        
+		<title>{title}</title>
+	</head>
+	<body style={cssVariables} class="relative min-h-screen">
+        <!-- Subtle Ambient Background -->
+		<div class="fixed inset-0 -z-10 h-full w-full bg-background">
+            <div class="absolute top-0 z-[-2] h-screen w-screen bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))]"></div>
+        </div>
+		<slot />
+        
+        <footer class="py-10 text-center text-text-muted text-sm border-t border-surface-highlight mt-20">
+            <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p>&copy; {new Date().getFullYear()} Cody Maughan. All rights reserved.</p>
+                <div class="flex gap-6">
+                    <a href="https://github.com" target="_blank" class="hover:text-primary transition-colors">GitHub</a>
+                    <a href="https://linkedin.com" target="_blank" class="hover:text-primary transition-colors">LinkedIn</a>
+                </div>
+            </div>
+        </footer>
+	</body>
+</html>

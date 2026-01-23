@@ -1,0 +1,66 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About Me | Cody Maughan">
+    <main class="max-w-3xl mx-auto px-6 py-20 animation-fade-in">
+        <header class="mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">About Me</h1>
+            <p class="text-xl text-text-muted leading-relaxed">
+                Builder. Data Scientist. Believer.
+            </p>
+        </header>
+
+        <section class="mb-20">
+            <h2 class="text-2xl font-semibold text-white mb-6">The Journey</h2>
+            <div class="space-y-6 text-lg text-text-muted leading-relaxed">
+                <p>
+                    I started as a Data Scientist, crunching numbers and building models. But I realized I didn't just want to analyze data—I wanted to build products with it.
+                </p>
+                <p>
+                    Currently, I work as a Data Science Manager at Mastercard, where I lead teams in deploying large-scale AI. On the side, I am a serial builder, obsessing over Agentic AI workflows, full-stack development, and game design.
+                </p>
+                <p>
+                    I thrive in the messy middle of '0 to 1' product development. I believe the best software feels like magic. It should be intuitive, fast, and empowering. That's why I'm focusing heavily on "Agentic AI"—tools that don't just chat, but <em>do</em>.
+                </p>
+            </div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-2xl font-semibold text-white mb-8 border-b border-surface-highlight pb-4">Career Path</h2>
+            <div class="space-y-12 border-l-2 border-surface-highlight pl-8 ml-3 relative">
+                 <div class="relative group">
+                    <span class="absolute -left-[41px] top-1.5 h-5 w-5 rounded-full bg-primary border-4 border-background group-hover:scale-110 transition-transform"></span>
+                    <h3 class="text-xl font-bold text-white group-hover:text-primary transition-colors">Data Science Manager</h3>
+                    <div class="text-primary font-medium mb-1">Mastercard • Present</div>
+                    <p class="text-text-muted">Leading teams to deploy large-scale AI solutions in the enterprise.</p>
+                </div>
+                <div class="relative group">
+                     <span class="absolute -left-[41px] top-1.5 h-5 w-5 rounded-full bg-surface-highlight border-4 border-background group-hover:bg-text-muted transition-colors"></span>
+                    <h3 class="text-xl font-bold text-white">Senior Data Scientist</h3>
+                    <div class="text-text-muted font-medium mb-1">Previous Experience</div>
+                    <p class="text-text-muted">Developed predictive models, data pipelines, and analytical tools.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-semibold text-white mb-6 border-b border-surface-highlight pb-4">Faith & Values</h2>
+            <div class="bg-surface-highlight/30 p-8 rounded-2xl border border-surface-highlight hover:border-surface-highlight/80 transition-colors">
+                <p class="text-text-muted italic leading-relaxed mb-4">
+                    "My faith is a core part of who I am. It grounds my work in purpose, integrity, and service to others. I believe that technology should elevate the human spirit."
+                </p>
+                <div class="text-sm text-text-muted font-medium opacity-60">
+                    More specific thoughts on this coming soon.
+                </div>
+            </div>
+        </section>
+
+        <div class="mt-20 pt-10 border-t border-surface-highlight flex justify-between items-center text-sm">
+             <a href="/" class="text-primary hover:text-primary-hover font-medium transition-colors flex items-center gap-2">
+                <span>←</span> Back to Home
+            </a>
+            <span class="text-text-muted">Based in SLC, Utah</span>
+        </div>
+    </main>
+</Layout>

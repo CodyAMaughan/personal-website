@@ -1,0 +1,23 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Hero } from '../components/Hero';
+import { BentoGrid } from '../components/BentoGrid';
+import { TechStack } from '../components/TechStack';
+import BuildLogs from '../components/BuildLogs.astro';
+---
+
+<Layout title="Cody Maughan | Technical Founder & Product Engineer">
+	<main class="overflow-x-hidden selection:bg-primary selection:text-white">
+        <!-- Hero Section -->
+        <Hero client:load />
+        
+        <!-- Projects Section -->
+        <BentoGrid client:visible />
+        
+        <!-- Tech Stack Marquee -->
+        <TechStack client:load />
+        
+        <!-- Build Logs (Blog) -->
+        <BuildLogs />
+	</main>
+</Layout>
