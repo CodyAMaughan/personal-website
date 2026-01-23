@@ -13,7 +13,7 @@ export default config({
         buildLogs: collection({
             label: 'Build Logs',
             slugField: 'title',
-            path: 'src/content/build-logs/*',
+            path: 'src/content/build-logs/*/index',
             format: { contentField: 'content' },
             schema: {
                 title: fields.slug({ name: { label: 'Title' } }),
@@ -24,7 +24,7 @@ export default config({
                     itemLabel: props => props.value
                 }),
                 featured: fields.checkbox({ label: 'Featured', defaultValue: false }),
-                content: fields.mdx({
+                content: fields.markdoc({
                     label: 'Content',
                     options: {
                         image: {

@@ -25,7 +25,7 @@ const posts = [...featured, ...others];
             <div class="space-y-10">
                 {posts.map((post) => (
                     <article class="group cursor-pointer border-b border-surface-highlight pb-10 last:border-0 hover:border-surface-highlight/80 transition-colors">
-                        <a href={`/build-logs/${post.slug}`} class="block">
+                        <a href={`/build-logs/${post.id.replace('/index', '')}`} class="block">
                             <div class="flex flex-col md:flex-row md:justify-between md:items-baseline mb-3 gap-2">
                                 <div class="flex items-center gap-3">
                                     <h3 class="text-2xl font-semibold text-white group-hover:text-primary transition-colors">

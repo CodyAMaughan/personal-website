@@ -8,9 +8,11 @@ import netlify from '@astrojs/netlify';
 
 import keystatic from '@keystatic/astro';
 
+import markdoc from '@astrojs/markdoc';
+
 // https://astro.build/config
 export default defineConfig({
-  integrations: [react(), keystatic()],
+  integrations: [react(), keystatic(), markdoc()],
 
   vite: {
     plugins: [tailwindcss()]
