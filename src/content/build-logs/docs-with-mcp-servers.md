@@ -1,6 +1,6 @@
 ---
 title: "Fixing LLM Hallucinations with MCP Servers"
-pubDate: "January 16, 2026"
+pubDate: "2026-01-16"
 tags: ["AI", "MCP", "LangChain", "Cursor/Windsurf", "Antigravity", "Say Play"]
 description: "How I used the Model Context Protocol to inject fresh documentation into my Agentic IDE."
 ---

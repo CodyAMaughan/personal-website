@@ -5,7 +5,7 @@ const buildLogs = defineCollection({
     schema: z.object({
         title: z.string(),
         description: z.string(),
-        pubDate: z.string(), // Using string for simple date handling or coerce.date()
+        pubDate: z.coerce.date(),
         featured: z.boolean().optional(),
     }),
 });

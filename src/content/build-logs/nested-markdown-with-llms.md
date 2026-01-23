@@ -1,6 +1,6 @@
 ---
 title: "Workflow: Generating Nested Markdown Specs with LLMs"
-pubDate: "January 22, 2026"
+pubDate: "2026-01-22"
 tags: ["Workflow", "Prompt Engineering", "Gemini", "Specs"]
 description: "A simple prompt injection to prevent LLMs from breaking markdown rendering when generating documentation."
 ---

@@ -1,6 +1,6 @@
 ---
 title: "The Physics of Glass: Why Your Dark Mode Blur is Broken"
-pubDate: "January 23, 2026"
+pubDate: "2026-01-23"
 tags: ["CSS", "Design System", "Canvas", "Frontend"]
 description: "Why 'backdrop-blur' destroys thin lines in dark mode, and how to fix it by faking the physics of light."
 ---

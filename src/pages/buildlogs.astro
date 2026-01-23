@@ -37,7 +37,7 @@ const posts = [...featured, ...others];
                                         </span>
                                     )}
                                 </div>
-                                <span class="text-sm font-mono text-text-muted shrink-0">{post.data.pubDate}</span>
+                                <span class="text-sm font-mono text-text-muted shrink-0">{post.data.pubDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                             </div>
                             <p class="text-base text-text-muted leading-relaxed max-w-3xl group-hover:text-text transition-colors">
                                 {post.data.description}

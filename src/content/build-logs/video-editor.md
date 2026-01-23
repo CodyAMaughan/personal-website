@@ -1,6 +1,6 @@
 ---
 title: "Say Play: Building an AI Director for Video"
-pubDate: "January 20, 2026"
+pubDate: "2026-01-20"
 tags: ["AI", "LangGraph", "Remotion", "Generative UI", "Agents", "Say Play"]
 description: "How I built an agentic video editor that writes React code instead of just generating pixels."
 featured: true

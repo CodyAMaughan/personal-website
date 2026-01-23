@@ -1,6 +1,6 @@
 ---
 title: "GhostWriter: Engineering the Turing Test for Party Games"
-pubDate: "January 15, 2026"
+pubDate: "2026-01-15"
 tags: ["Game Dev", "WebSockets", "Prompt Engineering", "Social AI"]
 description: "How I built a multiplayer social deduction game where AI agents try to blend in with humans."
 ---
