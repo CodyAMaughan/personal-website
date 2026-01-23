@@ -32,15 +32,10 @@ strategistImage: /images/strategy-endurance-abstract.png
 foundationTitle: 04. The Foundation
 foundationContent: |
   This is the most important part. I am a husband and a father to **three** children.
-  
+
   Life hasn't always been easy. We lost one of our sons when he was just 6 months old. It was a tragedy that could have broken me.
-  
+
   But I am grounded by something stronger than myself. I am a member of **The Church of Jesus Christ of Latter-day Saints**. My relationship with Jesus Christ is what pulled me through that darkness. Without my faith, I wouldn't have the resilience or the perspective I have today. It is the bedrock of everything I do.
-  
-  <p class="pt-4">
-    <a href="https://www.churchofjesuschrist.org/?lang=eng" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1 group">
-        Learn more about my faith 
-        <span class="transform group-hover:translate-x-1 transition-transform">→</span>
-    </a>
-  </p>
+
+  [Learn more about my faith →](https://www.churchofjesuschrist.org/?lang=eng)
 foundationImage: /images/foundation-light-abstract.png

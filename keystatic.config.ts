@@ -72,7 +72,9 @@ export default config({
 
                 // Section 1: Origin Story
                 originTitle: fields.text({ label: 'Section 1 Title' }),
-                originContent: fields.mdx({ label: 'Section 1 Content' }),
+                originContent: fields.markdoc.inline({
+                    label: 'Section 1 Content',
+                }),
                 originImage: fields.image({
                     label: 'Section 1 Image',
                     directory: 'public/images',
@@ -81,7 +83,9 @@ export default config({
 
                 // Section 2: The Builder
                 builderTitle: fields.text({ label: 'Section 2 Title' }),
-                builderContent: fields.mdx({ label: 'Section 2 Content' }),
+                builderContent: fields.markdoc.inline({
+                    label: 'Section 2 Content',
+                }),
                 builderImage: fields.image({
                     label: 'Section 2 Image',
                     directory: 'public/images',
@@ -90,7 +94,9 @@ export default config({
 
                 // Section 3: The Strategist
                 strategistTitle: fields.text({ label: 'Section 3 Title' }),
-                strategistContent: fields.mdx({ label: 'Section 3 Content' }),
+                strategistContent: fields.markdoc.inline({
+                    label: 'Section 3 Content',
+                }),
                 strategistImage: fields.image({
                     label: 'Section 3 Image',
                     directory: 'public/images',
@@ -99,7 +105,9 @@ export default config({
 
                 // Section 4: The Foundation
                 foundationTitle: fields.text({ label: 'Section 4 Title' }),
-                foundationContent: fields.mdx({ label: 'Section 4 Content' }),
+                foundationContent: fields.markdoc.inline({
+                    label: 'Section 4 Content',
+                }),
                 foundationImage: fields.image({
                     label: 'Section 4 Image',
                     directory: 'public/images',

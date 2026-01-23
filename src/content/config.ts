@@ -36,19 +36,19 @@ const aboutPage = defineCollection({
         heroImage: z.string().optional(),
 
         originTitle: z.string(),
-        originContent: z.string(),
+        originContent: z.any(),
         originImage: z.string().optional(),
 
         builderTitle: z.string(),
-        builderContent: z.string(),
+        builderContent: z.any(),
         builderImage: z.string().optional(),
 
         strategistTitle: z.string(),
-        strategistContent: z.string(),
+        strategistContent: z.any(),
         strategistImage: z.string().optional(),
 
         foundationTitle: z.string(),
-        foundationContent: z.string(),
+        foundationContent: z.any(),
         foundationImage: z.string().optional(),
     })
 });
