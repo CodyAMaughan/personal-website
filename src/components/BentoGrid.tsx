@@ -1,46 +1,62 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { WaitlistForm } from './WaitlistForm';
+import { ProjectBackground } from './ProjectBackground';
+import { Ghost, Terminal, Activity, Clapperboard, BadgeCheck, ArrowRight } from 'lucide-react';
 
 interface Project {
     title: string;
-    description: string;
+    hook: string; // "The Hook" logic
     link?: string;
     tags: string[];
-    className?: string;
+    primaryColor: string;
+    secondaryColor: string;
+    logo?: string; // Path to image or URL
+    logoIsExternal?: boolean; // If true, treat as full URL
+    icon: React.ElementType; // Lucide icon fallback
     isWaitlist?: boolean;
-    isGraveyard?: boolean;
 }
 
-const featuredProjects: Project[] = [
+const projects: Project[] = [
     {
-        title: "ProCode",
-        description: "Review automated medical coding with confidence. A SaaS for enterprise healthcare data quality.",
-        link: "https://procode.health",
-        tags: ["SaaS", "Healthcare", "AI"],
-        className: "md:col-span-2 bg-gradient-to-br from-surface-highlight to-surface",
-    },
-    {
-        title: "GhostWriter",
-        description: "A peer-to-peer party game where AI Agents play along. Who can fool the humans?",
-        link: "https://playghostwriter.online",
-        tags: ["Game Dev", "Agents", "Realtime"],
-        className: "md:col-span-1",
-    },
-    {
-        title: "AutoReel",
-        description: "An Agentic AI video editor built with Remotion. Currently in private beta.",
+        title: "Say Play",
+        hook: "Orchestrates autonomous video production agents to compile raw text into dynamic Remotion code, bridging high-level intent with pixel-perfect execution via LangGraph and Python.",
         tags: ["Remotion", "Video AI", "Tool"],
         isWaitlist: true,
-        className: "md:col-span-2 md:row-span-1 border-primary/20",
+        primaryColor: "#4ade80", // Terminal Green
+        secondaryColor: "#60a5fa", // Process Blue
+        logo: "/images/say-play-logo.png",
+        icon: Clapperboard,
     },
     {
-        title: "Autograph (Bunked)",
-        description: "Blockchain media authentication platform. No longer active.",
-        link: "https://bunked.ai",
-        tags: ["Blockchain", "Web3", "Graveyard"],
-        isGraveyard: true,
-        className: "md:col-span-1 opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0",
+        title: "ProCode",
+        hook: "Orchestrates an AI-powered pipeline to ingest clinical notes and generate high-precision ICD-10/CPT code predictions. Leverages a FastAPI backend with a custom pgvector-based RAG architecture.",
+        link: "https://procode.health",
+        tags: ["Healthcare", "RAG", "SaaS"],
+        primaryColor: "#D62566", // Brand Pink
+        secondaryColor: "#2563EB", // Medical Blue
+        logo: "/images/procode-logo.png",
+        icon: Activity,
+    },
+    {
+        title: "Ghost Writer",
+        hook: "Engineers a serverless P2P social deduction arena where players deploy AI agents to deceive human opponents. Leverages PeerJS for zero-backend WebRTC synchronization and orchestrates client-side LLMs.",
+        link: "https://playghostwriter.online",
+        tags: ["Game Dev", "Agents", "Realtime"],
+        primaryColor: "#4ade80", // Terminal Green
+        secondaryColor: "#06b6d4", // Cyan-500
+        logo: "/images/ghost-writer-logo.png",
+        icon: Ghost,
+    },
+    {
+        title: "Autograph",
+        hook: "The 'Blue Check' for human creativity. A blockchain-based provenance protocol that allows artists to cryptographically sign their work, distinguishing human effort from AI-generated noise.",
+        link: "https://autograph.art",
+        tags: ["Blockchain", "Web3", "Provenance"],
+        primaryColor: "#ffffff", // Pure White
+        secondaryColor: "#f59e0b", // Amber/Gold
+        logo: "/images/autograph-logo.png",
+        icon: BadgeCheck,
     }
 ];
 
@@ -52,10 +68,7 @@ const Card = ({ project }: { project: Project }) => {
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!divRef.current) return;
-
-        const div = divRef.current;
-        const rect = div.getBoundingClientRect();
-
+        const rect = divRef.current.getBoundingClientRect();
         setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     };
 
@@ -77,6 +90,8 @@ const Card = ({ project }: { project: Project }) => {
         setOpacity(0);
     };
 
+    const Icon = project.icon;
+
     return (
         <motion.div
             ref={divRef}
@@ -90,49 +105,67 @@ const Card = ({ project }: { project: Project }) => {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             className={`
-                group relative p-8 rounded-[1.25rem] overflow-hidden flex flex-col justify-between
-                bg-surface/50 backdrop-blur-md border border-white/10
-                ${project.className || "md:col-span-1"}
-                transition-all duration-300
+                group relative p-8 h-full flex flex-col justify-between
+                backdrop-blur-xl
+                border border-white/5
+                overflow-hidden
+                rounded-[1.5rem]
+                transition-all duration-500
+                shadow-2xl
             `}
+            style={{
+                // Base background mixing surface with primary color - Increased opacity to 0.25 (25)
+                background: `linear-gradient(145deg, ${project.primaryColor}25, rgba(10, 10, 10, 0.4) 60%)`,
+                borderColor: opacity > 0 ? `${project.primaryColor}50` : 'rgba(255,255,255,0.05)',
+                boxShadow: opacity > 0 ? `0 0 30px -10px ${project.secondaryColor}30` : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+            }}
         >
             {/* Spotlight Border Effect */}
             <div
                 className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                 style={{
                     opacity,
-                    background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(255,255,255,0.15), transparent 40%)`,
+                    background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, ${project.secondaryColor}20, transparent 40%)`,
                 }}
             />
 
-            {/* Inner Content Glow */}
-            <div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{
-                    opacity,
-                    background: `radial-gradient(800px circle at ${position.x}px ${position.y}px, rgba(255,255,255,0.03), transparent 40%)`,
-                }}
-            />
-
-            <div>
-                <div className="flex flex-wrap gap-2 mb-4">
-                    {project.tags.map(tag => (
-                        <span key={tag} className="text-xs font-medium px-2 py-1 rounded-full bg-white/5 border border-white/5 text-text-muted">
-                            {tag}
-                        </span>
-                    ))}
+            {/* Content Top */}
+            <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="relative w-12 h-12 flex items-center justify-center rounded-xl bg-surface border border-white/10 overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-300">
+                            {project.logo ? (
+                                <img
+                                    src={project.logo}
+                                    alt={`${project.title} Logo`}
+                                    className={`w-full h-full object-cover ${project.logoIsExternal ? 'p-0' : 'p-0'}`}
+                                />
+                            ) : (
+                                <Icon className="w-6 h-6" style={{ color: project.primaryColor }} />
+                            )}
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300 transition-all">
+                                {project.title}
+                            </h3>
+                            <div className="flex gap-2 mt-1">
+                                {project.tags.map(tag => (
+                                    <span key={tag} className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-white/5 text-text-muted border border-white/5">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <h3 className={`text-2xl font-bold mb-2 ${project.isGraveyard ? 'text-text-muted decoration-line-through' : 'text-white'}`}>
-                    {project.title}
-                </h3>
-
-                <p className="text-text-muted mb-6 leading-relaxed">
-                    {project.description}
+                <p className="text-text-muted text-sm leading-relaxed mb-8 border-l-2 pl-4" style={{ borderColor: `${project.secondaryColor}40` }}>
+                    {project.hook}
                 </p>
             </div>
 
-            <div className="mt-auto">
+            {/* Content Bottom */}
+            <div className="relative z-10 mt-auto">
                 {project.isWaitlist ? (
                     <WaitlistForm product={project.title} />
                 ) : (
@@ -141,9 +174,10 @@ const Card = ({ project }: { project: Project }) => {
                             href={project.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center text-primary font-medium hover:text-primary-hover group-hover:translate-x-1 transition-transform"
+                            className="inline-flex items-center gap-2 text-sm font-bold transition-transform group-hover:translate-x-1"
+                            style={{ color: project.primaryColor }}
                         >
-                            Visit Project -&gt;
+                            Visit Project <ArrowRight className="w-4 h-4" />
                         </a>
                     )
                 )}
@@ -154,12 +188,39 @@ const Card = ({ project }: { project: Project }) => {
 
 export const BentoGrid = () => {
     return (
-        <section id="projects" className="max-w-6xl mx-auto px-6 py-20">
-            <h2 className="text-3xl font-bold text-white mb-12">Selected Work</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr">
-                {featuredProjects.map((project, idx) => (
-                    <Card key={idx} project={project} />
-                ))}
+        <section id="projects" className="relative w-full py-24 overflow-hidden">
+            {/* Unique Background for this section */}
+            <ProjectBackground />
+
+            <div className="relative z-10 max-w-6xl mx-auto px-6">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                    <div>
+                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                            Selected Work
+                        </h2>
+                        <p className="text-text-muted max-w-lg text-lg">
+                            A showcase of technical products bridging AI, Blockchain, and Healthcare.
+                        </p>
+                    </div>
+
+                    <a href="/projects" className="hidden md:flex items-center gap-2 text-text-muted hover:text-white transition-colors group">
+                        See all projects
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </a>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-fr">
+                    {projects.map((project, idx) => (
+                        <Card key={idx} project={project} />
+                    ))}
+                </div>
+
+                <div className="mt-12 md:hidden flex justify-center">
+                    <a href="/projects" className="flex items-center gap-2 text-text-muted hover:text-white transition-colors">
+                        See all projects
+                        <ArrowRight className="w-4 h-4" />
+                    </a>
+                </div>
             </div>
         </section>
     );
