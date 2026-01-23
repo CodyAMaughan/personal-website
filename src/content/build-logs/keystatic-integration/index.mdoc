@@ -1,0 +1,114 @@
+---
+title: 'Keystatic: The CMS That Finally Clicked'
+description: >-
+  How I wired up a headless CMS to my Astro site after debugging path mismatches
+  and render functions.
+pubDate: 2026-01-23
+tags:
+  - Keystatic
+  - Astro
+  - CMS
+  - Content Layer
+  - Markdoc
+featured: false
+---
+I've been on a mission to make my personal site "client-ready"—meaning someone other than me could update content without touching code. The obvious answer was a headless CMS. After researching options, I landed on **Keystatic**.
+
+The pitch was compelling: a Git-backed CMS with a slick admin UI, local-first development, and first-class Astro support. A few hours later, I finally got it working. Here's what I learned.
+
+## The Vision
+
+I wanted three things:
+
+1. **A GUI for content editing** — No more raw YAML or Markdown commits.
+1. **Type-safe schemas** — Zod validation in Astro's Content Layer.
+1. **Co-located assets** — Each blog post lives in its own folder with its images.
+
+Keystatic promised all of this out of the box. The reality required some debugging.
+
+## The Setup
+
+Installation was smooth. `npx create-keystatic` scaffolded the config, and the admin UI appeared at `/keystatic`. I defined my collections:
+
+```typescript
+buildLogs: collection({
+    label: 'Build Logs',
+    slugField: 'title',
+    path: 'src/content/build-logs/*',
+    format: { contentField: 'content' },
+    schema: {
+        title: fields.slug({ name: { label: 'Title' } }),
+        pubDate: fields.date({ label: 'Publication Date' }),
+        content: fields.markdoc({ label: 'Content' }),
+    },
+}),
+```
+
+The admin UI rendered beautifully. But the posts weren't showing up.
+
+## The First Bug: Path Mismatch
+
+Keystatic's default path pattern (`src/content/build-logs/*`) expects flat files like `video-editor.mdoc`. But I'd organized my content in subdirectories for co-located assets:
+
+```
+src/content/build-logs/
+├── video-editor/
+│   └── index.mdoc
+├── ghost-writer-overview/
+│   └── index.mdoc
+```
+
+**The fix:** Append `/index` to the path configuration:
+
+```typescript
+path: 'src/content/build-logs/*/index',
+```
+
+Suddenly, Keystatic found all my posts.
+
+## The Second Bug: `post.render is not a function`
+
+With Keystatic working, I navigated to a post page and got slapped with a runtime error:
+
+```
+TypeError: post.render is not a function
+```
+
+This one was subtle. I was using Astro 5's new **Content Layer API** with the `glob` loader. In Astro 4, you called `post.render()` directly. In Astro 5, you import and call `render(post)` from `astro:content`:
+
+```astro
+// Before (Astro 4 style - broken)
+const { Content } = await post.render();
+
+// After (Astro 5 Content Layer API)
+import { getCollection, render } from 'astro:content';
+const { Content } = await render(post);
+```
+
+A one-line fix, but it took an hour to figure out.
+
+## The Third Bug: Markdoc Field Migration
+
+Keystatic recently deprecated `fields.document()` in favor of `fields.markdoc()`. My About page content fields were still using the old API, causing the form to render empty.
+
+Migrating was straightforward—swap `document` for `markdoc.inline`—but the real lesson was: **read the changelogs**.
+
+## Why Keystatic Over Alternatives?
+
+After this adventure, I'm still bullish on Keystatic:
+
+- **Git-backed** — Every content change is a commit. No database to manage.
+- **Local-first** — Edit content offline, preview instantly.
+- **GitHub storage** — Production mode commits directly to the repo. Automated deployments handle the rest.
+- **Markdoc support** — Rich text with custom components, not just plain Markdown.
+
+For a solo developer who wants CMS convenience without vendor lock-in, Keystatic hits the sweet spot.
+
+## Lessons Learned
+
+1. **Path patterns matter.** Keystatic's `path` must exactly match your file structure.
+1. **Astro's Content Layer API is different.** If you're on Astro 5, use `render(post)` not `post.render()`.
+1. **Check deprecation warnings.** `fields.document` → `fields.markdoc` caught me off guard.
+1. **Subdirectories are worth it.** Co-locating assets with content makes cleanup trivial.
+
+The site now has a proper CMS. I can hand someone the `/keystatic` URL and they can publish posts without ever opening a code editor. Mission accomplished.

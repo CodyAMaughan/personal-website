@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="128" fill="#09090b"/> <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
-        font-family="monospace" font-weight="bold" font-size="280" fill="#ffffff">
-    C_
+  <rect width="512" height="512" rx="128" fill="#0a0a0a"/>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
+        font-family="JetBrains Mono, monospace" font-weight="bold" font-size="280">
+    <tspan fill="#ffffff">C</tspan><tspan fill="#4ade80">_<animate attributeName="opacity" values="1;0;1" dur="1.2s" repeatCount="indefinite" /></tspan>
   </text>
 </svg>
