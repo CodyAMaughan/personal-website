@@ -66,8 +66,8 @@ export default config({
                 heroSubheadline: fields.text({ label: 'Hero Subheadline' }),
                 heroImage: fields.image({
                     label: 'Hero Image',
-                    directory: 'public/images/about',
-                    publicPath: '/images/about/',
+                    directory: 'public/images',
+                    publicPath: '/images/',
                 }),
 
                 // Section 1: Origin Story
@@ -75,8 +75,8 @@ export default config({
                 originContent: fields.mdx({ label: 'Section 1 Content' }),
                 originImage: fields.image({
                     label: 'Section 1 Image',
-                    directory: 'public/images/about',
-                    publicPath: '/images/about/',
+                    directory: 'public/images',
+                    publicPath: '/images/',
                 }),
 
                 // Section 2: The Builder
@@ -84,8 +84,8 @@ export default config({
                 builderContent: fields.mdx({ label: 'Section 2 Content' }),
                 builderImage: fields.image({
                     label: 'Section 2 Image',
-                    directory: 'public/images/about',
-                    publicPath: '/images/about/',
+                    directory: 'public/images',
+                    publicPath: '/images/',
                 }),
 
                 // Section 3: The Strategist
@@ -93,8 +93,8 @@ export default config({
                 strategistContent: fields.mdx({ label: 'Section 3 Content' }),
                 strategistImage: fields.image({
                     label: 'Section 3 Image',
-                    directory: 'public/images/about',
-                    publicPath: '/images/about/',
+                    directory: 'public/images',
+                    publicPath: '/images/',
                 }),
 
                 // Section 4: The Foundation
@@ -102,8 +102,8 @@ export default config({
                 foundationContent: fields.mdx({ label: 'Section 4 Content' }),
                 foundationImage: fields.image({
                     label: 'Section 4 Image',
-                    directory: 'public/images/about',
-                    publicPath: '/images/about/',
+                    directory: 'public/images',
+                    publicPath: '/images/',
                 }),
             }
         })
