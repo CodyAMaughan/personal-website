@@ -1,49 +1,60 @@
+// theme.ts
+
 // Palette Primitives
 const colors = {
-  obsidian: '#05050A', // Deepest black-blue
-  charcoal: '#0F1115', // Card background
+  // Backgrounds: Moving away from purple-tinted black to "Carbon" & "Gunmetal"
+  carbon: '#0a0a0a',     // Pure dark background
+  gunmetal: '#171717',   // Slightly lighter (Card background)
 
-  // Accents
-  cyan: '#00F0FF',     // Electric Cyan (Code/Logic)
-  violet: '#7000FF',   // Deep Violet (Creative)
-  magenta: '#FF003C',  // Hot Magenta (Action)
+  // Accents: The "Terminal" Spectrum
+  terminalGreen: '#4ade80', // Bright, readable modern green (Tailwind Green-400)
+  emerald: '#10b981',       // Deeper, stable green (for borders/secondary)
+  forest: '#064e3b',        // Very dark green (for subtle gradients)
+
+  // Secondary Accents (To support the green without fighting it)
+  electricBlue: '#3b82f6',  // Standard "Link" blue - sits well with green
+  amber: '#f59e0b',         // "Warning" yellow - great for "In Progress" tags
 
   // Neutrals
   white: '#FFFFFF',
-  gray200: '#E4E4E7',
-  gray400: '#A1A1AA',
-  gray600: '#52525B',
-  gray800: '#27272A',
-  gray900: '#18181B',
+  gray100: '#f5f5f5',
+  gray300: '#d4d4d4',
+  gray500: '#737373',
+  gray700: '#404040',
+  gray800: '#262626',
 };
 
 export const theme = {
   colors: {
-    background: colors.obsidian,
+    background: colors.carbon,
 
     // Surface & Glass
-    surface: 'rgba(255, 255, 255, 0.03)',
-    surfaceHighlight: 'rgba(255, 255, 255, 0.08)',
-    border: 'rgba(255, 255, 255, 0.1)',
+    // We use a slight green tint in the surface to mesh with the primary
+    surface: 'rgba(23, 23, 23, 0.6)',
+    surfaceHighlight: 'rgba(74, 222, 128, 0.05)', // Very faint green glow
+    border: colors.gray800,
+    borderHighlight: colors.forest, // Greenish border for active items
 
     // Brand
-    primary: colors.cyan,
-    primaryHover: '#33F3FF',
+    primary: colors.terminalGreen,
+    primaryHover: '#22c55e', // Slightly darker on hover
 
-    secondary: colors.violet,
-    accent: colors.magenta,
+    // Secondary is now a "support" color, not a competing bright color
+    secondary: colors.electricBlue,
+    accent: colors.amber, // Use sparingly for "Beta" or "New" badges
 
     // Text
     text: colors.white,
-    textMuted: colors.gray400,
+    textMuted: colors.gray500, // Tech grey
+    textCode: colors.terminalGreen, // Specific color for code snippets
   },
   fonts: {
     sans: '"Inter", sans-serif',
     mono: '"JetBrains Mono", monospace',
   },
   borderRadius: {
-    default: '0.75rem',
-    card: '1.25rem',
+    default: '0.5rem', // Tighter radius fits the "Terminal" look better
+    card: '0.75rem',
   }
 };
 
