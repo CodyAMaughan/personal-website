@@ -2,6 +2,16 @@
 import Layout from '../layouts/Layout.astro';
 import { HeroBackground } from '../components/HeroBackground';
 import { MusicBackground } from '../components/MusicBackground';
+import { getEntry } from 'astro:content';
+import { marked } from 'marked';
+
+const aboutPage = await getEntry('about', 'index');
+const { data } = aboutPage;
+
+const originContent = marked.parse(data.originContent ?? '');
+const builderContent = marked.parse(data.builderContent ?? '');
+const strategistContent = marked.parse(data.strategistContent ?? '');
+const foundationContent = marked.parse(data.foundationContent ?? '');
 ---
 
 <Layout title="About Me | Cody Maughan">
@@ -10,13 +20,13 @@ import { MusicBackground } from '../components/MusicBackground';
         <div class="relative min-h-[60vh] flex items-center justify-center py-20">
             <HeroBackground client:load />
             
-             <div class="w-full max-w-4xl mx-auto px-6 relative z-10">
+             <div class="w-full max-w-6xl mx-auto px-6 relative z-10">
                 <div class="relative p-8 md:p-12 rounded-card bg-surface/90 border border-surface-highlight/50 backdrop-blur-xl shadow-2xl animation-fade-in flex flex-col md:flex-row items-center gap-10">
                     <!-- Headshot -->
                      <div class="shrink-0 relative group">
                         <div class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
                         <img
-                            src="/images/cody-maughan-headshot.jpeg"
+                            src={data.heroImage}
                             alt="Cody Maughan"
                             class="relative h-40 w-40 md:h-56 md:w-56 rounded-full object-cover border-4 border-surface shadow-2xl"
                         />
@@ -24,10 +34,10 @@ import { MusicBackground } from '../components/MusicBackground';
 
                     <div class="text-center md:text-left">
                         <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-white">
-                            Beyond the Code
+                            {data.heroHeadline}
                         </h1>
                         <p class="text-xl md:text-2xl text-gray-200 leading-relaxed max-w-2xl mx-auto md:mx-0">
-                            Builder. Strategist. Father. Believer.
+                            {data.heroSubheadline}
                         </p>
                     </div>
                 </div>
@@ -37,92 +47,79 @@ import { MusicBackground } from '../components/MusicBackground';
             <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
         </div>
 
-        <main class="w-full">
-            <div class="max-w-4xl mx-auto px-6 pb-32 space-y-32">
-                
-                <!-- Section 1: The Origin Story -->
-                <section class="relative">
-                    <div class="absolute -left-20 top-0 w-1 h-32 bg-gradient-to-b from-primary/50 to-transparent hidden md:block"></div>
-                    <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-                        <span class="text-primary">01.</span> The Origin Story
-                    </h2>
-                    <div class="space-y-6 text-lg text-text-muted leading-relaxed">
-                        <p>
-                            I’ve always seen the world through numbers. From a young age, math wasn't just homework, it was a language that explained how things worked. That fascination led me to <strong class="text-white">Biological Engineering</strong>, where I was captivated by the idea of applying mathematical rigor to the messiness of biology.
-                        </p>
-                        <p>
-                            I chased that curiosity all the way to a PhD program in Bioengineering. But somewhere between the labs and the lectures, I realized my path was different. I left with my Master’s for personal reasons, but I didn't leave empty-handed.
-                        </p>
-                        <p>
-                            In grad school, I stumbled upon <strong class="text-white">Data Science</strong>. It was a revelation: using real-world data to solve real-world problems. It felt like a superpower. That discovery launched my career, eventually leading me to my current role at <strong class="text-white">Mastercard</strong>.
-                        </p>
+        <main class="w-full pb-32">
+            
+            <!-- Section 1: The Origin Story (Text Left, Image Right) -->
+            <section class="relative py-20 overflow-hidden">
+                <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div class="order-2 md:order-1 animate-on-scroll fade-in-left">
+                        <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                            <span class="text-primary">01.</span> {data.originTitle.replace('01. ', '')}
+                        </h2>
+                        <div class="space-y-6 text-lg text-text-muted leading-relaxed" set:html={originContent} />
                     </div>
-                </section>
+                    <div class="order-1 md:order-2 flex justify-center md:justify-end animate-on-scroll fade-in-right delay-200">
+                        <div class="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                             <div class="absolute inset-0 bg-primary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                             <img src={data.originImage} alt="Abstract Data Helix" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                <!-- Section 2: The Builder -->
-                <section class="relative group">
-                    <!-- Subtle background ambient light -->
-                    <div class="absolute -right-[20%] top-[10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[100px] pointer-events-none"></div>
-                    
-                    <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-                        <span class="text-secondary">02.</span> The Builder
-                    </h2>
-                    <div class="space-y-6 text-lg text-text-muted leading-relaxed relative z-10">
-                        <p>
-                            While I love the analytical rigor of data, my true passion is <em class="text-white italic">building</em>. I grew up loving video games, not just for the play, but for the creation. They were worlds where I could make things happen.
-                        </p>
-                        <p>
-                            Today, AI has replaced that gaming itch. It’s the ultimate sandbox. With modern AI, it’s not just about training models, it’s about imagination. It allows me to build real tools for the real world, like "Say Play", faster than I ever could in a game engine.
-                        </p>
-                        <p>
-                            Python has always been my home base for AI, but recently, I’ve been using AI to unlock frontend development. It’s bridging the gap, allowing me to become a true <strong class="text-white">full-stack builder</strong>, turning ideas into deployed reality at the speed of thought.
-                        </p>
+            <!-- Section 2: The Builder (Image Left, Text Right) -->
+            <section class="relative py-20 overflow-hidden bg-white/[0.02]">
+                <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                     <div class="order-1 flex justify-center md:justify-start animate-on-scroll fade-in-left">
+                        <div class="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                             <div class="absolute inset-0 bg-secondary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                             <img src={data.builderImage} alt="Building Tools Abstract" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                        </div>
                     </div>
-                </section>
+                    <div class="order-2 animate-on-scroll fade-in-right delay-200">
+                        <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                            <span class="text-secondary">02.</span> {data.builderTitle.replace('02. ', '')}
+                        </h2>
+                        <div class="space-y-6 text-lg text-text-muted leading-relaxed relative z-10" set:html={builderContent} />
+                    </div>
+                </div>
+            </section>
 
-                <!-- Section 3: The Strategist -->
-                <section class="relative">
-                     <div class="absolute -left-[20%] bottom-[10%] w-[500px] h-[500px] bg-accent/5 rounded-full blur-[100px] pointer-events-none"></div>
-                    <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-                        <span class="text-accent">03.</span> The Strategist
-                    </h2>
-                    <div class="space-y-6 text-lg text-text-muted leading-relaxed">
-                         <p>
-                            I like systems, rules, and the human element within them.
-                        </p>
-                        <p>
-                            Back in the day, that manifested as a 1st place win in the 9th-grade division at the <strong class="text-white">Utah State Chess Championship</strong>. (I promise I’m still humble about it).
-                        </p>
-                        <p>
-                            Nowadays, my obsession is board games, specifically social deduction games like <em class="text-white">Blood on the Clocktower</em>. It’s the perfect blend of logic, strategy, and human psychology. It keeps my mind sharp and my poker face sharper.
-                        </p>
+            <!-- Section 3: The Strategist (Text Left, Image Right) -->
+            <section class="relative py-20 overflow-hidden">
+                <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div class="order-2 md:order-1 animate-on-scroll fade-in-left">
+                         <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                            <span class="text-accent">03.</span> {data.strategistTitle.replace('03. ', '')}
+                        </h2>
+                        <div class="space-y-6 text-lg text-text-muted leading-relaxed" set:html={strategistContent} />
                     </div>
-                </section>
+                    <div class="order-1 md:order-2 flex justify-center md:justify-end animate-on-scroll fade-in-right delay-200">
+                        <div class="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                             <div class="absolute inset-0 bg-accent/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                             <img src={data.strategistImage} alt="Chess Strategy and Endurance" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                <!-- Section 4: The Foundation -->
-                <section class="relative">
-                    <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-                        <span class="text-white/60">04.</span> The Foundation
-                    </h2>
-                    <div class="space-y-6 text-lg text-text-muted leading-relaxed">
-                        <p>
-                            This is the most important part. I am a husband and a father to <strong class="text-white">three</strong> children.
-                        </p>
-                        <p>
-                            Life hasn't always been easy. We lost one of our sons when he was just 6 months old. It was a tragedy that could have broken me.
-                        </p>
-                        <p>
-                            But I am grounded by something stronger than myself. I am a member of <strong class="text-white">The Church of Jesus Christ of Latter-day Saints</strong>. My relationship with Jesus Christ is what pulled me through that darkness. Without my faith, I wouldn't have the resilience or the perspective I have today. It is the bedrock of everything I do.
-                        </p>
-                         <p class="pt-4">
-                            <a href="https://www.churchofjesuschrist.org/?lang=eng" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1 group">
-                                Learn more about my faith 
-                                <span class="transform group-hover:translate-x-1 transition-transform">→</span>
-                            </a>
-                        </p>
+            <!-- Section 4: The Foundation (Image Left, Text Right) -->
+            <section class="relative py-20 overflow-hidden bg-white/[0.02]">
+                <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div class="order-1 flex justify-center md:justify-start animate-on-scroll fade-in-left">
+                        <div class="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                             <div class="absolute inset-0 bg-yellow-500/10 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                             <img src={data.foundationImage} alt="Light and Foundation" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                        </div>
                     </div>
-                </section>
-            </div>
+                    <div class="order-2 animate-on-scroll fade-in-right delay-200">
+                        <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                            <span class="text-white/60">04.</span> {data.foundationTitle.replace('04. ', '')}
+                        </h2>
+                        <div class="space-y-6 text-lg text-text-muted leading-relaxed" set:html={foundationContent} />
+                    </div>
+                </div>
+            </section>
 
             <!-- Section 5: Music -->
             <section class="relative w-full py-40 min-h-[500px] flex items-center justify-center overflow-hidden">
@@ -132,7 +129,7 @@ import { MusicBackground } from '../components/MusicBackground';
                 </div>
                 
                 <div class="relative z-10 w-full max-w-4xl px-6">
-                    <div class="relative p-8 md:p-12 rounded-card bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl text-center">
+                    <div class="relative p-8 md:p-12 rounded-card bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl text-center animate-on-scroll fade-in-left">
                         <h2 class="text-3xl font-bold text-white mb-6">The B-Sides</h2>
                          <p class="text-white/90 mb-10 max-w-lg mx-auto text-lg leading-relaxed">
                             In a past life, I wrote songs in high school and college. The guitar gathers dust sometimes, but the music never really stops.
@@ -148,3 +145,73 @@ import { MusicBackground } from '../components/MusicBackground';
         </main>
     </div>
 </Layout>
+
+<style>
+    /* Animation Utility Classes */
+    .animate-on-scroll {
+        opacity: 0;
+        transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: opacity, transform;
+    }
+
+    .fade-in-left {
+        transform: translateX(-50px);
+    }
+
+    .fade-in-right {
+        transform: translateX(50px);
+    }
+
+    .animate-on-scroll.visible {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .delay-200 {
+        transition-delay: 200ms;
+    }
+</style>
+
+<script>
+    document.addEventListener('astro:page-load', () => {
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.2
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                // If element is in viewport
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // Stop watching once it is visible (only animate once)
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Target all elements with .animate-on-scroll
+        const hiddenElements = document.querySelectorAll('.animate-on-scroll');
+        hiddenElements.forEach((el) => observer.observe(el));
+    });
+
+    // Also run on initial load if not using View Transitions or fallback
+    const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.2
+        };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    const hiddenElements = document.querySelectorAll('.animate-on-scroll');
+    hiddenElements.forEach((el) => observer.observe(el));
+</script>

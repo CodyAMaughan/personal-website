@@ -3,10 +3,11 @@ import Layout from '../layouts/Layout.astro';
 import { Hero } from '../components/Hero';
 import { BentoGrid } from '../components/BentoGrid';
 import { TechStack } from '../components/TechStack';
+import { AuroraBackground } from '../components/AuroraBackground';
 import BuildLogs from '../components/BuildLogs.astro';
 ---
 
-<Layout title="Cody Maughan | Technical Founder & Product Engineer">
+<Layout title="Cody Maughan | Technical Founder & Product Engineer" showBackground={false}>
 	<main class="overflow-x-hidden selection:bg-primary selection:text-white">
         <!-- Hero Section -->
         <Hero client:load />
@@ -18,6 +19,9 @@ import BuildLogs from '../components/BuildLogs.astro';
         <TechStack client:load />
         
         <!-- Build Logs (Blog) -->
-        <BuildLogs />
+        <div class="relative w-full">
+            <AuroraBackground client:visible />
+            <BuildLogs />
+        </div>
 	</main>
 </Layout>

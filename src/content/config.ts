@@ -29,9 +29,27 @@ const homePage = defineCollection({
 });
 
 const aboutPage = defineCollection({
-    type: 'content', // MDX content for bio
+    type: 'data',
     schema: z.object({
-        title: z.string(),
+        heroHeadline: z.string(),
+        heroSubheadline: z.string(),
+        heroImage: z.string().optional(),
+
+        originTitle: z.string(),
+        originContent: z.string(),
+        originImage: z.string().optional(),
+
+        builderTitle: z.string(),
+        builderContent: z.string(),
+        builderImage: z.string().optional(),
+
+        strategistTitle: z.string(),
+        strategistContent: z.string(),
+        strategistImage: z.string().optional(),
+
+        foundationTitle: z.string(),
+        foundationContent: z.string(),
+        foundationImage: z.string().optional(),
     })
 });
 

@@ -20,7 +20,8 @@ const { Content } = await post.render();
             <span>←</span> Back to Build Logs
         </a>
         
-        <article class="prose prose-invert prose-lg prose-headings:text-white prose-p:text-text-muted prose-a:text-primary hover:prose-a:text-primary-hover prose-strong:text-white max-w-none prose-img:rounded-xl">
+        <article data-pagefind-body class="prose prose-invert prose-lg prose-headings:text-white prose-p:text-text-muted prose-a:text-primary hover:prose-a:text-primary-hover prose-strong:text-white max-w-none prose-img:rounded-xl">
+
             <header class="mb-10 not-prose border-b border-surface-highlight pb-8">
                 <h1 class="text-3xl md:text-5xl font-bold text-white mb-6 leading-[1.1]">{post.data.title}</h1>
                 <div class="flex items-center gap-4 text-sm">
