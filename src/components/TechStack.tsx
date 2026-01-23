@@ -1,9 +1,30 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { theme } from '../config/theme';
 
 const stack = [
-    "Python", "TypeScript", "React", "Astro", "LangChain", "Remotion", "SQL", "Docker", "AWS",
-    "Tailwind", "Next.js", "PostgreSQL", "Framer Motion", "OpenAI API"
+    { name: "Python", logo: "/images/tech-stack-logos/python-logo.png" },
+    { name: "TypeScript", logo: "/images/tech-stack-logos/typescript-logo.png" },
+    { name: "React", logo: "/images/tech-stack-logos/react-logo.png" },
+    { name: "Astro", logo: "/images/tech-stack-logos/astro-logo.png" },
+    { name: "LangChain", logo: "/images/tech-stack-logos/langchain-logo.png" },
+    { name: "Remotion", logo: "/images/tech-stack-logos/remotion-logo.png" },
+    { name: "SQL", logo: "/images/tech-stack-logos/sql-logo.png" },
+    { name: "Docker", logo: "/images/tech-stack-logos/docker-logo.png" },
+    { name: "AWS", logo: "/images/tech-stack-logos/aws-logo.png" },
+    { name: "Tailwind", logo: "/images/tech-stack-logos/tailwind-logo.png" },
+    { name: "Next.js", logo: "/images/tech-stack-logos/next-js-logo.webp" },
+    { name: "PostgreSQL", logo: "/images/tech-stack-logos/postgresql-logo.png" },
+    { name: "Framer Motion", logo: "/images/tech-stack-logos/framer-motion-logo.png" },
+    { name: "OpenAI API", logo: "/images/tech-stack-logos/openai-api-logo.png" },
+    { name: "Claude API", logo: "/images/tech-stack-logos/claude-api-logo.svg" },
+    { name: "Gemini API", logo: "/images/tech-stack-logos/gemini-api-logo.webp" }
+];
+
+const glowColors = [
+    theme.colors.primary,
+    theme.colors.secondary,
+    theme.colors.accent
 ];
 
 export const TechStack = () => {
@@ -22,11 +43,30 @@ export const TechStack = () => {
                     animate={{ x: ["0%", "-33.33%"] }}
                     transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
                 >
-                    {seamlessStack.map((tech, i) => (
-                        <span key={i} className="text-3xl md:text-5xl font-bold text-neutral-500 hover:text-white transition-colors cursor-default select-none">
-                            {tech}
-                        </span>
-                    ))}
+                    {seamlessStack.map((tech, i) => {
+                        const glowColor = glowColors[i % glowColors.length];
+                        return (
+                            <div key={i} className="flex items-center gap-4 group">
+                                <img
+                                    src={tech.logo}
+                                    alt={`${tech.name} logo`}
+                                    className="w-8 h-8 md:w-10 md:h-10 object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+                                />
+                                <span
+                                    className="text-3xl md:text-5xl font-bold text-neutral-500 group-hover:text-white transition-all cursor-default select-none"
+                                >
+                                    <span
+                                        className="transition-all duration-300"
+                                        style={{
+                                            textShadow: `0 0 15px ${glowColor}40` // Subtle permanent glow 
+                                        }}
+                                    >
+                                        {tech.name}
+                                    </span>
+                                </span>
+                            </div>
+                        );
+                    })}
                 </motion.div>
             </div>
         </section>
