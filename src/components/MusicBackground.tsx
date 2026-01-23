@@ -41,9 +41,13 @@ export const MusicBackground = () => {
             lines.forEach((line, index) => {
                 ctx.beginPath();
                 ctx.strokeStyle = line.color;
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 4; // Thicker lines
                 ctx.lineCap = 'round';
                 ctx.globalAlpha = 0.5;
+
+                // Add Bloom/Glow Effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = line.color;
 
                 for (let x = 0; x < width; x += 5) {
                     const y = height * line.yOffset +

@@ -74,7 +74,8 @@ export const ProjectBackground = ({ pulseColors }: Props) => {
             ctx.lineWidth = 1;
 
             // Draw Static Grid
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'; // Increased visibility
+            ctx.shadowBlur = 0; // No bloom on static grid to keep it crisp
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'; // Slightly brighter grid
 
             // Vertical 
             for (let x = 0; x <= width; x += gridSize) {
@@ -120,7 +121,7 @@ export const ProjectBackground = ({ pulseColors }: Props) => {
                 ctx.strokeStyle = gradient;
                 ctx.lineWidth = 2;
                 ctx.globalAlpha = p.life;
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 50; // Maximum bloom to look soft even with low card blur
                 ctx.shadowColor = p.color;
 
                 ctx.beginPath();
