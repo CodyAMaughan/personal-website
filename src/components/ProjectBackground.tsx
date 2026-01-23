@@ -14,6 +14,7 @@ export const ProjectBackground = () => {
         let height: number;
         let animationFrameId: number;
         let time = 0;
+        let isVisible = true; // Default to true, observer will update
 
         // Grid Configuration
         const gridSize = 60;
@@ -137,6 +138,8 @@ export const ProjectBackground = () => {
         };
 
         const render = () => {
+            if (!isVisible) return; // Stop rendering if not visible
+
             time += 0.01;
             drawGrid();
             createPulse();
@@ -144,13 +147,31 @@ export const ProjectBackground = () => {
             animationFrameId = requestAnimationFrame(render);
         };
 
+        // Resize observer setup
         window.addEventListener('resize', init);
         init();
-        render();
+
+        // Intersection Observer setup
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    isVisible = true;
+                    // Restart loop if it was stopped
+                    cancelAnimationFrame(animationFrameId);
+                    render();
+                } else {
+                    isVisible = false;
+                    cancelAnimationFrame(animationFrameId);
+                }
+            });
+        }, { threshold: 0 }); // Trigger as soon as any pixel is visible
+
+        observer.observe(canvas);
 
         return () => {
             window.removeEventListener('resize', init);
             cancelAnimationFrame(animationFrameId);
+            observer.disconnect();
         };
     }, []);
 

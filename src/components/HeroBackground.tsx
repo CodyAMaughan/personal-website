@@ -168,7 +168,11 @@ export const HeroBackground = () => {
             targetMouseY = e.clientY;
         };
 
+        let isVisible = true;
+
         const render = (time: number) => {
+            if (!isVisible) return;
+
             // Smooth mouse
             mouseX += (targetMouseX - mouseX) * damping;
             mouseY += (targetMouseY - mouseY) * damping;
@@ -191,12 +195,26 @@ export const HeroBackground = () => {
         targetMouseX = window.innerWidth / 2;
         targetMouseY = window.innerHeight / 2;
 
-        animationFrameId = requestAnimationFrame(render);
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    isVisible = true;
+                    cancelAnimationFrame(animationFrameId); // Prevent double loops
+                    animationFrameId = requestAnimationFrame(render);
+                } else {
+                    isVisible = false;
+                    cancelAnimationFrame(animationFrameId);
+                }
+            });
+        }, { threshold: 0 });
+
+        observer.observe(canvas);
 
         return () => {
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('mousemove', handleMouseMove);
             cancelAnimationFrame(animationFrameId);
+            observer.disconnect();
         };
     }, []);
 
