@@ -35,6 +35,8 @@ export const MusicBackground = () => {
         };
 
         const render = () => {
+            if (!isVisible) return;
+
             time += 0.01;
             ctx.clearRect(0, 0, width, height);
 
@@ -66,8 +68,27 @@ export const MusicBackground = () => {
             animationFrameId = requestAnimationFrame(render);
         };
 
+        let isVisible = true;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    isVisible = true;
+                    // Cancel any existing frame to avoid duplicates
+                    cancelAnimationFrame(animationFrameId);
+                    render();
+                } else {
+                    isVisible = false;
+                    cancelAnimationFrame(animationFrameId);
+                }
+            });
+        }, { threshold: 0 });
+
+        observer.observe(canvas);
+
         init();
-        render();
+
+        // Initial render called by observer when visible, but safety call if needed or let observer handle it.
+        // render(); // logic moved to observer
 
         const handleResize = () => {
             init();
@@ -78,6 +99,7 @@ export const MusicBackground = () => {
         return () => {
             window.removeEventListener('resize', handleResize);
             cancelAnimationFrame(animationFrameId);
+            observer.disconnect();
         };
     }, []);
 
