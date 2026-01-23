@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { theme } from '../config/theme';
 import { AuroraBackground } from '../components/AuroraBackground';
+import { Navbar } from '../components/Navbar';
 
 interface Props {
 	title: string;
@@ -37,6 +38,8 @@ const cssVariables = Object.entries(theme.colors).map(([key, value]) => {
 	<body style={cssVariables} class="relative min-h-screen text-text bg-background selection:bg-primary selection:text-black">
         
         {showBackground && <AuroraBackground client:load />}
+
+        <Navbar client:load />
         
 		<slot />
         
