@@ -26,7 +26,7 @@ const { Content } = await render(post);
                 <h1 class="text-3xl md:text-5xl font-bold text-white mb-6 leading-[1.1]">{post.data.title}</h1>
                 <div class="flex items-center gap-4 text-sm">
                     <div class="px-3 py-1 rounded-full bg-surface-highlight text-text-muted font-mono">
-                        {post.data.pubDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        {post.data.pubDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
                     </div>
                 </div>
             </header>
