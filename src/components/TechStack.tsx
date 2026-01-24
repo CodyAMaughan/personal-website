@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { theme } from '../config/theme';
 
 const stack = [
@@ -33,16 +32,23 @@ export const TechStack = () => {
 
     return (
         <section className="py-20 border-y border-surface-highlight overflow-hidden bg-surface/30 backdrop-blur-sm relative z-0">
+            <style>{`
+                @keyframes marquee {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-33.33%); }
+                }
+                .marquee-track {
+                    animation: marquee 40s linear infinite;
+                    will-change: transform;
+                }
+            `}</style>
+
             <div className="max-w-6xl mx-auto px-6 mb-10">
                 <h3 className="text-sm font-mono text-text-muted uppercase tracking-wider">The Stack</h3>
             </div>
 
             <div className="flex w-full overflow-hidden mask-gradient-to-r" style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
-                <motion.div
-                    className="flex gap-12 md:gap-20 whitespace-nowrap items-center"
-                    animate={{ x: ["0%", "-33.33%"] }}
-                    transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
-                >
+                <div className="flex gap-12 md:gap-20 whitespace-nowrap items-center marquee-track">
                     {seamlessStack.map((tech, i) => {
                         const glowColor = glowColors[i % glowColors.length];
                         return (
@@ -67,8 +73,9 @@ export const TechStack = () => {
                             </div>
                         );
                     })}
-                </motion.div>
+                </div>
             </div>
         </section>
     );
 };
+

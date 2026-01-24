@@ -121,7 +121,7 @@ export const ProjectBackground = ({ pulseColors }: Props) => {
                 ctx.strokeStyle = gradient;
                 ctx.lineWidth = 2;
                 ctx.globalAlpha = p.life;
-                ctx.shadowBlur = 50; // Maximum bloom to look soft even with low card blur
+                ctx.shadowBlur = 30; // Reduced for performance
                 ctx.shadowColor = p.color;
 
                 ctx.beginPath();

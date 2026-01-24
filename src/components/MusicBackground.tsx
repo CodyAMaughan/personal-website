@@ -48,7 +48,7 @@ export const MusicBackground = () => {
                 ctx.globalAlpha = 0.5;
 
                 // Add Bloom/Glow Effect
-                ctx.shadowBlur = 15;
+                ctx.shadowBlur = 10;
                 ctx.shadowColor = line.color;
 
                 for (let x = 0; x < width; x += 5) {

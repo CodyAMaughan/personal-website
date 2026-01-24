@@ -221,8 +221,11 @@ export const HeroBackground = () => {
     return (
         <canvas
             ref={canvasRef}
-            className="absolute inset-0 -z-10 w-full h-full"
-            style={{ background: THEME_COLORS.background }}
+            className="absolute inset-0 -z-10 w-full h-full animate-fade-in"
+            style={{
+                background: THEME_COLORS.background,
+                animation: 'fadeIn 1s ease-out forwards',
+            }}
         />
     );
 };

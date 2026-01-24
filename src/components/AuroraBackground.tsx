@@ -1,97 +1,170 @@
-import { motion } from "framer-motion";
-import React from "react";
+import React, { useEffect, useRef } from 'react';
+
+// Theme colors hardcoded for canvas performance
+const COLORS = {
+    primary: '#4ade80',    // Green
+    secondary: '#3b82f6',  // Blue
+};
+
+interface Blob {
+    x: number;
+    y: number;
+    baseX: number;
+    baseY: number;
+    radius: number;
+    color: string;
+    speed: number;
+    offset: number;
+    opacity: number;
+}
 
 export const AuroraBackground = () => {
-    const [isVisible, setIsVisible] = React.useState(false);
-    const containerRef = React.useRef(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    React.useEffect(() => {
-        const observer = new IntersectionObserver(([entry]) => {
-            setIsVisible(entry.isIntersecting);
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let animationFrameId: number;
+        let width: number;
+        let height: number;
+        let isVisible = true;
+
+        // Create blobs similar to the original Framer Motion ones
+        const blobs: Blob[] = [];
+
+        const init = () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            // Initialize blobs (matching original positions)
+            blobs.length = 0;
+            blobs.push({
+                baseX: width * 0.25,
+                baseY: height * 0.2,
+                x: width * 0.25,
+                y: height * 0.2,
+                radius: Math.min(width, height) * 0.35,
+                color: COLORS.primary,
+                speed: 0.8,
+                offset: 0,
+                opacity: 0.18
+            });
+            blobs.push({
+                baseX: width * 0.7,
+                baseY: height * 0.6,
+                x: width * 0.7,
+                y: height * 0.6,
+                radius: Math.min(width, height) * 0.32,
+                color: COLORS.primary,
+                speed: 0.6,
+                offset: Math.PI * 0.5,
+                opacity: 0.15
+            });
+            blobs.push({
+                baseX: width * 0.8,
+                baseY: height * 0.25,
+                x: width * 0.8,
+                y: height * 0.25,
+                radius: Math.min(width, height) * 0.38,
+                color: COLORS.secondary,
+                speed: 0.7,
+                offset: Math.PI,
+                opacity: 0.18
+            });
+            blobs.push({
+                baseX: width * 0.3,
+                baseY: height * 0.7,
+                x: width * 0.3,
+                y: height * 0.7,
+                radius: Math.min(width, height) * 0.35,
+                color: COLORS.secondary,
+                speed: 0.65,
+                offset: Math.PI * 1.5,
+                opacity: 0.15
+            });
+        };
+
+        const render = (time: number) => {
+            if (!isVisible) return;
+
+            const t = time * 0.001; // Convert to seconds
+
+            // Clear with transparent background
+            ctx.clearRect(0, 0, width, height);
+
+            // Update and draw each blob
+            blobs.forEach(blob => {
+                // Gentle floating motion
+                blob.x = blob.baseX + Math.sin(t * blob.speed + blob.offset) * 80;
+                blob.y = blob.baseY + Math.cos(t * blob.speed * 0.8 + blob.offset) * 60;
+
+                // Create radial gradient for soft blob effect
+                const gradient = ctx.createRadialGradient(
+                    blob.x, blob.y, 0,
+                    blob.x, blob.y, blob.radius
+                );
+
+                // Parse hex color to RGB for alpha support
+                const r = parseInt(blob.color.slice(1, 3), 16);
+                const g = parseInt(blob.color.slice(3, 5), 16);
+                const b = parseInt(blob.color.slice(5, 7), 16);
+
+                gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${blob.opacity})`);
+                gradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${blob.opacity * 0.5})`);
+                gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(blob.x, blob.y, blob.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        // Intersection Observer for visibility-based pausing
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    isVisible = true;
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = requestAnimationFrame(render);
+                } else {
+                    isVisible = false;
+                    cancelAnimationFrame(animationFrameId);
+                }
+            });
         }, { threshold: 0 });
 
-        if (containerRef.current) {
-            observer.observe(containerRef.current);
-        }
+        observer.observe(canvas);
 
-        return () => observer.disconnect();
+        window.addEventListener('resize', init);
+        init();
+
+        // Start animation immediately (observer will take over visibility control)
+        animationFrameId = requestAnimationFrame(render);
+
+        return () => {
+            window.removeEventListener('resize', init);
+            cancelAnimationFrame(animationFrameId);
+            observer.disconnect();
+        };
     }, []);
 
     return (
-        <div ref={containerRef} className="absolute inset-0 -z-10 w-full overflow-hidden preserve-3d">
-            {/* Use opacity instead of conditional render to prevent animation restart */}
-            <div className={`transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-                {/* 
-                    "Liquid" Aurora Effect - Refined
-                    - Faster animation (8-12s)
-                    - Subtle opacity (0.1-0.3)
-                    - 4 Blobs (2 Primary, 2 Secondary)
-                    - Positioned below Hero
-                */}
-
-                {/* Blob 1: Primary (Cyan) - Top Left */}
-                <motion.div
-                    initial={{ opacity: 0.15, scale: 0.9, x: -50, y: -50 }}
-                    animate={{
-                        opacity: [0.3, 0.5, 0.3],
-                        scale: [0.9, 1.2, 0.9],
-                        x: [-50, 50, -50],
-                        y: [-50, 50, -50],
-                        rotate: [0, 180, 0],
-                        borderRadius: ["20% 80% 20% 80% / 80% 20% 80% 20%", "60% 40% 30% 70% / 60% 30% 70% 40%", "20% 80% 20% 80% / 80% 20% 80% 20%"]
-                    }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-[0%] left-[5%] w-[45vw] h-[45vw] bg-primary/25 blur-[100px] mix-blend-plus-lighter"
-                />
-
-                {/* Blob 2: Primary (Cyan) - Bottom Right Duplicate */}
-                <motion.div
-                    initial={{ opacity: 0.15, scale: 1, x: 50, y: 50 }}
-                    animate={{
-                        opacity: [0.3, 0.45, 0.3],
-                        scale: [1, 1.3, 1],
-                        x: [50, -50, 50],
-                        y: [50, -50, 50],
-                        rotate: [180, 360, 180],
-                        borderRadius: ["70% 30% 70% 30% / 30% 70% 30% 70%", "30% 60% 70% 40% / 50% 60% 30% 60%", "70% 30% 70% 30% / 30% 70% 30% 70%"]
-                    }}
-                    transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute top-[40%] right-[10%] w-[40vw] h-[40vw] bg-primary/20 blur-[90px] mix-blend-plus-lighter"
-                />
-
-                {/* Blob 3: Secondary (Violet) - Top Right */}
-                <motion.div
-                    initial={{ opacity: 0.2, scale: 0.8, x: 50, y: -50 }}
-                    animate={{
-                        opacity: [0.35, 0.5, 0.35],
-                        scale: [0.8, 1.1, 0.8],
-                        x: [50, -50, 50],
-                        y: [-50, 50, -50],
-                        rotate: [360, 180, 0],
-                        borderRadius: ["50% 50% 50% 50%", "30% 70% 70% 30% / 30% 30% 70% 70%", "50% 50% 50% 50%"]
-                    }}
-                    transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                    className="absolute top-[10%] right-[5%] w-[50vw] h-[50vw] bg-secondary/25 blur-[110px] mix-blend-plus-lighter"
-                />
-
-                {/* Blob 4: Secondary (Violet) - Bottom Left */}
-                <motion.div
-                    initial={{ opacity: 0.15, scale: 0.9, x: -50, y: 50 }}
-                    animate={{
-                        opacity: [0.3, 0.45, 0.3],
-                        scale: [0.9, 1.2, 0.9],
-                        x: [-50, 50, -50],
-                        y: [50, -50, 50],
-                        rotate: [0, -180, 0],
-                        borderRadius: ["60% 40% 30% 70% / 60% 30% 70% 40%", "20% 80% 20% 80% / 80% 20% 80% 20%", "60% 40% 30% 70% / 60% 30% 70% 40%"]
-                    }}
-                    transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                    className="absolute top-[50%] left-[10%] w-[45vw] h-[45vw] bg-secondary/20 blur-[100px] mix-blend-plus-lighter"
-                />
-
-                {/* Noise Texture */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-100 contrast-150 mix-blend-overlay"></div>
-            </div>
-        </div>
+        <canvas
+            ref={canvasRef}
+            className="absolute inset-0 -z-10 w-full h-full"
+            style={{
+                filter: 'blur(60px)',
+                opacity: 0.8
+            }}
+        />
     );
 };
