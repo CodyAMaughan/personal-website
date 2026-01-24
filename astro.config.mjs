@@ -15,7 +15,9 @@ export default defineConfig({
   site: 'https://codymaughan.com',
   output: 'static',
   integrations: [react(), keystatic(), markdoc()],
-
+  build: {
+    inlineStylesheets: 'auto'
+  },
   vite: {
     plugins: [tailwindcss()]
   },

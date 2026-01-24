@@ -1,0 +1,146 @@
+---
+import { Image } from "astro:assets";
+import { HeroBackground } from "./HeroBackground";
+import defaultHeroImage from "../assets/images/heroImage.jpeg";
+
+interface Props {
+    tagline?: string;
+    headline?: string;
+    headlineHighlight?: string;
+    subheadline?: string;
+    heroImage?: any; // Use any for the imported image object
+}
+
+const {
+    tagline = "Technical Founder & Product Engineer",
+    headline = "Building the future of",
+    headlineHighlight = "Agentic AI & SaaS.",
+    subheadline = "I'm <strong>Cody Maughan</strong>. I bridge the gap between Enterprise Data Science and Creative Product Engineering. Currently building AI-powered video tools and medical coding solutions.",
+    heroImage = defaultHeroImage,
+} = Astro.props;
+---
+
+<section
+    class="min-h-[90vh] flex items-center justify-center w-full relative overflow-hidden py-20"
+>
+    <HeroBackground client:idle />
+
+    <div class="w-full max-w-6xl mx-auto px-6 z-10">
+        <div
+            class="hero-card relative p-8 md:p-12 rounded-card bg-surface border border-border shadow-2xl"
+        >
+            <div
+                class="flex flex-col md:flex-row items-center gap-10 md:gap-16"
+            >
+                <!-- Headshot Column -->
+                <div class="shrink-0 relative group">
+                    <div
+                        class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-25 group-hover:opacity-75 transition duration-500"
+                    >
+                    </div>
+                    <Image
+                        src={heroImage}
+                        alt="Cody Maughan"
+                        width={184}
+                        densities={[1.5, 2]}
+                        class="relative h-48 w-48 md:h-64 md:w-64 rounded-full object-cover border-4 border-surface shadow-2xl"
+                    />
+                </div>
+
+                <!-- Content Column -->
+                <div class="flex-1 text-center md:text-left">
+                    <div
+                        class="flex items-center justify-center md:justify-start gap-3 mb-6"
+                    >
+                        <span class="relative flex h-3 w-3">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
+                            ></span>
+                            <span
+                                class="relative inline-flex rounded-full h-3 w-3 bg-primary"
+                            ></span>
+                        </span>
+                        <span
+                            class="text-primary font-mono text-sm tracking-wide uppercase font-semibold"
+                        >
+                            {tagline}
+                        </span>
+                    </div>
+
+                    <h1
+                        class="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]"
+                    >
+                        {headline}
+                        <br />
+                        <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x"
+                        >
+                            {headlineHighlight}
+                        </span>
+                    </h1>
+
+                    <p
+                        class="text-lg md:text-xl text-gray-300 max-w-2xl mb-8 leading-relaxed font-sans mx-auto md:mx-0"
+                        set:html={subheadline}
+                    />
+
+                    <div
+                        class="flex flex-wrap justify-center md:justify-start gap-4"
+                    >
+                        <button
+                            onclick="document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })"
+                            class="bg-primary text-black hover:bg-primary-hover px-8 py-3 rounded-lg font-bold transition-all shadow-lg hover:shadow-primary/25"
+                        >
+                            View Work
+                        </button>
+                        <a
+                            href="/about"
+                            class="bg-zinc-800 hover:bg-zinc-700 border border-border hover:border-border-highlight text-white px-8 py-3 rounded-lg font-medium transition-colors"
+                        >
+                            About Me
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .hero-card {
+        animation: heroFadeIn 0.7s ease-out forwards;
+        will-change: opacity, transform;
+    }
+
+    @keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .animate-gradient-x {
+        background-size: 200% auto;
+        animation: gradient-x 3s linear infinite;
+    }
+
+    @keyframes gradient-x {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    .rounded-card {
+        border-radius: 1.5rem;
+    }
+</style>

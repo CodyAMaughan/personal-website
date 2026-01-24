@@ -1,7 +1,7 @@
 ---
 export const prerender = true;
 import Layout from "../layouts/Layout.astro";
-import { Hero } from "../components/Hero";
+import Hero from "../components/Hero.astro";
 import { BentoGrid } from "../components/BentoGrid";
 import TechStack from "../components/TechStack.astro";
 import { AuroraBackground } from "../components/AuroraBackground";
@@ -25,15 +25,14 @@ const subheadlineHtml = data.subheadline
     ? await marked.parseInline(data.subheadline)
     : "";
 
-// Optimize the hero image
-const optimizedHeroImage = await getImage({
-    src: headshotImage,
-    width: 512, // 256 rendered size x 2 for retina
-    height: 512,
-    format: "webp",
-});
-
-// Optimize project logos for BentoGrid
+// Hero data (passing raw asset so Hero.astro can optimize)
+const heroData = {
+    tagline: data.tagline || "Technical Founder & Product Engineer",
+    headline: data.headline || "Building the future of",
+    headlineHighlight: data.headlineHighlight || "Agentic AI & SaaS.",
+    subheadline: subheadlineHtml,
+    heroImage: headshotImage,
+};
 const optimizedLogos = {
     "Say Play": (
         await getImage({
@@ -62,20 +61,14 @@ const optimizedLogos = {
     Autograph: (
         await getImage({
             src: autographLogo,
-            width: 128,
-            height: 128,
+            width: 138, // 46 rendered size x 3 for retina/high-res
+            height: 138,
             format: "webp",
         })
     ).src,
 };
 
-const heroData = {
-    tagline: data.tagline || "Technical Founder & Product Engineer",
-    headline: data.headline || "Building the future of",
-    headlineHighlight: data.headlineHighlight || "Agentic AI & SaaS.",
-    subheadline: subheadlineHtml,
-    heroImage: optimizedHeroImage.src,
-};
+// Optimize project logos for BentoGrid
 ---
 
 <Layout
@@ -84,7 +77,7 @@ const heroData = {
 >
     <main class="overflow-x-hidden selection:bg-primary selection:text-white">
         <!-- Hero Section -->
-        <Hero client:load {...heroData} />
+        <Hero {...heroData} />
 
         <!-- Projects Section -->
         <BentoGrid client:visible optimizedLogos={optimizedLogos} />
