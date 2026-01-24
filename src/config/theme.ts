@@ -19,6 +19,7 @@ const colors = {
   white: '#FFFFFF',
   gray100: '#f5f5f5',
   gray300: '#d4d4d4',
+  gray400: '#a3a3a3', // Better contrast for accessibility
   gray500: '#737373',
   gray700: '#404040',
   gray800: '#262626',
@@ -46,7 +47,7 @@ export const theme = {
 
     // Text
     text: colors.white,
-    textMuted: colors.gray500, // Tech grey
+    textMuted: colors.gray400, // Improved contrast for accessibility
     textCode: colors.terminalGreen, // Specific color for code snippets
   },
   fonts: {

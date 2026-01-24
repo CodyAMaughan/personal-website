@@ -16,7 +16,7 @@ export default defineConfig({
   output: 'static',
   integrations: [react(), keystatic(), markdoc()],
   build: {
-    inlineStylesheets: 'auto'
+    inlineStylesheets: 'always'
   },
   vite: {
     plugins: [tailwindcss()]

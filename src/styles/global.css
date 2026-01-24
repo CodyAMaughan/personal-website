@@ -19,6 +19,17 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
+/* Force font-display: swap to prevent fonts from blocking render */
+@font-face {
+  font-family: "Inter";
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-display: swap;
+}
+
 html {
   background-color: var(--color-background);
   color: var(--color-text);
