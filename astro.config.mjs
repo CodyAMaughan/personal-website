@@ -12,12 +12,14 @@ import markdoc from '@astrojs/markdoc';
 
 // https://astro.build/config
 export default defineConfig({
-  output: 'server',
+  output: 'static',
   integrations: [react(), keystatic(), markdoc()],
 
   vite: {
     plugins: [tailwindcss()]
   },
 
-  adapter: netlify()
+  adapter: netlify({
+    imageCDN: false
+  })
 });

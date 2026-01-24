@@ -5,7 +5,7 @@ import { ProjectBackground } from './ProjectBackground';
 import { ArrowRight } from 'lucide-react';
 import { PROJECTS, type Project } from '../data/projects';
 
-const Card = ({ project }: { project: Project }) => {
+const Card = ({ project, optimizedLogo }: { project: Project, optimizedLogo?: string }) => {
     const divRef = React.useRef<HTMLDivElement>(null);
     const [isFocused, setIsFocused] = React.useState(false);
     const [position, setPosition] = React.useState({ x: 0, y: 0 });
@@ -82,7 +82,7 @@ const Card = ({ project }: { project: Project }) => {
                         <div className="relative w-12 h-12 flex items-center justify-center rounded-xl bg-surface border border-white/10 overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-300">
                             {project.logo ? (
                                 <img
-                                    src={project.logo}
+                                    src={optimizedLogo || project.logo}
                                     alt={`${project.title} Logo`}
                                     className={`w-full h-full object-cover ${project.logoIsExternal ? 'p-0' : 'p-0'}`}
                                 />
@@ -132,7 +132,7 @@ const Card = ({ project }: { project: Project }) => {
     );
 };
 
-export const BentoGrid = () => {
+export const BentoGrid = ({ optimizedLogos = {} }: { optimizedLogos?: Record<string, string> }) => {
     // Filter featured projects
     const featuredProjects = PROJECTS.filter(p => p.featured).slice(0, 4);
 
@@ -160,7 +160,7 @@ export const BentoGrid = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-fr">
                     {featuredProjects.map((project, idx) => (
-                        <Card key={idx} project={project} />
+                        <Card key={idx} project={project} optimizedLogo={optimizedLogos[project.title]} />
                     ))}
                 </div>
 

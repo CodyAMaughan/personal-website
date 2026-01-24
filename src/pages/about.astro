@@ -5,6 +5,13 @@ import { HeroBackground } from "../components/HeroBackground";
 import { MusicBackground } from "../components/MusicBackground";
 import { getEntry } from "astro:content";
 import { marked } from "marked";
+import { Image } from "astro:assets";
+
+import heroImg from "../assets/images/heroImage.jpeg";
+import originImg from "../assets/images/originImage.png";
+import builderImg from "../assets/images/builderImage.png";
+import strategistImg from "../assets/images/strategistImage.png";
+import foundationImg from "../assets/images/foundationImage.jpeg";
 
 const aboutPage = await getEntry("about", "index");
 if (!aboutPage) return Astro.redirect("/404");
@@ -49,9 +56,11 @@ const foundationCaptionHtml = data.foundationImageCaption
                             class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-25 group-hover:opacity-75 transition duration-500"
                         >
                         </div>
-                        <img
-                            src={data.heroImage}
+                        <Image
+                            src={heroImg}
                             alt="Cody Maughan"
+                            width={448}
+                            height={448}
                             class="relative h-40 w-40 md:h-56 md:w-56 rounded-full object-cover border-4 border-surface shadow-2xl"
                         />
                     </div>
@@ -109,9 +118,11 @@ const foundationCaptionHtml = data.foundationImageCaption
                                     class="absolute inset-0 bg-primary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                                 >
                                 </div>
-                                <img
-                                    src={data.originImage}
+                                <Image
+                                    src={originImg}
                                     alt="Abstract Data Helix"
+                                    width={800}
+                                    height={800}
                                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                                 />
                             </div>
@@ -144,9 +155,11 @@ const foundationCaptionHtml = data.foundationImageCaption
                                     class="absolute inset-0 bg-secondary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                                 >
                                 </div>
-                                <img
-                                    src={data.builderImage}
+                                <Image
+                                    src={builderImg}
                                     alt="Building Tools Abstract"
+                                    width={800}
+                                    height={800}
                                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                                 />
                             </div>
@@ -207,9 +220,11 @@ const foundationCaptionHtml = data.foundationImageCaption
                                     class="absolute inset-0 bg-accent/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                                 >
                                 </div>
-                                <img
-                                    src={data.strategistImage}
+                                <Image
+                                    src={strategistImg}
                                     alt="Chess Strategy and Endurance"
+                                    width={800}
+                                    height={800}
                                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                                 />
                             </div>
@@ -242,9 +257,11 @@ const foundationCaptionHtml = data.foundationImageCaption
                                     class="absolute inset-0 bg-yellow-500/10 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                                 >
                                 </div>
-                                <img
-                                    src={data.foundationImage}
+                                <Image
+                                    src={foundationImg}
                                     alt="Light and Foundation"
+                                    width={800}
+                                    height={800}
                                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                                 />
                             </div>

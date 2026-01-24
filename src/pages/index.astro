@@ -3,11 +3,17 @@ export const prerender = true;
 import Layout from "../layouts/Layout.astro";
 import { Hero } from "../components/Hero";
 import { BentoGrid } from "../components/BentoGrid";
-import { TechStack } from "../components/TechStack";
+import TechStack from "../components/TechStack.astro";
 import { AuroraBackground } from "../components/AuroraBackground";
 import BuildLogs from "../components/BuildLogs.astro";
 import { getEntry } from "astro:content";
 import { marked } from "marked";
+import { getImage } from "astro:assets";
+import headshotImage from "../assets/images/heroImage.jpeg";
+import sayPlayLogo from "../assets/images/say-play-logo.png";
+import procodeLogo from "../assets/images/procode-logo.png";
+import ghostWriterLogo from "../assets/images/ghost-writer-logo.png";
+import autographLogo from "../assets/images/autograph-logo.png";
 
 // Fetch home page content from Keystatic
 const homePage = await getEntry("home", "index");
@@ -19,12 +25,56 @@ const subheadlineHtml = data.subheadline
     ? await marked.parseInline(data.subheadline)
     : "";
 
+// Optimize the hero image
+const optimizedHeroImage = await getImage({
+    src: headshotImage,
+    width: 512, // 256 rendered size x 2 for retina
+    height: 512,
+    format: "webp",
+});
+
+// Optimize project logos for BentoGrid
+const optimizedLogos = {
+    "Say Play": (
+        await getImage({
+            src: sayPlayLogo,
+            width: 128,
+            height: 128,
+            format: "webp",
+        })
+    ).src,
+    ProCode: (
+        await getImage({
+            src: procodeLogo,
+            width: 128,
+            height: 128,
+            format: "webp",
+        })
+    ).src,
+    "Ghost Writer": (
+        await getImage({
+            src: ghostWriterLogo,
+            width: 128,
+            height: 128,
+            format: "webp",
+        })
+    ).src,
+    Autograph: (
+        await getImage({
+            src: autographLogo,
+            width: 128,
+            height: 128,
+            format: "webp",
+        })
+    ).src,
+};
+
 const heroData = {
     tagline: data.tagline || "Technical Founder & Product Engineer",
     headline: data.headline || "Building the future of",
     headlineHighlight: data.headlineHighlight || "Agentic AI & SaaS.",
     subheadline: subheadlineHtml,
-    heroImage: data.heroImage || "/images/cody-maughan-headshot.jpeg",
+    heroImage: optimizedHeroImage.src,
 };
 ---
 
@@ -37,10 +87,10 @@ const heroData = {
         <Hero client:load {...heroData} />
 
         <!-- Projects Section -->
-        <BentoGrid client:load />
+        <BentoGrid client:load optimizedLogos={optimizedLogos} />
 
         <!-- Tech Stack Marquee -->
-        <TechStack client:load />
+        <TechStack />
 
         <!-- Build Logs (Blog) -->
         <div class="relative w-full">

@@ -1,56 +1,79 @@
 ---
-import '../styles/global.css';
-import { theme } from '../config/theme';
-import { AuroraBackground } from '../components/AuroraBackground';
-import { Navbar } from '../components/Navbar';
+import "../styles/global.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import { theme } from "../config/theme";
+import { AuroraBackground } from "../components/AuroraBackground";
+import { Navbar } from "../components/Navbar";
 
 interface Props {
-	title: string;
+    title: string;
     description?: string;
     showBackground?: boolean;
 }
 
-const { title, description = "Cody Maughan - Technical Founder & Product Engineer", showBackground = true } = Astro.props;
+const {
+    title,
+    description = "Cody Maughan - Technical Founder & Product Engineer",
+    showBackground = true,
+} = Astro.props;
 
 // Inject theme colors as CSS variables
-const cssVariables = Object.entries(theme.colors).map(([key, value]) => {
-    const kebabKey = key.replace(/[A-Z]/g, m => '-' + m.toLowerCase());
-    return `--color-${kebabKey}: ${value};`;
-}).join(' ');
+const cssVariables = Object.entries(theme.colors)
+    .map(([key, value]) => {
+        const kebabKey = key.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
+        return `--color-${kebabKey}: ${value};`;
+    })
+    .join(" ");
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="description" content={description} />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-        
-        <!-- Google Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-        
-		<title>{title}</title>
-	</head>
-	<body style={cssVariables} class="relative min-h-screen text-text bg-background selection:bg-primary selection:text-black">
-        
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="description" content={description} />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+
+        <title>{title}</title>
+    </head>
+    <body
+        style={cssVariables}
+        class="relative min-h-screen text-text bg-background selection:bg-primary selection:text-black"
+    >
         {showBackground && <AuroraBackground client:load />}
 
         <Navbar client:load />
-        
-		<slot />
-        
-        <footer class="py-10 text-center text-text-muted text-sm border-t border-surface-highlight mt-20">
-            <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p>&copy; {new Date().getFullYear()} Cody Maughan. All rights reserved.</p>
+
+        <slot />
+
+        <footer
+            class="py-10 text-center text-text-muted text-sm border-t border-surface-highlight mt-20"
+        >
+            <div
+                class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4"
+            >
+                <p>
+                    &copy; {new Date().getFullYear()} Cody Maughan. All rights reserved.
+                </p>
                 <div class="flex gap-6">
-                    <a href="https://github.com/CodyAMaughan" target="_blank" class="hover:text-primary transition-colors">GitHub</a>
-                    <a href="https://www.linkedin.com/in/cody-maughan-1817739b/" target="_blank" class="hover:text-primary transition-colors">LinkedIn</a>
+                    <a
+                        href="https://github.com/CodyAMaughan"
+                        target="_blank"
+                        class="hover:text-primary transition-colors">GitHub</a
+                    >
+                    <a
+                        href="https://www.linkedin.com/in/cody-maughan-1817739b/"
+                        target="_blank"
+                        class="hover:text-primary transition-colors">LinkedIn</a
+                    >
                 </div>
             </div>
         </footer>
-	</body>
+    </body>
 </html>

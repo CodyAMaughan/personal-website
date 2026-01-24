@@ -28,8 +28,8 @@ export default config({
                     label: 'Content',
                     options: {
                         image: {
-                            directory: 'public/images/build-logs',
-                            publicPath: '/images/build-logs/',
+                            directory: 'src/assets/images/build-logs',
+                            publicPath: '/src/assets/images/build-logs/',
                         }
                     }
                 }),
@@ -61,8 +61,8 @@ export default config({
                 subheadline: fields.text({ label: 'Subheadline', description: 'Introduction paragraph below the headline', multiline: true }),
                 heroImage: fields.image({
                     label: 'Hero Image',
-                    directory: 'public/images',
-                    publicPath: '/images/',
+                    directory: 'src/assets/images',
+                    publicPath: '/src/assets/images/',
                 }),
             }
         }),
@@ -75,8 +75,8 @@ export default config({
                 heroSubheadline: fields.text({ label: 'Hero Subheadline' }),
                 heroImage: fields.image({
                     label: 'Hero Image',
-                    directory: 'public/images',
-                    publicPath: '/images/',
+                    directory: 'src/assets/images',
+                    publicPath: '/src/assets/images/',
                 }),
 
                 // Section 1: Origin Story
@@ -86,8 +86,8 @@ export default config({
                 }),
                 originImage: fields.image({
                     label: 'Section 1 Image',
-                    directory: 'public/images',
-                    publicPath: '/images/',
+                    directory: 'src/assets/images',
+                    publicPath: '/src/assets/images/',
                 }),
                 originImageCaption: fields.text({ label: 'Section 1 Image Caption', description: 'Optional attribution/caption for the image' }),
 
@@ -98,8 +98,8 @@ export default config({
                 }),
                 builderImage: fields.image({
                     label: 'Section 2 Image',
-                    directory: 'public/images',
-                    publicPath: '/images/',
+                    directory: 'src/assets/images',
+                    publicPath: '/src/assets/images/',
                 }),
                 builderImageCaption: fields.text({ label: 'Section 2 Image Caption', description: 'Optional attribution/caption for the image' }),
 
@@ -110,8 +110,8 @@ export default config({
                 }),
                 strategistImage: fields.image({
                     label: 'Section 3 Image',
-                    directory: 'public/images',
-                    publicPath: '/images/',
+                    directory: 'src/assets/images',
+                    publicPath: '/src/assets/images/',
                 }),
                 strategistImageCaption: fields.text({ label: 'Section 3 Image Caption', description: 'Optional attribution/caption for the image' }),
 
@@ -122,8 +122,8 @@ export default config({
                 }),
                 foundationImage: fields.image({
                     label: 'Section 4 Image',
-                    directory: 'public/images',
-                    publicPath: '/images/',
+                    directory: 'src/assets/images',
+                    publicPath: '/src/assets/images/',
                 }),
                 foundationImageCaption: fields.text({ label: 'Section 4 Image Caption', description: 'Optional attribution/caption for the image' }),
             }

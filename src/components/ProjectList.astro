@@ -1,0 +1,142 @@
+---
+import {
+    Ghost,
+    Activity,
+    Clapperboard,
+    BadgeCheck,
+    ArrowLeft,
+    ArrowRight,
+} from "lucide-react";
+import { PROJECTS } from "../data/projects";
+import { Image } from "astro:assets";
+import { WaitlistForm } from "./WaitlistForm";
+
+// Import all logos specifically for Astro:assets to ensure they are resized
+import sayPlayLogo from "../assets/images/say-play-logo.png";
+import procodeLogo from "../assets/images/procode-logo.png";
+import ghostWriterLogo from "../assets/images/ghost-writer-logo.png";
+import autographLogo from "../assets/images/autograph-logo.png";
+
+const logoMap: Record<string, any> = {
+    "Say Play": sayPlayLogo,
+    ProCode: procodeLogo,
+    "Ghost Writer": ghostWriterLogo,
+    Autograph: autographLogo,
+};
+---
+
+<section
+    class="relative w-full min-h-screen py-24 md:py-32 px-6 overflow-hidden"
+>
+    <div class="relative z-10 max-w-4xl mx-auto">
+        <div class="mb-12">
+            <a
+                href="/"
+                class="inline-flex items-center gap-2 text-text-muted hover:text-white transition-colors mb-8 group"
+            >
+                <ArrowLeft
+                    className="w-4 h-4 group-hover:-translate-x-1 transition-transform"
+                />
+                Back to Home
+            </a>
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                All Projects
+            </h1>
+            <p class="text-xl text-text-muted max-w-2xl leading-relaxed">
+                A complete archive of experiments, products, and tools I've
+                built.
+            </p>
+        </div>
+
+        <div class="flex flex-col gap-12">
+            {
+                PROJECTS.map((project, idx) => {
+                    const Icon = project.icon;
+                    const logoAsset = logoMap[project.title];
+
+                    return (
+                        <div class="relative group p-8 md:p-10 rounded-[2rem] bg-surface/30 backdrop-blur-xl border border-white/5 overflow-hidden transition-all hover:bg-surface/50">
+                            {/* Background Tint */}
+                            <div
+                                class="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity duration-500"
+                                style={`background: linear-gradient(to right, ${project.primaryColor}, transparent)`}
+                            />
+
+                            {/* Top Row: Logo & Title */}
+                            <div class="relative z-10 flex flex-col md:flex-row md:items-start gap-6 mb-8">
+                                <div class="shrink-0 w-16 h-16 rounded-2xl bg-surface border border-white/10 flex items-center justify-center overflow-hidden shadow-lg">
+                                    {logoAsset ? (
+                                        <Image
+                                            src={logoAsset}
+                                            alt={project.title}
+                                            width={128}
+                                            height={128}
+                                            class="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <Icon
+                                            className="w-8 h-8"
+                                            style={{
+                                                color: project.primaryColor,
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex flex-wrap items-center gap-3 mb-2">
+                                        <h2 class="text-3xl font-bold text-white">
+                                            {project.title}
+                                        </h2>
+                                        <div class="flex gap-2">
+                                            {project.tags.map((tag) => (
+                                                <span class="text-xs font-mono font-medium px-2 py-1 rounded-full bg-white/5 border border-white/5 text-text-muted uppercase tracking-wider">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <p class="text-lg text-white/90 font-medium leading-relaxed max-w-2xl">
+                                        {project.hook}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Middle: Long Description */}
+                            <div class="relative z-10 pl-0 md:pl-[5.5rem] mb-8">
+                                <p class="text-text-muted leading-7">
+                                    {project.description}
+                                </p>
+                            </div>
+
+                            {/* Bottom: Action */}
+                            <div class="relative z-10 pl-0 md:pl-[5.5rem]">
+                                {project.isWaitlist ? (
+                                    <div class="max-w-sm">
+                                        <WaitlistForm
+                                            client:load
+                                            product={project.title}
+                                            customColor={project.primaryColor}
+                                        />
+                                    </div>
+                                ) : (
+                                    project.link && (
+                                        <a
+                                            href={project.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-black transition-transform hover:scale-105"
+                                            style={`background-color: ${project.primaryColor}`}
+                                        >
+                                            Visit Project{" "}
+                                            <ArrowRight className="w-4 h-4" />
+                                        </a>
+                                    )
+                                )}
+                            </div>
+                        </div>
+                    );
+                })
+            }
+        </div>
+    </div>
+</section>

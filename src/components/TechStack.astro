@@ -1,0 +1,110 @@
+---
+import { Image } from "astro:assets";
+import { theme } from "../config/theme";
+
+// Import logos - Astro:assets works best with imported images
+import pythonLogo from "../assets/images/tech-stack-logos/python-logo.png";
+import typescriptLogo from "../assets/images/tech-stack-logos/typescript-logo.png";
+import reactLogo from "../assets/images/tech-stack-logos/react-logo.png";
+import astroLogo from "../assets/images/tech-stack-logos/astro-logo.png";
+import langchainLogo from "../assets/images/tech-stack-logos/langchain-logo.png";
+import remotionLogo from "../assets/images/tech-stack-logos/remotion-logo.png";
+import sqlLogo from "../assets/images/tech-stack-logos/sql-logo.png";
+import dockerLogo from "../assets/images/tech-stack-logos/docker-logo.png";
+import awsLogo from "../assets/images/tech-stack-logos/aws-logo.png";
+import tailwindLogo from "../assets/images/tech-stack-logos/tailwind-logo.png";
+import nextJsLogo from "../assets/images/tech-stack-logos/next-js-logo.webp";
+import postgresqlLogo from "../assets/images/tech-stack-logos/postgresql-logo.png";
+import framerMotionLogo from "../assets/images/tech-stack-logos/framer-motion-logo.png";
+import openaiLogo from "../assets/images/tech-stack-logos/openai-api-logo.png";
+import claudeLogo from "../assets/images/tech-stack-logos/claude-api-logo.svg";
+import geminiLogo from "../assets/images/tech-stack-logos/gemini-api-logo.webp";
+
+const stack = [
+    { name: "Python", logo: pythonLogo },
+    { name: "TypeScript", logo: typescriptLogo },
+    { name: "React", logo: reactLogo },
+    { name: "Astro", logo: astroLogo },
+    { name: "LangChain", logo: langchainLogo },
+    { name: "Remotion", logo: remotionLogo },
+    { name: "SQL", logo: sqlLogo },
+    { name: "Docker", logo: dockerLogo },
+    { name: "AWS", logo: awsLogo },
+    { name: "Tailwind", logo: tailwindLogo },
+    { name: "Next.js", logo: nextJsLogo },
+    { name: "PostgreSQL", logo: postgresqlLogo },
+    { name: "Framer Motion", logo: framerMotionLogo },
+    { name: "OpenAI API", logo: openaiLogo },
+    { name: "Claude API", logo: claudeLogo },
+    { name: "Gemini API", logo: geminiLogo },
+];
+
+const glowColors = [
+    theme.colors.primary,
+    theme.colors.secondary,
+    theme.colors.accent,
+];
+
+// Duplicate the stack to ensure seamless scrolling
+const seamlessStack = [...stack, ...stack, ...stack];
+---
+
+<section
+    class="py-20 border-y border-surface-highlight overflow-hidden bg-surface/30 backdrop-blur-sm relative z-0"
+>
+    <style>
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-33.33%);
+            }
+        }
+        .marquee-track {
+            animation: marquee 40s linear infinite;
+            will-change: transform;
+        }
+    </style>
+
+    <div class="max-w-6xl mx-auto px-6 mb-10">
+        <h3 class="text-sm font-mono text-text-muted uppercase tracking-wider">
+            The Stack
+        </h3>
+    </div>
+
+    <div
+        class="flex w-full overflow-hidden mask-gradient-to-r"
+        style="mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent)"
+    >
+        <div
+            class="flex gap-12 md:gap-20 whitespace-nowrap items-center marquee-track"
+        >
+            {
+                seamlessStack.map((tech, i) => {
+                    const glowColor = glowColors[i % glowColors.length];
+                    return (
+                        <div class="flex items-center gap-4 group">
+                            <Image
+                                src={tech.logo}
+                                alt={`${tech.name} logo`}
+                                width={80}
+                                height={80}
+                                loading="eager"
+                                class="w-8 h-8 md:w-10 md:h-10 object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+                            />
+                            <span class="text-3xl md:text-5xl font-bold text-neutral-500 group-hover:text-white transition-all cursor-default select-none">
+                                <span
+                                    class="transition-all duration-300"
+                                    style={`text-shadow: 0 0 15px ${glowColor}40`}
+                                >
+                                    {tech.name}
+                                </span>
+                            </span>
+                        </div>
+                    );
+                })
+            }
+        </div>
+    </div>
+</section>

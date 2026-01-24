@@ -1,6 +1,11 @@
 import { Ghost, Activity, Clapperboard, BadgeCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
+import sayPlayLogo from '../assets/images/say-play-logo.png';
+import procodeLogo from '../assets/images/procode-logo.png';
+import ghostWriterLogo from '../assets/images/ghost-writer-logo.png';
+import autographLogo from '../assets/images/autograph-logo.png';
+
 export interface Project {
     title: string;
     hook: string;
@@ -26,7 +31,7 @@ export const PROJECTS: Project[] = [
         featured: true,
         primaryColor: "#60a5fa", // Process Blue
         secondaryColor: "#4ade80", // Terminal Green
-        logo: "/images/say-play-logo.png",
+        logo: sayPlayLogo.src,
         icon: Clapperboard,
     },
     {
@@ -38,7 +43,7 @@ export const PROJECTS: Project[] = [
         featured: true,
         primaryColor: "#D62566", // Brand Pink
         secondaryColor: "#2563EB", // Medical Blue
-        logo: "/images/procode-logo.png",
+        logo: procodeLogo.src,
         icon: Activity,
     },
     {
@@ -50,7 +55,7 @@ export const PROJECTS: Project[] = [
         featured: true,
         primaryColor: "#4ade80", // Terminal Green
         secondaryColor: "#06b6d4", // Cyan-500
-        logo: "/images/ghost-writer-logo.png",
+        logo: ghostWriterLogo.src,
         icon: Ghost,
     },
     {
@@ -62,7 +67,7 @@ export const PROJECTS: Project[] = [
         featured: true,
         primaryColor: "#ffffff", // Pure White
         secondaryColor: "#f59e0b", // Amber/Gold
-        logo: "/images/autograph-logo.png",
+        logo: autographLogo.src,
         icon: BadgeCheck,
     }
 ];

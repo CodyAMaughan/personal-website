@@ -4,6 +4,11 @@ import Layout from "../layouts/Layout.astro";
 import { HeroBackground } from "../components/HeroBackground";
 import { ProjectBackground } from "../components/ProjectBackground";
 import { ContactForm } from "../components/ContactForm";
+import { Image } from "astro:assets";
+
+import lightningFast from "../assets/images/services/lightning-fast.png";
+import aiEnhanced from "../assets/images/services/ai-enhanced.png";
+import builtForYou from "../assets/images/services/built-for-you.png";
 ---
 
 <Layout title="Services | Cody Maughan">
@@ -59,9 +64,11 @@ import { ContactForm } from "../components/ContactForm";
                             <div
                                 class="w-24 h-24 shrink-0 rounded-xl overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500"
                             >
-                                <img
-                                    src="/images/services/lightning-fast.png"
+                                <Image
+                                    src={lightningFast}
                                     alt="Lightning Fast"
+                                    width={192}
+                                    height={192}
                                     class="w-full h-full object-cover"
                                 />
                             </div>
@@ -85,9 +92,11 @@ import { ContactForm } from "../components/ContactForm";
                             <div
                                 class="w-24 h-24 shrink-0 rounded-xl overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500"
                             >
-                                <img
-                                    src="/images/services/ai-enhanced.png"
+                                <Image
+                                    src={aiEnhanced}
                                     alt="AI Enhanced"
+                                    width={192}
+                                    height={192}
                                     class="w-full h-full object-cover"
                                 />
                             </div>
@@ -111,9 +120,11 @@ import { ContactForm } from "../components/ContactForm";
                             <div
                                 class="w-24 h-24 shrink-0 rounded-xl overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500"
                             >
-                                <img
-                                    src="/images/services/built-for-you.png"
+                                <Image
+                                    src={builtForYou}
                                     alt="Built For You"
+                                    width={192}
+                                    height={192}
                                     class="w-full h-full object-cover"
                                 />
                             </div>
