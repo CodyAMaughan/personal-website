@@ -40,7 +40,7 @@ const foundationCaptionHtml = data.foundationImageCaption
 
             <div class="w-full max-w-6xl mx-auto px-6 relative z-10">
                 <div
-                    class="relative p-8 md:p-12 rounded-card bg-surface/90 border border-surface-highlight/50 backdrop-blur-xl shadow-2xl animation-fade-in flex flex-col md:flex-row items-center gap-10"
+                    class="animate-fade-in relative p-8 md:p-12 rounded-card bg-surface/90 border border-surface-highlight/50 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row items-center gap-10"
                 >
                     <!-- Headshot -->
                     <div class="shrink-0 relative group">
@@ -318,6 +318,26 @@ const foundationCaptionHtml = data.foundationImageCaption
 </Layout>
 
 <style>
+    /* Hero Fade-in Animation */
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .rounded-card {
+        border-radius: 1.5rem;
+    }
+
     /* Animation Utility Classes */
     .animate-on-scroll {
         opacity: 0;

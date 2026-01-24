@@ -36,9 +36,9 @@ export const HeroBackground = () => {
         let targetMouseX = 0;
         let targetMouseY = 0;
 
-        // Configuration
+        // Configuration - 6 beams for fuller color coverage (2 of each color)
         const beams: Beam[] = [];
-        const beamCount = 4;
+        const beamCount = 6;
         const damping = 0.05;
 
         class Beam {
@@ -50,98 +50,89 @@ export const HeroBackground = () => {
             opacity!: number;
 
             constructor(index: number) {
-                // Distribute colors
-                if (index % 3 === 0) this.color = THEME_COLORS.primary;
-                else if (index % 3 === 1) this.color = THEME_COLORS.secondary;
-                else this.color = THEME_COLORS.accent;
+                // Explicitly assign colors to guarantee all three
+                const colors = [THEME_COLORS.primary, THEME_COLORS.secondary, THEME_COLORS.accent];
+                this.color = colors[index % colors.length];
 
                 this.init(index);
             }
 
             init(index: number) {
                 this.x = Math.random() * width;
-                this.width = width * 0.4 + Math.random() * (width * 0.3); // Wide beams
+                this.width = width * 0.5 + Math.random() * (width * 0.4); // Wider beams for more coverage
                 this.speed = 0.2 + Math.random() * 0.3; // Slow drift
                 this.offset = Math.random() * 1000;
-                this.opacity = 0.2 + Math.random() * 0.2; // Slightly higher opacity (0.2 to 0.4)
+                this.opacity = 0.25 + Math.random() * 0.25; // Higher opacity (0.25 to 0.5)
             }
 
             draw(ctx: CanvasRenderingContext2D, time: number) {
-                // Interactive movement
-                // Mouse X affects speed slightly, Mouse Y affects width/intensity?
-                // Let's make them drift and curve like aurora
-
                 const t = time * 0.001;
 
-                // Movement
                 // Base drift
                 let currentX = this.x + Math.sin(t * 0.5 + this.offset) * 100;
 
-                // Mouse Interaction (Attraction/Distortion)
+                // Mouse Interaction
                 const dx = mouseX - (width / 2);
-                const dy = mouseY - (height / 2); // Center relative
 
                 // Parallax-ish feel
                 currentX += dx * 0.05 * (this.speed * 2);
 
                 // Create Gradient
-                // Vertical gradient representing a beam of light shooting up/down
                 const gradient = ctx.createLinearGradient(currentX, 0, currentX + Math.sin(t + this.offset) * 200, height);
 
-                // Aurora colors usually fade in and out
-                // Top (transparent) -> Color -> Bottom (transparent) or similar
-                // Let's try: Top (Color 0) -> Middle (Color 0.5) -> Bottom (Color 0)
-
-                // Hex to RGB for opacity handling?
-                // Or just use globalAlpha
-
                 ctx.globalAlpha = this.opacity;
-                // Composite for "light" effect
-                ctx.globalCompositeOperation = 'lighter'; // or 'screen'
+                ctx.globalCompositeOperation = 'lighter';
 
                 gradient.addColorStop(0, 'transparent');
-                gradient.addColorStop(0.2, this.color); // Fade in
-                gradient.addColorStop(0.5, this.color); // Body
-                gradient.addColorStop(0.8, this.color); // Fade out
+                gradient.addColorStop(0.2, this.color);
+                gradient.addColorStop(0.5, this.color);
+                gradient.addColorStop(0.8, this.color);
                 gradient.addColorStop(1, 'transparent');
 
                 ctx.fillStyle = gradient;
 
-                // Shape: Curved customized rect
+                // Build smooth flowing shape with more segments for smoother curves
                 ctx.beginPath();
 
-                // Draw a flowing shape
-                const points = [];
-                const segments = 10;
+                const segments = 20; // More segments for smoother curves
                 const segmentHeight = height / segments;
 
-                points.push({ x: currentX, y: 0 }); // Start top
+                // Calculate all points first
+                const leftPoints: { x: number; y: number }[] = [];
+                const rightPoints: { x: number; y: number }[] = [];
 
                 for (let i = 0; i <= segments; i++) {
                     const y = i * segmentHeight;
-                    // Sine wave distortion for "curtain" look
-                    const waveX = Math.sin(y * 0.002 + t + this.offset) * (width * 0.1); // Waving
-                    const mouseAffect = (1 - Math.abs(y - mouseY) / height) * (dx * 0.2); // Mouse pulls parts of it?
+                    const waveX = Math.sin(y * 0.003 + t + this.offset) * (width * 0.08);
+                    const mouseAffect = (1 - Math.abs(y - mouseY) / height) * (dx * 0.15);
+                    const centerX = currentX + waveX + mouseAffect;
 
-                    points.push({ x: currentX + waveX + mouseAffect, y: y });
+                    leftPoints.push({ x: centerX - this.width / 2, y });
+                    rightPoints.push({ x: centerX + this.width / 2, y });
                 }
 
-                // Draw left side
-                ctx.moveTo(points[0].x - this.width / 2, points[0].y);
-                for (let i = 1; i < points.length; i++) {
-                    const p = points[i];
-                    // Smooth curve? Lineto for now
-                    ctx.lineTo(p.x - this.width / 2, p.y);
+                // Draw left side with smooth quadratic curves
+                ctx.moveTo(leftPoints[0].x, leftPoints[0].y);
+                for (let i = 1; i < leftPoints.length; i++) {
+                    const prev = leftPoints[i - 1];
+                    const curr = leftPoints[i];
+                    // Use midpoint as control point for smooth curves
+                    const cpX = (prev.x + curr.x) / 2;
+                    const cpY = (prev.y + curr.y) / 2;
+                    ctx.quadraticCurveTo(prev.x, prev.y, cpX, cpY);
                 }
+                // Final point
+                ctx.lineTo(leftPoints[leftPoints.length - 1].x, leftPoints[leftPoints.length - 1].y);
 
-                // Bottom
-                // ctx.lineTo(points[points.length-1].x + this.width/2, height);
-
-                // Draw right side (trace back up)
-                for (let i = points.length - 1; i >= 0; i--) {
-                    const p = points[i];
-                    ctx.lineTo(p.x + this.width / 2, p.y);
+                // Draw right side back up with smooth curves
+                for (let i = rightPoints.length - 1; i > 0; i--) {
+                    const curr = rightPoints[i];
+                    const prev = rightPoints[i - 1];
+                    const cpX = (curr.x + prev.x) / 2;
+                    const cpY = (curr.y + prev.y) / 2;
+                    ctx.quadraticCurveTo(curr.x, curr.y, cpX, cpY);
                 }
+                ctx.lineTo(rightPoints[0].x, rightPoints[0].y);
 
                 ctx.closePath();
                 ctx.fill();
@@ -203,8 +194,15 @@ export const HeroBackground = () => {
             mouseX += (targetMouseX - mouseX) * damping;
             mouseY += (targetMouseY - mouseY) * damping;
 
-            // Clear
-            ctx.fillStyle = THEME_COLORS.background;
+            // Draw subtle gradient background instead of solid black
+            const bgGradient = ctx.createRadialGradient(
+                width * 0.5, height * 0.3, 0,
+                width * 0.5, height * 0.5, Math.max(width, height)
+            );
+            bgGradient.addColorStop(0, '#12151a'); // Slightly lighter center
+            bgGradient.addColorStop(0.5, '#0d0f12'); // Mid-tone
+            bgGradient.addColorStop(1, THEME_COLORS.background); // Dark edges
+            ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, width, height);
 
             beams.forEach(beam => beam.draw(ctx, time));
