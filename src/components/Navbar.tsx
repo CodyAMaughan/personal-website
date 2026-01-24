@@ -96,7 +96,7 @@ export const Navbar = () => {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="md:hidden border-b border-white/5 bg-background/80 backdrop-blur-xl overflow-hidden"
+                        className="md:hidden border-b border-white/5 bg-background/80 backdrop-blur-xl"
                     >
                         <div className="p-4">
                             <Search className="w-full" />
