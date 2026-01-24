@@ -9,18 +9,17 @@ import "@fontsource/jetbrains-mono/500.css";
 import { theme } from "../config/theme";
 import { AuroraBackground } from "../components/AuroraBackground";
 import { Navbar } from "../components/Navbar";
+import SEO from "../components/SEO.astro";
 
 interface Props {
     title: string;
     description?: string;
+    image?: string;
+    type?: "website" | "article";
     showBackground?: boolean;
 }
 
-const {
-    title,
-    description = "Cody Maughan - Technical Founder & Product Engineer",
-    showBackground = true,
-} = Astro.props;
+const { title, description, image, type, showBackground = true } = Astro.props;
 
 // Inject theme colors as CSS variables
 const cssVariables = Object.entries(theme.colors)
@@ -35,12 +34,11 @@ const cssVariables = Object.entries(theme.colors)
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="description" content={description} />
         <meta name="viewport" content="width=device-width" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="generator" content={Astro.generator} />
 
-        <title>{title}</title>
+        <SEO {title} {description} {image} {type} />
 
         <!-- Preload critical fonts -->
         <link

@@ -12,6 +12,7 @@ import markdoc from '@astrojs/markdoc';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://codymaughan.com',
   output: 'static',
   integrations: [react(), keystatic(), markdoc()],
 

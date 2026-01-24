@@ -1,0 +1,56 @@
+---
+interface Props {
+    title: string;
+    description?: string;
+    image?: string;
+    type?: "website" | "article";
+}
+
+const SITE_TITLE = "Cody Maughan | Builder & Engineer";
+const SITE_DESCRIPTION = "Cody Maughan - Technical Founder & Product Engineer";
+const DEFAULT_OG_IMAGE = "/images/heroImage.jpeg"; // Using an existing image as default
+
+const {
+    title,
+    description = SITE_DESCRIPTION,
+    image = DEFAULT_OG_IMAGE,
+    type = "website",
+} = Astro.props;
+
+// Limit description to 160 characters
+const truncatedDescription =
+    description.length > 160
+        ? description.substring(0, 157) + "..."
+        : description;
+
+// Generate canonical URL
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+// Ensure absolute image URL
+const imageURL = new URL(image, Astro.site);
+
+const displayTitle = title
+    ? title.includes("Cody Maughan")
+        ? title
+        : `${title} | ${SITE_TITLE}`
+    : SITE_TITLE;
+---
+
+<!-- Standard Meta Tags -->
+<title>{displayTitle}</title>
+<meta name="description" content={truncatedDescription} />
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={title || SITE_TITLE} />
+<meta property="og:description" content={truncatedDescription} />
+<meta property="og:image" content={imageURL} />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={canonicalURL} />
+<meta property="twitter:title" content={title || SITE_TITLE} />
+<meta property="twitter:description" content={truncatedDescription} />
+<meta property="twitter:image" content={imageURL} />
