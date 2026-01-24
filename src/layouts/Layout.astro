@@ -6,7 +6,7 @@ import "@fontsource/inter/700.css";
 import "@fontsource/jetbrains-mono/400.css";
 import { theme } from "../config/theme";
 import { AuroraBackground } from "../components/AuroraBackground";
-import { Navbar } from "../components/Navbar";
+import Navbar from "../components/Navbar.astro";
 import SEO from "../components/SEO.astro";
 
 interface Props {
@@ -44,7 +44,7 @@ const cssVariables = Object.entries(theme.colors)
     >
         {showBackground && <AuroraBackground client:idle />}
 
-        <Navbar client:idle />
+        <Navbar />
 
         <slot />
 

@@ -1,0 +1,194 @@
+---
+import { Search } from "./Search";
+
+const navLinks = [
+    { name: "Services", href: "/services" },
+    { name: "Projects", href: "/projects" },
+    { name: "Build Logs", href: "/buildlogs" },
+    { name: "About", href: "/about" },
+];
+---
+
+<nav
+    class="sticky top-0 z-40 w-full border-b border-white/5 bg-background/60 backdrop-blur-xl"
+>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between gap-4">
+            <!-- Logo -->
+            <div class="flex-shrink-0">
+                <a href="/" class="flex items-center gap-2 group">
+                    <img
+                        src="/favicon.svg"
+                        alt="Cody Maughan Logo"
+                        class="h-8 w-8 rounded-lg opacity-80 group-hover:opacity-100 transition-opacity"
+                    />
+                    <span
+                        class="text-lg font-bold font-heading text-text tracking-tight group-hover:text-primary transition-colors"
+                    >
+                        Cody Maughan
+                    </span>
+                </a>
+            </div>
+
+            <!-- Desktop Links -->
+            <div class="hidden md:flex items-center gap-8">
+                {
+                    navLinks.map((link) => (
+                        <a
+                            href={link.href}
+                            class="text-sm font-medium text-text-muted hover:text-primary transition-colors font-mono"
+                        >
+                            {link.name}
+                        </a>
+                    ))
+                }
+            </div>
+
+            <!-- Desktop Search - Load React only for this interactive component -->
+            <div class="hidden md:block w-64 lg:w-80">
+                <Search client:idle />
+            </div>
+
+            <!-- Mobile Actions -->
+            <div class="flex md:hidden items-center gap-4">
+                <button
+                    id="mobile-search-btn"
+                    class="text-text-muted hover:text-text p-2 rounded-md"
+                    aria-label="Search"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        ></path>
+                    </svg>
+                </button>
+                <button
+                    id="mobile-menu-btn"
+                    class="text-text-muted hover:text-text p-2 rounded-md"
+                    aria-label="Menu"
+                >
+                    <svg
+                        id="menu-icon-open"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    <svg
+                        id="menu-icon-close"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6 hidden"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Search Overlay -->
+    <div
+        id="mobile-search-overlay"
+        class="md:hidden border-b border-white/5 bg-background/80 backdrop-blur-xl hidden overflow-hidden transition-all duration-300"
+    >
+        <div class="p-4">
+            <Search client:idle className="w-full" />
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div
+        id="mobile-menu"
+        class="md:hidden border-b border-white/5 bg-background/95 backdrop-blur-xl overflow-hidden absolute w-full hidden transition-all duration-300"
+    >
+        <div class="px-2 pt-2 pb-3 space-y-1">
+            {
+                navLinks.map((link) => (
+                    <a
+                        href={link.href}
+                        class="block px-3 py-2 rounded-md text-base font-medium text-text hover:text-primary hover:bg-white/5 font-mono"
+                    >
+                        {link.name}
+                    </a>
+                ))
+            }
+        </div>
+    </div>
+</nav>
+
+<script>
+    // Vanilla JS for mobile menu toggle - no React needed!
+    function initNavbar() {
+        const menuBtn = document.getElementById("mobile-menu-btn");
+        const searchBtn = document.getElementById("mobile-search-btn");
+        const mobileMenu = document.getElementById("mobile-menu");
+        const mobileSearch = document.getElementById("mobile-search-overlay");
+        const menuIconOpen = document.getElementById("menu-icon-open");
+        const menuIconClose = document.getElementById("menu-icon-close");
+
+        if (!menuBtn || !searchBtn || !mobileMenu || !mobileSearch) return;
+
+        menuBtn.addEventListener("click", () => {
+            const isOpen = !mobileMenu.classList.contains("hidden");
+
+            // Close search if open
+            mobileSearch.classList.add("hidden");
+
+            // Toggle menu
+            if (isOpen) {
+                mobileMenu.classList.add("hidden");
+                menuIconOpen?.classList.remove("hidden");
+                menuIconClose?.classList.add("hidden");
+            } else {
+                mobileMenu.classList.remove("hidden");
+                menuIconOpen?.classList.add("hidden");
+                menuIconClose?.classList.remove("hidden");
+            }
+        });
+
+        searchBtn.addEventListener("click", () => {
+            const isOpen = !mobileSearch.classList.contains("hidden");
+
+            // Close menu if open
+            mobileMenu.classList.add("hidden");
+            menuIconOpen?.classList.remove("hidden");
+            menuIconClose?.classList.add("hidden");
+
+            // Toggle search
+            if (isOpen) {
+                mobileSearch.classList.add("hidden");
+            } else {
+                mobileSearch.classList.remove("hidden");
+            }
+        });
+    }
+
+    // Run on initial load
+    initNavbar();
+
+    // Re-run on Astro page transitions
+    document.addEventListener("astro:page-load", initNavbar);
+</script>
