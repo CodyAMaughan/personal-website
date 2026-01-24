@@ -11,6 +11,7 @@ import { marked } from "marked";
 
 // Fetch home page content from Keystatic
 const homePage = await getEntry("home", "index");
+if (!homePage) return Astro.redirect("/404");
 const { data } = homePage;
 
 // Parse markdown in subheadline to HTML (inline to avoid wrapping in <p> tags)

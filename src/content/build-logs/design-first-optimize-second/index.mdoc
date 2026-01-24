@@ -1,0 +1,70 @@
+---
+title: "Design First, Optimize Second: Reaching 60fps with Canvas"
+pubDate: "2026-01-23"
+tags: ["Performance", "Canvas", "Optimization", "Frontend"]
+description: "How we took a heavy, animation-rich UI and engineered it to run smoothly at 60fps without losing the soul of the design."
+---
+
+"Make it look cool first, make it run fast second."
+
+That's often seen as a recipe for technical debt, but in creative engineering, it's a necessary workflow. When I first built the new background systems for this site—the **AuroraBackground**, the **HeroBackground**, and the **TechStack** marquee—I focused entirely on the *vibe*. I wanted deep blurs, flowing neon lines, and smooth transitions that felt premium.
+
+I got the look. I also got a site that chugged on mobile, spiked the GPU to 80%, and flickered whenever you resized the window.
+
+Here is how we moved from "cool but heavy" to "stunning and efficient," reaching a silky-smooth 60fps across devices.
+
+## The Strategy: Designing the Soul
+
+The initial design relied heavily on **Framer Motion** for DOM-based animations. It’s a brilliant library, but for full-screen background effects, it has limits. 
+
+We had `AuroraBackground` animating several high-blur `div` elements simultaneously. On desktop, it was fine. On mobile, the main thread was choking on 227ms blocks during hydration. The fans on my MacBook started to spin up just looking at the landing page.
+
+Instead of cutting the features, we changed the engine.
+
+## The Pivot to Canvas 2D
+
+The first major win was moving the heavy lifting from the DOM to the **HTML5 Canvas API**.
+
+### 1. AuroraBackground Rewrite
+We scrapped the DOM-based blobs and moved to a Canvas 2D implementation. By drawing radial gradients directly to a single buffer and using `requestAnimationFrame`, we eliminated thousands of DOM nodes. 
+- **Result**: Main thread load dropped. The 200ms+ hydration spikes vanished.
+- **Optimization**: We reduced the global blur values by 40%. It turns out you don't need a 110px blur if your gradients are soft enough at the source.
+
+### 2. The Great Marquee Refactor
+The `TechStack` marquee was also JS-driven. We replaced it with pure **CSS @keyframes**. By offloading the translation to the GPU's compositor thread using `transform: translateX()`, we freed up the main thread to handle user interaction.
+
+## Solving the "Resize Flash"
+
+One of the most annoying bugs was the **HeroBackground** flashing black whenever the browser window was resized. 
+
+In the initial code, every resize event called `canvas.width = window.innerWidth`. Setting the width/height attributes on a canvas **completely clears the bitmap**. Even if you redraw immediately, there’s a split-second frame where the canvas is empty, causing a visible flicker.
+
+**The Fix: Separate Resolution from Size.**
+
+We refactored the resize logic to keep the internal drawing buffer (the bitmap) persistent. Now, on resize, we only update the CSS `style.width` and `height`:
+
+```javascript
+// Before (Flickers)
+canvas.width = window.innerWidth;
+
+// After (Smooth)
+canvas.style.width = `${window.innerWidth}px`;
+canvas.style.height = `${window.innerHeight}px`;
+```
+
+By letting CSS handle the scaling of a fixed-size buffer, we stopped the flashing entirely.
+
+## Polishing the Physics
+
+To make the animations feel even more "alive," we revisited the math:
+
+1. **Quadratic Bézier Curves**: Instead of drawing straight lines (`lineTo`), we implemented `quadraticCurveTo` for the neon beams. This creates smooth, organic "S-curves" that feel more like light and less like geometry.
+2. **Color Coverage**: We bumped the beam count from 3 to 6 and ensured every theme color (Green, Blue, Amber) is represented.
+3. **Background Gradients**: We replaced the solid black background with a subtle radial gradient. This adds depth to the "black hole" areas and makes the glows feel integrated rather than just "on top."
+
+## Lessons Learned
+
+Traditional performance advice says to optimize as you go. But when you’re building something purely aesthetic, you often need to see the "too much" version to know where the "just right" version sits.
+
+**Design first** to find the soul of the product.
+**Optimize second** to make sure everyone can experience it.
