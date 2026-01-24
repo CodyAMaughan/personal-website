@@ -1,0 +1,75 @@
+---
+title: "From 56 to 100: How I Fixed My Own Slow Website"
+pubDate: "2026-01-24"
+tags: ["Performance", "Astro", "React", "Optimization"]
+description: "How I took my personal site from a sluggish 56 to a perfect 100 Lighthouse score by rethinking my architecture and image strategy."
+featured: true
+---
+
+"It works on my machine."
+
+The most dangerous phrase in engineering. I fell for it. I thought my new personal site was blazing fast because it loaded instantly on my M3 MacBook Pro over a fiber connection. It felt premium, the animations were smooth, and I was proud of the "modern" tech stack (React + Astro).
+
+Then I ran a Lighthouse mobile audit.
+
+**The score: 56.**
+
+It was a wake-up call. I wasn't building for the web; I was building for my office. I realized I was serving "Billboard-sized images in postage-stamp slots" and choking mobile CPUs with unnecessary JavaScript.
+
+Here’s how I tore it down and rebuilt it to hit a perfect 100.
+
+## The Wake-Up Call: The "Desktop Delusion"
+
+On desktop, my site was a 95+. But on a simulated Moto G4 with a "Slow 4G" connection, the experience was painful. The Hero section—the first thing users see—took nearly 4 seconds to become stable. 
+
+The culprits were clear:
+1. **Unoptimized Images**: I was serving 2MB JPEGs to phones that only needed 100KB.
+2. **JS Bloat**: The Hero section was a heavy React component (`.tsx`), meaning the browser had to download, parse, and execute the React runtime before you could even see the main headline.
+3. **Render Blocking**: My CSS was being served as a massive external wall that blocked the entire initial paint.
+
+## The Challenge: When "Modern" Hurts
+
+Astro is designed to be fast by default (Zero JS), but I had "opted-in" to slowness by using React components for everything. I was using a "Hydration-first" mindset instead of an "HTML-first" one.
+
+My lazy-loading was also misconfigured, causing the background animations to fight for bandwidth with the critical text.
+
+## The Fix: Engineering for the 100
+
+I spent the weekend refactoring the core architecture. Here were the four key moves:
+
+### 1. Migrating to Native Astro Components
+I converted the **Hero section** from React (`.tsx`) to native Astro (`.astro`). 
+- **Why?** Astro components disappear at build time. They render to pure HTML. By moving the Hero to Astro, I eliminated about 40KB of JavaScript that was previously required just to show "Hi, I'm Cody."
+
+### 2. Intelligent Image Sizing with `astro:assets`
+I switched all my images to use the `astro:assets` integration. I specifically configured `densities={[1.5, 2]}`.
+- **Why this matters**: Instead of serving one-size-fits-all images, Astro now generates specialized versions. A phone gets a 184px wide version, while a Retina display gets a 512px version. We stopped serving the "billboard" to the "postage stamp."
+
+### 3. Eliminating the "CSS Wall"
+I enabled `inlineStylesheets: 'always'` in my `astro.config.mjs`. (Initially `auto`, but I moved to `always` for the critical path).
+- **The Result**: The browser no longer has to make a separate network request to fetch my styles. The critical CSS is right there in the HTML, allowing the page to paint the moment the first packet arrives.
+
+### 4. Hybrid Rendering with `client:idle`
+For the heavy background animations, I used the `client:idle` directive.
+- **The Strategy**: The text and layout load instantly as static HTML. The "cool" background animations—which are JS-heavy—wait until the main thread is idle. The site is usable in 0.8s, and the "vibe" fades in 0.5s later.
+
+## The Result: Perfect Scores
+
+After these changes, the Lighthouse score didn't just go up—it maxed out.
+
+![Lighthouse Score 100/100/100/100](../../../assets/images/build-logs/lighthouse-100.png)
+
+We moved from a 56 to a **100/100/100/100** across Performance, Accessibility, Best Practices, and SEO.
+
+## The Lesson: Speed is Empathy
+
+This wasn't just about vanity metrics. High Lighthouse scores are about **empathy**. 
+
+When we build slow sites, we are excluding people on older devices, people on spotty transit Wi-Fi, and people in areas where data is expensive. Speed is a feature, but it's also a form of accessibility.
+
+---
+
+### Call to Action
+If you want a site that hits 100/100 and provides a premium experience for *every* user, reach out. I'm currently auditing 3 sites this week to help founders optimize their conversion funnels. 
+
+[Book an Audit →](/services)
