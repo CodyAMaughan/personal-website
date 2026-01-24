@@ -1,28 +1,29 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { submitWaitlistForm, type FormStatus } from '../lib/form';
 
 export const WaitlistForm = ({ product = "General", customColor }: { product?: string; customColor?: string }) => {
     const [email, setEmail] = useState('');
-    const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+    const [honeypot, setHoneypot] = useState('');
+    const [status, setStatus] = useState<FormStatus>('idle');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // If honeypot is filled, silently "succeed" (bot trap)
+        if (honeypot) {
+            setStatus('success');
+            return;
+        }
+
         setStatus('submitting');
 
-        try {
-            const res = await fetch('/api/waitlist', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, product }),
-            });
+        const result = await submitWaitlistForm({ email, product });
 
-            if (res.ok) {
-                setStatus('success');
-                setEmail('');
-            } else {
-                setStatus('error');
-            }
-        } catch (error) {
+        if (result.success) {
+            setStatus('success');
+            setEmail('');
+        } else {
             setStatus('error');
         }
     };
@@ -39,6 +40,16 @@ export const WaitlistForm = ({ product = "General", customColor }: { product?: s
                 </motion.div>
             ) : (
                 <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                    {/* Honeypot field - hidden from humans, visible to bots */}
+                    <input
+                        type="text"
+                        name="honeypot"
+                        value={honeypot}
+                        onChange={(e) => setHoneypot(e.target.value)}
+                        style={{ display: 'none' }}
+                        tabIndex={-1}
+                        autoComplete="off"
+                    />
                     <div className="flex gap-2">
                         <input
                             type="email"
