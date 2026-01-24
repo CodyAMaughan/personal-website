@@ -38,6 +38,25 @@ All commands are run from the root of the project, from a terminal:
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
 
+## Performance & Caching
+
+This site is optimized for performance using:
+- **Lazy-loading islands**: Non-critical components (like search index and background animations) are loaded `client:idle` or `client:visible`.
+- **Preloaded Fonts**: Critical fonts are preloaded in the head.
+- **Optimized Images**: Using `astro:assets` for automatic format conversion and resizing.
+
+### Caching Strategy (Production)
+For optimal Lighthouse scores, ensure your hosting provider (e.g., Netlify) is configured with efficient cache lifetimes.
+Add the following to your `public/_headers` or Netlify configuration:
+
+```text
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+```
+
 ## 👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).

@@ -6,20 +6,21 @@ export const Search = ({ className }: { className?: string }) => {
     const [loading, setLoading] = useState(false);
     const [pagefind, setPagefind] = useState<any>(null);
 
-    useEffect(() => {
-        const loadPagefind = async () => {
-            try {
-                // Use a variable to prevent build-time resolution errors
-                const url = "/pagefind/pagefind.js";
-                const pf = await import(/* @vite-ignore */ url);
-                setPagefind(pf);
-                console.log("Pagefind loaded successfully");
-            } catch (e) {
-                console.warn("Pagefind not found (normal in dev mode):", e);
-            }
-        };
-        loadPagefind();
-    }, []);
+    const loadPagefind = async () => {
+        if (pagefind) return; // Already loading or loaded
+        setLoading(true);
+        try {
+            // Use a variable to prevent build-time resolution errors
+            const url = "/pagefind/pagefind.js";
+            const pf = await import(/* @vite-ignore */ url);
+            setPagefind(pf);
+            console.log("Pagefind loaded successfully");
+        } catch (e) {
+            console.warn("Pagefind not found (normal in dev mode):", e);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const q = e.target.value;
@@ -46,13 +47,8 @@ export const Search = ({ className }: { className?: string }) => {
         }
     };
 
-    if (!pagefind) {
-        return (
-            <div className={`text-xs text-text-muted font-mono p-2 border border-surface-highlight rounded opacity-50 cursor-not-allowed hidden sm:block ${className}`}>
-                Search (Bldg...)
-            </div>
-        )
-    }
+    // If in dev mode and pagefind isn't found, we show a disabled-looking but functional-on-focus input
+    // The previous logic completely changed the UI. Let's make it consistent.
 
     return (
         <div className={`relative font-mono w-full group ${className}`}>
@@ -64,9 +60,11 @@ export const Search = ({ className }: { className?: string }) => {
             <input
                 type="text"
                 className="block w-full pl-10 pr-3 py-2 border border-surface-highlight rounded-md leading-5 bg-surface-elevation-low text-text placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all duration-200"
-                placeholder="Search command..."
+                placeholder={loading ? "Initializing search..." : "Search command..."}
                 value={query}
                 onChange={handleSearch}
+                onFocus={loadPagefind}
+                onMouseEnter={loadPagefind}
             />
 
             {results.length > 0 && (
