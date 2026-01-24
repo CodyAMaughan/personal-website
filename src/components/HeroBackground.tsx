@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // Hardcoded from theme.ts to ensure canvas performance without deep imports/deps
 // colors:
@@ -16,8 +16,10 @@ const THEME_COLORS = {
 
 export const HeroBackground = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
+        console.log('[HeroBackground] Component MOUNTED / useEffect running');
         const canvas = canvasRef.current;
         if (!canvas) return;
 
@@ -25,8 +27,10 @@ export const HeroBackground = () => {
         if (!ctx) return;
 
         let animationFrameId: number;
-        let width: number;
-        let height: number;
+        // Use parent container dimensions instead of full window
+        const parent = canvas.parentElement;
+        let width = parent?.clientWidth || window.innerWidth;
+        let height = parent?.clientHeight || window.innerHeight;
         let mouseX = 0;
         let mouseY = 0;
         let targetMouseX = 0;
@@ -147,20 +151,42 @@ export const HeroBackground = () => {
             }
         }
 
-        const init = () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
+        // Initialize canvas bitmap once on mount (never resize bitmap to avoid flash)
+        const initCanvas = () => {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            // Fill initial background
+            ctx.fillStyle = THEME_COLORS.background;
+            ctx.fillRect(0, 0, width, height);
+        };
 
+        // Only updates CSS size on resize - bitmap stays fixed (avoids flash)
+        const resizeCanvas = () => {
+            width = parent?.clientWidth || window.innerWidth;
+            height = parent?.clientHeight || window.innerHeight;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+        };
+
+        // Creates beams - only called once on mount
+        const initBeams = () => {
             beams.length = 0;
             for (let i = 0; i < beamCount; i++) {
                 beams.push(new Beam(i));
             }
         };
 
+        // Debounce resize to reduce jitter
+        let resizeTimeout: number;
         const handleResize = () => {
-            init();
+            cancelAnimationFrame(resizeTimeout);
+            resizeTimeout = requestAnimationFrame(() => {
+                resizeCanvas();
+            });
         };
 
         const handleMouseMove = (e: MouseEvent) => {
@@ -189,7 +215,14 @@ export const HeroBackground = () => {
         window.addEventListener('resize', handleResize);
         window.addEventListener('mousemove', handleMouseMove);
 
-        init();
+        initCanvas();
+        initBeams();
+
+        // Trigger fade-in after first frame
+        requestAnimationFrame(() => {
+            console.log('[HeroBackground] Setting isLoaded to TRUE');
+            setIsLoaded(true);
+        });
 
         // Initial center
         targetMouseX = window.innerWidth / 2;
@@ -221,11 +254,12 @@ export const HeroBackground = () => {
     return (
         <canvas
             ref={canvasRef}
-            className="absolute inset-0 -z-10 w-full h-full animate-fade-in"
+            className="absolute inset-0 -z-10 w-full h-full"
             style={{
                 background: THEME_COLORS.background,
-                animation: 'fadeIn 1s ease-out forwards',
+                willChange: 'transform',
             }}
         />
     );
 };
+

@@ -26,7 +26,8 @@ export const Hero = ({
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ duration: 0.7, ease: "easeOut" }}
-                    className="relative p-8 md:p-12 rounded-card bg-surface border border-border backdrop-blur-xl shadow-2xl"
+                    onAnimationStart={() => console.log('[Hero] motion.div animation STARTED')}
+                    className="relative p-8 md:p-12 rounded-card bg-surface border border-border shadow-2xl"
                 >
                     <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
                         {/* Headshot Column */}

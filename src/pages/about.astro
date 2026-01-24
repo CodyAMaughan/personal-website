@@ -1,38 +1,53 @@
 ---
 export const prerender = true;
-import Layout from '../layouts/Layout.astro';
-import { HeroBackground } from '../components/HeroBackground';
-import { MusicBackground } from '../components/MusicBackground';
-import { getEntry } from 'astro:content';
-import { marked } from 'marked';
+import Layout from "../layouts/Layout.astro";
+import { HeroBackground } from "../components/HeroBackground";
+import { MusicBackground } from "../components/MusicBackground";
+import { getEntry } from "astro:content";
+import { marked } from "marked";
 
-const aboutPage = await getEntry('about', 'index');
+const aboutPage = await getEntry("about", "index");
 const { data } = aboutPage;
 
 // Parse markdown content to HTML
-const originHtml = await marked.parse(data.originContent || '');
-const builderHtml = await marked.parse(data.builderContent || '');
-const strategistHtml = await marked.parse(data.strategistContent || '');
-const foundationHtml = await marked.parse(data.foundationContent || '');
+const originHtml = await marked.parse(data.originContent || "");
+const builderHtml = await marked.parse(data.builderContent || "");
+const strategistHtml = await marked.parse(data.strategistContent || "");
+const foundationHtml = await marked.parse(data.foundationContent || "");
 
 // Parse markdown captions to HTML (inline to avoid wrapping in <p> tags)
-const originCaptionHtml = data.originImageCaption ? await marked.parseInline(data.originImageCaption) : '';
-const builderCaptionHtml = data.builderImageCaption ? await marked.parseInline(data.builderImageCaption) : '';
-const strategistCaptionHtml = data.strategistImageCaption ? await marked.parseInline(data.strategistImageCaption) : '';
-const foundationCaptionHtml = data.foundationImageCaption ? await marked.parseInline(data.foundationImageCaption) : '';
+const originCaptionHtml = data.originImageCaption
+    ? await marked.parseInline(data.originImageCaption)
+    : "";
+const builderCaptionHtml = data.builderImageCaption
+    ? await marked.parseInline(data.builderImageCaption)
+    : "";
+const strategistCaptionHtml = data.strategistImageCaption
+    ? await marked.parseInline(data.strategistImageCaption)
+    : "";
+const foundationCaptionHtml = data.foundationImageCaption
+    ? await marked.parseInline(data.foundationImageCaption)
+    : "";
 ---
 
 <Layout title="About Me | Cody Maughan">
     <div class="relative w-full overflow-x-hidden">
         <!-- Hero Section -->
-        <div class="relative min-h-[60vh] flex items-center justify-center py-20">
+        <section
+            class="relative min-h-[60vh] flex items-center justify-center py-20 overflow-hidden"
+        >
             <HeroBackground client:load />
-            
-             <div class="w-full max-w-6xl mx-auto px-6 relative z-10">
-                <div class="relative p-8 md:p-12 rounded-card bg-surface/90 border border-surface-highlight/50 backdrop-blur-xl shadow-2xl animation-fade-in flex flex-col md:flex-row items-center gap-10">
+
+            <div class="w-full max-w-6xl mx-auto px-6 relative z-10">
+                <div
+                    class="relative p-8 md:p-12 rounded-card bg-surface/90 border border-surface-highlight/50 backdrop-blur-xl shadow-2xl animation-fade-in flex flex-col md:flex-row items-center gap-10"
+                >
                     <!-- Headshot -->
-                     <div class="shrink-0 relative group">
-                        <div class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
+                    <div class="shrink-0 relative group">
+                        <div
+                            class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-25 group-hover:opacity-75 transition duration-500"
+                        >
+                        </div>
                         <img
                             src={data.heroImage}
                             alt="Cody Maughan"
@@ -41,10 +56,14 @@ const foundationCaptionHtml = data.foundationImageCaption ? await marked.parseIn
                     </div>
 
                     <div class="text-center md:text-left">
-                        <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-white">
+                        <h1
+                            class="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-white"
+                        >
                             {data.heroHeadline}
                         </h1>
-                        <p class="text-xl md:text-2xl text-gray-200 leading-relaxed max-w-2xl mx-auto md:mx-0">
+                        <p
+                            class="text-xl md:text-2xl text-gray-200 leading-relaxed max-w-2xl mx-auto md:mx-0"
+                        >
                             {data.heroSubheadline}
                         </p>
                     </div>
@@ -52,29 +71,57 @@ const foundationCaptionHtml = data.foundationImageCaption ? await marked.parseIn
             </div>
 
             <!-- Fade to black at bottom of hero -->
-            <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
-        </div>
+            <div
+                class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none"
+            >
+            </div>
+        </section>
 
         <main class="w-full pb-32">
-            
             <!-- Section 1: The Origin Story (Text Left, Image Right) -->
             <section class="relative py-20 overflow-hidden">
-                <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                    <div class="order-2 md:order-1 animate-on-scroll fade-in-left">
-                        <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-                            <span class="text-primary">01.</span> {data.originTitle.replace('01. ', '')}
+                <div
+                    class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
+                >
+                    <div
+                        class="order-2 md:order-1 animate-on-scroll fade-in-left"
+                    >
+                        <h2
+                            class="text-3xl font-bold text-white mb-8 flex items-center gap-3"
+                        >
+                            <span class="text-primary">01.</span>
+                            {data.originTitle.replace("01. ", "")}
                         </h2>
-                        <div class="space-y-6 text-lg text-text-muted leading-relaxed prose prose-invert" set:html={originHtml} />
+                        <div
+                            class="space-y-6 text-lg text-text-muted leading-relaxed prose prose-invert"
+                            set:html={originHtml}
+                        />
                     </div>
-                    <div class="order-1 md:order-2 flex justify-center md:justify-end animate-on-scroll fade-in-right delay-200">
+                    <div
+                        class="order-1 md:order-2 flex justify-center md:justify-end animate-on-scroll fade-in-right delay-200"
+                    >
                         <figure class="w-full max-w-md">
-                            <div class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-                                 <div class="absolute inset-0 bg-primary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                 <img src={data.originImage} alt="Abstract Data Helix" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                            <div
+                                class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group"
+                            >
+                                <div
+                                    class="absolute inset-0 bg-primary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                >
+                                </div>
+                                <img
+                                    src={data.originImage}
+                                    alt="Abstract Data Helix"
+                                    class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                                />
                             </div>
-                            {originCaptionHtml && (
-                                <figcaption class="mt-3 text-sm text-text-muted/70 text-center italic" set:html={originCaptionHtml} />
-                            )}
+                            {
+                                originCaptionHtml && (
+                                    <figcaption
+                                        class="mt-3 text-sm text-text-muted/70 text-center italic"
+                                        set:html={originCaptionHtml}
+                                    />
+                                )
+                            }
                         </figure>
                     </div>
                 </div>
@@ -82,45 +129,97 @@ const foundationCaptionHtml = data.foundationImageCaption ? await marked.parseIn
 
             <!-- Section 2: The Builder (Image Left, Text Right) -->
             <section class="relative py-20 overflow-hidden bg-white/[0.02]">
-                <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                     <div class="order-1 flex justify-center md:justify-start animate-on-scroll fade-in-left">
+                <div
+                    class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
+                >
+                    <div
+                        class="order-1 flex justify-center md:justify-start animate-on-scroll fade-in-left"
+                    >
                         <figure class="w-full max-w-md">
-                            <div class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-                                 <div class="absolute inset-0 bg-secondary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                 <img src={data.builderImage} alt="Building Tools Abstract" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                            <div
+                                class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group"
+                            >
+                                <div
+                                    class="absolute inset-0 bg-secondary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                >
+                                </div>
+                                <img
+                                    src={data.builderImage}
+                                    alt="Building Tools Abstract"
+                                    class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                                />
                             </div>
-                            {builderCaptionHtml && (
-                                <figcaption class="mt-3 text-sm text-text-muted/70 text-center italic" set:html={builderCaptionHtml} />
-                            )}
+                            {
+                                builderCaptionHtml && (
+                                    <figcaption
+                                        class="mt-3 text-sm text-text-muted/70 text-center italic"
+                                        set:html={builderCaptionHtml}
+                                    />
+                                )
+                            }
                         </figure>
                     </div>
-                    <div class="order-2 animate-on-scroll fade-in-right delay-200">
-                        <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-                            <span class="text-secondary">02.</span> {data.builderTitle.replace('02. ', '')}
+                    <div
+                        class="order-2 animate-on-scroll fade-in-right delay-200"
+                    >
+                        <h2
+                            class="text-3xl font-bold text-white mb-8 flex items-center gap-3"
+                        >
+                            <span class="text-secondary">02.</span>
+                            {data.builderTitle.replace("02. ", "")}
                         </h2>
-                        <div class="space-y-6 text-lg text-text-muted leading-relaxed relative z-10 prose prose-invert" set:html={builderHtml} />
+                        <div
+                            class="space-y-6 text-lg text-text-muted leading-relaxed relative z-10 prose prose-invert"
+                            set:html={builderHtml}
+                        />
                     </div>
                 </div>
             </section>
 
             <!-- Section 3: The Strategist (Text Left, Image Right) -->
             <section class="relative py-20 overflow-hidden">
-                <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                    <div class="order-2 md:order-1 animate-on-scroll fade-in-left">
-                         <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-                            <span class="text-accent">03.</span> {data.strategistTitle.replace('03. ', '')}
+                <div
+                    class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
+                >
+                    <div
+                        class="order-2 md:order-1 animate-on-scroll fade-in-left"
+                    >
+                        <h2
+                            class="text-3xl font-bold text-white mb-8 flex items-center gap-3"
+                        >
+                            <span class="text-accent">03.</span>
+                            {data.strategistTitle.replace("03. ", "")}
                         </h2>
-                        <div class="space-y-6 text-lg text-text-muted leading-relaxed prose prose-invert" set:html={strategistHtml} />
+                        <div
+                            class="space-y-6 text-lg text-text-muted leading-relaxed prose prose-invert"
+                            set:html={strategistHtml}
+                        />
                     </div>
-                    <div class="order-1 md:order-2 flex justify-center md:justify-end animate-on-scroll fade-in-right delay-200">
+                    <div
+                        class="order-1 md:order-2 flex justify-center md:justify-end animate-on-scroll fade-in-right delay-200"
+                    >
                         <figure class="w-full max-w-md">
-                            <div class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-                                 <div class="absolute inset-0 bg-accent/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                 <img src={data.strategistImage} alt="Chess Strategy and Endurance" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                            <div
+                                class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group"
+                            >
+                                <div
+                                    class="absolute inset-0 bg-accent/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                >
+                                </div>
+                                <img
+                                    src={data.strategistImage}
+                                    alt="Chess Strategy and Endurance"
+                                    class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                                />
                             </div>
-                            {strategistCaptionHtml && (
-                                <figcaption class="mt-3 text-sm text-text-muted/70 text-center italic" set:html={strategistCaptionHtml} />
-                            )}
+                            {
+                                strategistCaptionHtml && (
+                                    <figcaption
+                                        class="mt-3 text-sm text-text-muted/70 text-center italic"
+                                        set:html={strategistCaptionHtml}
+                                    />
+                                )
+                            }
                         </figure>
                     </div>
                 </div>
@@ -128,44 +227,88 @@ const foundationCaptionHtml = data.foundationImageCaption ? await marked.parseIn
 
             <!-- Section 4: The Foundation (Image Left, Text Right) -->
             <section class="relative py-20 overflow-hidden bg-white/[0.02]">
-                <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                    <div class="order-1 flex justify-center md:justify-start animate-on-scroll fade-in-left">
+                <div
+                    class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
+                >
+                    <div
+                        class="order-1 flex justify-center md:justify-start animate-on-scroll fade-in-left"
+                    >
                         <figure class="w-full max-w-md">
-                            <div class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-                                 <div class="absolute inset-0 bg-yellow-500/10 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                 <img src={data.foundationImage} alt="Light and Foundation" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                            <div
+                                class="relative aspect-square rounded-2xl overflow-hidden shadow-2xl border border-white/10 group"
+                            >
+                                <div
+                                    class="absolute inset-0 bg-yellow-500/10 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                >
+                                </div>
+                                <img
+                                    src={data.foundationImage}
+                                    alt="Light and Foundation"
+                                    class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                                />
                             </div>
-                            {foundationCaptionHtml && (
-                                <figcaption class="mt-3 text-sm text-text-muted/70 text-center italic" set:html={foundationCaptionHtml} />
-                            )}
+                            {
+                                foundationCaptionHtml && (
+                                    <figcaption
+                                        class="mt-3 text-sm text-text-muted/70 text-center italic"
+                                        set:html={foundationCaptionHtml}
+                                    />
+                                )
+                            }
                         </figure>
                     </div>
-                    <div class="order-2 animate-on-scroll fade-in-right delay-200">
-                        <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
-                            <span class="text-white/60">04.</span> {data.foundationTitle.replace('04. ', '')}
+                    <div
+                        class="order-2 animate-on-scroll fade-in-right delay-200"
+                    >
+                        <h2
+                            class="text-3xl font-bold text-white mb-8 flex items-center gap-3"
+                        >
+                            <span class="text-white/60">04.</span>
+                            {data.foundationTitle.replace("04. ", "")}
                         </h2>
-                        <div class="space-y-6 text-lg text-text-muted leading-relaxed prose prose-invert" set:html={foundationHtml} />
+                        <div
+                            class="space-y-6 text-lg text-text-muted leading-relaxed prose prose-invert"
+                            set:html={foundationHtml}
+                        />
                     </div>
                 </div>
             </section>
 
             <!-- Section 5: Music -->
-            <section class="relative w-full py-40 min-h-[500px] flex items-center justify-center overflow-hidden">
+            <section
+                class="relative w-full py-40 min-h-[500px] flex items-center justify-center overflow-hidden"
+            >
                 <!-- Dynamic Music Background - Full Width -->
                 <div class="absolute inset-0 z-0">
-                     <MusicBackground client:visible />
+                    <MusicBackground client:visible />
                 </div>
-                
+
                 <div class="relative z-10 w-full max-w-4xl px-6">
-                    <div class="relative p-8 md:p-12 rounded-card bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl text-center animate-on-scroll fade-in-left">
-                        <h2 class="text-3xl font-bold text-white mb-6">The B-Sides</h2>
-                         <p class="text-white/90 mb-10 max-w-lg mx-auto text-lg leading-relaxed">
-                            In a past life, I wrote songs in high school and college. The guitar gathers dust sometimes, but the music never really stops.
+                    <div
+                        class="relative p-8 md:p-12 rounded-card bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl text-center animate-on-scroll fade-in-left"
+                    >
+                        <h2 class="text-3xl font-bold text-white mb-6">
+                            The B-Sides
+                        </h2>
+                        <p
+                            class="text-white/90 mb-10 max-w-lg mx-auto text-lg leading-relaxed"
+                        >
+                            In a past life, I wrote songs in high school and
+                            college. The guitar gathers dust sometimes, but the
+                            music never really stops.
                         </p>
-                        <a href="/music" class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-surface-card border border-surface-highlight hover:border-primary/50 text-white transition-all duration-300 group hover:shadow-lg hover:shadow-primary/10">
+                        <a
+                            href="/music"
+                            class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-surface-card border border-surface-highlight hover:border-primary/50 text-white transition-all duration-300 group hover:shadow-lg hover:shadow-primary/10"
+                        >
                             <span class="text-2xl">🎵</span>
-                            <span class="font-medium">Listen to the Archives</span>
-                            <span class="text-xs px-2 py-0.5 rounded-full bg-surface-highlight text-text-muted">Coming Soon</span>
+                            <span class="font-medium"
+                                >Listen to the Archives</span
+                            >
+                            <span
+                                class="text-xs px-2 py-0.5 rounded-full bg-surface-highlight text-text-muted"
+                                >Coming Soon</span
+                            >
                         </a>
                     </div>
                 </div>
@@ -178,7 +321,9 @@ const foundationCaptionHtml = data.foundationImageCaption ? await marked.parseIn
     /* Animation Utility Classes */
     .animate-on-scroll {
         opacity: 0;
-        transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        transition:
+            opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 1s cubic-bezier(0.16, 1, 0.3, 1);
         will-change: opacity, transform;
     }
 
@@ -201,18 +346,18 @@ const foundationCaptionHtml = data.foundationImageCaption ? await marked.parseIn
 </style>
 
 <script>
-    document.addEventListener('astro:page-load', () => {
+    document.addEventListener("astro:page-load", () => {
         const observerOptions = {
             root: null,
-            rootMargin: '0px',
-            threshold: 0.2
+            rootMargin: "0px",
+            threshold: 0.2,
         };
 
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
+            entries.forEach((entry) => {
                 // If element is in viewport
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
+                    entry.target.classList.add("visible");
                     // Stop watching once it is visible (only animate once)
                     observer.unobserve(entry.target);
                 }
@@ -220,26 +365,26 @@ const foundationCaptionHtml = data.foundationImageCaption ? await marked.parseIn
         }, observerOptions);
 
         // Target all elements with .animate-on-scroll
-        const hiddenElements = document.querySelectorAll('.animate-on-scroll');
+        const hiddenElements = document.querySelectorAll(".animate-on-scroll");
         hiddenElements.forEach((el) => observer.observe(el));
     });
 
     // Also run on initial load if not using View Transitions or fallback
     const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.2
-        };
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.2,
+    };
 
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
             if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
+                entry.target.classList.add("visible");
                 observer.unobserve(entry.target);
             }
         });
     }, observerOptions);
 
-    const hiddenElements = document.querySelectorAll('.animate-on-scroll');
+    const hiddenElements = document.querySelectorAll(".animate-on-scroll");
     hiddenElements.forEach((el) => observer.observe(el));
 </script>
