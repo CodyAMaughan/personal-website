@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import Layout from '../layouts/Layout.astro';
 import { HeroBackground } from '../components/HeroBackground';
 import { ProjectBackground } from '../components/ProjectBackground';
@@ -34,32 +35,32 @@ import { ContactForm } from '../components/ContactForm';
                 <ProjectBackground client:load />
                 
                 <div class="max-w-6xl mx-auto px-6 relative z-10">
-                    <div class="grid grid-cols-1 gap-6 mb-20">
-                        <div class="group flex items-center gap-6 p-6 rounded-xl bg-surface/70 border border-surface-highlight/50 backdrop-blur-md hover:border-primary/30 transition-all duration-300">
-                            <div class="w-20 h-20 shrink-0 rounded-lg overflow-hidden">
+                    <div class="grid grid-cols-1 gap-8 mb-20">
+                        <div class="group flex flex-col md:flex-row items-center md:items-start gap-6 p-8 rounded-2xl bg-surface/70 border border-surface-highlight/50 backdrop-blur-md hover:border-primary/30 transition-all duration-300">
+                            <div class="w-24 h-24 shrink-0 rounded-xl overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500">
                                 <img src="/images/services/lightning-fast.png" alt="Lightning Fast" class="w-full h-full object-cover" />
                             </div>
-                            <div>
-                                <h3 class="text-xl font-semibold text-white mb-2">Lightning Fast</h3>
-                                <p class="text-text-muted">Sub-second load times with optimized static builds. Your visitors won't wait.</p>
+                            <div class="text-center md:text-left">
+                                <h3 class="text-2xl font-bold text-white mb-3">Lightning Fast</h3>
+                                <p class="text-lg text-text-muted leading-relaxed">Sub-second load times with optimized static builds. I build with performance as a first-class citizen so your visitors never have to wait.</p>
                             </div>
                         </div>
-                        <div class="group flex items-center gap-6 p-6 rounded-xl bg-surface/70 border border-surface-highlight/50 backdrop-blur-md hover:border-secondary/30 transition-all duration-300">
-                            <div class="w-20 h-20 shrink-0 rounded-lg overflow-hidden">
+                        <div class="group flex flex-col md:flex-row items-center md:items-start gap-6 p-8 rounded-2xl bg-surface/70 border border-surface-highlight/50 backdrop-blur-md hover:border-secondary/30 transition-all duration-300">
+                            <div class="w-24 h-24 shrink-0 rounded-xl overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500">
                                 <img src="/images/services/ai-enhanced.png" alt="AI Enhanced" class="w-full h-full object-cover" />
                             </div>
-                            <div>
-                                <h3 class="text-xl font-semibold text-white mb-2">AI-Enhanced</h3>
-                                <p class="text-text-muted">Integrate smart features—chatbots, content generation, automation—into your workflow.</p>
+                            <div class="text-center md:text-left">
+                                <h3 class="text-2xl font-bold text-white mb-3">AI-Enhanced</h3>
+                                <p class="text-lg text-text-muted leading-relaxed">Integrate smart features—chatbots, content generation, and intelligent automation—directly into your web application to supercharge your workflow.</p>
                             </div>
                         </div>
-                        <div class="group flex items-center gap-6 p-6 rounded-xl bg-surface/70 border border-surface-highlight/50 backdrop-blur-md hover:border-accent/30 transition-all duration-300">
-                            <div class="w-20 h-20 shrink-0 rounded-lg overflow-hidden">
+                        <div class="group flex flex-col md:flex-row items-center md:items-start gap-6 p-8 rounded-2xl bg-surface/70 border border-surface-highlight/50 backdrop-blur-md hover:border-accent/30 transition-all duration-300">
+                            <div class="w-24 h-24 shrink-0 rounded-xl overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500">
                                 <img src="/images/services/built-for-you.png" alt="Built For You" class="w-full h-full object-cover" />
                             </div>
-                            <div>
-                                <h3 class="text-xl font-semibold text-white mb-2">Built for You</h3>
-                                <p class="text-text-muted">No templates. Every pixel crafted to match your brand and goals.</p>
+                            <div class="text-center md:text-left">
+                                <h3 class="text-2xl font-bold text-white mb-3">Built for You</h3>
+                                <p class="text-lg text-text-muted leading-relaxed">No generic templates or bloated page builders. Every line of code is handwritten to match your unique brand identity and business goals perfectly.</p>
                             </div>
                         </div>
                     </div>

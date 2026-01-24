@@ -51,7 +51,6 @@ export const ContactForm = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-green-400 font-medium bg-green-400/10 px-6 py-8 rounded-xl border border-green-400/20 text-center"
             >
-                <div className="text-2xl mb-2">🎉</div>
                 <div className="text-lg font-semibold mb-1">Message Received!</div>
                 <p className="text-green-300/80">I'll get back to you within 24-48 hours.</p>
             </motion.div>
