@@ -1,0 +1,134 @@
+---
+title: "AI Planning Without the Slop: How I Used Agents to Build a Roadmap"
+pubDate: "2026-01-24"
+tags: ["AI", "Architecture", "Planning", "Agents", "Say Play"]
+description: "How I used AI agents strategically—including pitting them against each other—to build a bulletproof feature roadmap without falling into the 'AI slop' trap."
+featured: true
+---
+
+We've all seen it: AI slop. That wall of confident-sounding text that crumbles the moment you try to implement it. Vague plans, outdated syntax, architecturally unsound advice delivered with zero hesitation.
+
+I refuse to build products that way.
+
+This week, I spent a full session with AI agents to architect the roadmap for **Say Play** (my agentic video platform). But instead of just asking for a plan and copy-pasting the result, I treated the AI like a junior engineer who needed to *prove* their recommendations.
+
+The result was a detailed, phased implementation roadmap with difficulty ratings, agent assignments, and TDD test plans for every feature—without a single line of slop.
+
+Here's the playbook I developed.
+
+---
+
+## The 5 Principles for AI-Assisted Planning
+
+Before I walk through the session, here's the framework I now use whenever I'm doing architectural planning with AI. These principles emerged from this process and previous painful lessons.
+
+### 1. Make the AI Read Before It Writes
+Never let the AI hallucinate about your codebase. Force it to `view_file` the actual implementation before offering opinions. I call this the **"Map vs. Terrain"** rule: Documentation is the Map, Code is the Terrain. If they disagree, trust the Terrain—but flag it immediately.
+
+### 2. Ask "What Are We Missing?" Not "Give Me a Plan"
+Open-ended prompts like "plan this feature" produce slop. Instead, ask the AI to *critique* the current state. "What does the current architecture not support?" yields far more actionable insights than "write me an architecture doc."
+
+### 3. Pit Two AIs Against Each Other
+After one agent produces a plan, I paste it into a *different* model and ask it to find flaws. This creates an adversarial review process without you needing to be the expert. The critique often catches issues you'd never think to ask about.
+
+### 4. Force Explanations
+If the AI recommends something I don't fully understand, I make it explain *why*. This serves two purposes: I learn something, and I can smell when the AI is bullshitting. Vague justifications are a red flag.
+
+### 5. Assign Work by Difficulty
+Not all tasks need the most expensive model. Classify tasks by complexity and route them to the right agent. Simple UI scaffolding? Use a fast, cheap model. Complex state synchronization? Use the heavy hitter.
+
+---
+
+## The Session: From Scattered Code to Detailed Roadmap
+
+### Step 1: Assessing the Current State
+
+I started by asking the agent to read my existing `DESIGN_DOC.md` and the actual implementation files (components, API routes, agent tools). The goal was to build a "current state" assessment—not from memory, but from the *actual codebase*.
+
+This immediately surfaced gaps. Video compositions were stored ephemerally in chat history, not as persistent files. The editor UI was scaffolded but non-functional. There was no render pipeline and no publishing mechanism.
+
+By forcing the AI to read first, I avoided getting advice for a project that only existed in the AI's imagination.
+
+### Step 2: Strategic Decision: Cloud vs. Desktop
+
+Before diving into features, I had a foundational question: Should this be a SaaS platform or a downloadable desktop app?
+
+Instead of asking "what should I do?", I asked the AI to lay out the trade-offs. Compute costs for cloud rendering vs. user's local machine. Subscription revenue vs. one-time purchase. Offline capability vs. always-connected.
+
+The recommendation that emerged was a **"Universal App"** architecture—design for local-first (SQLite, file-based storage, offline-capable), then add cloud features as optional enhancements. This way, the same codebase can deploy as either a web app or an Electron desktop app.
+
+I pushed back: "Can I easily pivot between these?" The AI walked me through the abstraction layers that would make this possible without major refactoring. I understood the reasoning, so I trusted the direction.
+
+### Step 3: Building the Feature Roadmap
+
+With the architecture settled, I asked the AI to produce a phased feature roadmap. But I was specific: I wanted it organized by *capability*, not by file. Each phase needed a clear goal like "File-Based Video Architecture" or "Render Pipeline."
+
+The output was a 7-phase roadmap:
+- **Phase 0**: Foundation (file-based video storage)
+- **Phase 1**: IDE layout (file tree, tabbed editor, split view)
+- **Phase 2**: Visual-code bridge (layer inspector, props panel, timeline)
+- **Phase 3-4**: Enhanced layers and asset management
+- **Phase 5**: Render pipeline (Remotion CLI → MP4)
+- **Phase 6**: Publishing pipeline (MCP tools for YouTube, Buffer)
+- **Phase 7**: Agent enhancements (vision, content generation)
+
+### Step 4: Pitting AIs Against Each Other
+
+Here's where things got interesting. I took the roadmap and pasted it into a *different* AI model with the prompt: "Critique this plan. Find flaws."
+
+The critique was valuable. It identified:
+1. **A missing state manager**: The plan mentioned React Context but didn't acknowledge when to upgrade to Zustand if state grew too complex.
+2. **Latency in the preview loop**: The plan described "save to disk, then refresh preview"—but for a snappy IDE feel, previews should update *instantly* from local state, with disk saves debounced in the background.
+
+I brought these critiques back to the first AI and asked for a response. The AI agreed with the latency concern 100% and clarified the state management point: start with Context, upgrade to Zustand *only if* performance degrades. We updated the roadmap accordingly.
+
+This adversarial loop caught architectural issues I wouldn't have thought to ask about. Two AIs > one AI.
+
+### Step 5: Assigning Difficulty and Agents
+
+Not every task needs the same level of AI horsepower. I asked the agent to rate each sub-phase by difficulty and recommend which model should implement it:
+
+- 🟢 **Easy** → Gemini 3 Flash (fast, cheap, good for UI scaffolding)
+- 🟡 **Medium** → Gemini 3 Pro (better reasoning, handles state logic)
+- 🔴 **Hard** → Claude Opus 4.5 (complex interactions, security-sensitive, critical paths)
+
+This explicit assignment saves money and prevents over-engineering. The timeline drag-and-drop feature? That's a 🔴 Hard task—give it to the best model. Mode toggle with localStorage? That's 🟢 Easy—don't waste expensive tokens.
+
+### Step 6: Defining Test Plans for TDD
+
+The final step was making the roadmap *actionable* for Test-Driven Development. For each phase, I asked the agent to specify:
+- The exact test file path (following mirror structure)
+- The 3-5 key behaviors to test
+- The mocking patterns to use
+
+Now, when an agent picks up a phase, it reads the plan, writes failing tests first, implements the feature, and verifies tests pass. No ambiguity.
+
+---
+
+## The Result: A Bulletproof Roadmap
+
+After this session, I had:
+- A master `DESIGN_DOC.md` with architectural principles and anti-patterns
+- A `FEATURE_ROADMAP.md` with 7 phases, 20+ sub-tasks, difficulty ratings, agent assignments, and test plans
+- Updated testing rules for the patterns I'd need (file system mocking, Remotion component testing, subprocess mocking)
+
+And crucially, I *understood* every decision in the plan because I had forced the AI to explain and defend them.
+
+---
+
+## The Meta-Lesson: AI as a Thinking Partner, Not a Generator
+
+The biggest shift in how I use AI is this: I no longer ask it to *generate* artifacts. I ask it to *think with me*.
+
+When you treat AI as a generator, you get slop. When you treat it as a thinking partner—one that has to read the actual code, defend its recommendations, and survive critique from a competitor—you get something far more valuable.
+
+The AI doesn't replace your judgment. It *augments* your thinking by forcing you to articulate questions you didn't know you had.
+
+---
+
+## What's Next
+
+Phase 0 starts this weekend: file-based video architecture. I'll be using Gemini 3 Pro for the backend API and tool refactoring, following the TDD workflow we defined.
+
+If you want to follow along, the roadmap is public in the Say Play repo. Or just wait for the next build log—I'll be documenting the implementation, not just the plan.
+
