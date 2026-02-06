@@ -1,0 +1,240 @@
+---                                  
+  title: "Debugging with AI: When the Bug Isn't Where You Think It Is"
+  pubDate: "2026-02-05"                                                         
+  tags: ["AI", "Debugging", "Remotion", "Video", "Say Play"]
+  description: "How I learned to stop asking AI to 'fix' bugs and started using 
+  it as a diagnostic partner—leading to a breakthrough when frame drops weren't
+  what they seemed."
+  featured: true
+  ---
+
+  I spent hours convinced my animation code was broken. The pan effect in my
+  video preview was jittery—frames jumping every second or so. I'd already tried
+   three different implementations. The AI kept suggesting fixes. None of them
+  worked.
+
+  Then I stopped asking the AI to fix the code and started asking it to help me
+  *understand* the problem.
+
+  Within fifteen minutes, we discovered the bug wasn't in my code at all. The
+  Remotion preview player was dropping frames. The rendered video was perfectly
+  smooth.
+
+  Here's what I learned about debugging with AI as a partner instead of a fix-it
+   machine.
+
+  ---
+
+  ## The Setup: A Stubborn Jitter Problem
+
+  I'm building **Say Play**, an agentic video platform that uses Remotion for
+  rendering. The feature in question: a Ken Burns-style pan effect for real
+  estate listing images. The image should slowly pan across the frame—smooth,
+  cinematic, luxurious.
+
+  Instead, I was getting micro-stutters. Every 10-30 frames, the image would
+  jump slightly. It looked cheap and broken.
+
+  My first instinct was to throw the problem at AI: "Fix this jitter." The AI
+  dutifully suggested changes. We tried `transform: translate()` instead of
+  `backgroundPosition`. We tried integer pixel snapping. We tried different
+  easing functions.
+
+  Each "fix" either broke something else or didn't solve the jitter.
+
+  I was frustrated. The AI seemed confident in each suggestion, but nothing
+  worked. Classic AI slop territory—except the suggestions weren't *wrong*, they
+   just weren't addressing the actual problem.
+
+  ---
+
+  ## The Shift: From "Fix It" to "Help Me Understand"
+
+  After reverting yet another failed fix, I stopped and typed something
+  different:
+
+  > "Let's not change any code for a minute. Let's just brainstorm. Why could
+  this be happening? How could we test our hypothesis?"
+
+  This single prompt changed everything.
+
+  Instead of generating code, the AI shifted into diagnostic mode. It laid out
+  five hypotheses:
+
+  1. **Clamping with moving boundaries** — The scale animation changes the image
+   size each frame, which changes the clamping bounds, potentially causing
+  discontinuities.
+  2. **Async image loading** — The `imgSize` state is set via `useEffect`. If it
+   flickers, all calculations reset.
+  3. **Scale + pan interaction** — Animating two properties simultaneously might
+   have subtle math errors.
+  4. **Sub-pixel rendering** — Browsers might round `backgroundPosition` values
+  inconsistently.
+  5. **Frame drops** — The preview player might be skipping frames entirely.
+
+  More importantly, the AI suggested *how to test each hypothesis*:
+
+  - Disable clamping and see if jitter persists
+  - Disable scale animation to isolate the pan
+  - Add frame-by-frame logging to see actual values
+  - Check if `imgSize` is stable across renders
+
+  This was the shift I needed. The AI wasn't guessing at fixes anymore—it was
+  helping me build a diagnostic plan.
+
+  ---
+
+  ## The Investigation: Isolating Variables
+
+  We started with the simplest tests: disable clamping and scale animation. If
+  the jitter stopped, we'd know one of those was the culprit.
+
+  ```javascript
+  // DEBUG: Disable scale animation to isolate pan jitter
+  const startScale = 1.0;
+  const endScale = 1.0;
+
+  // DEBUG: Use unclamped values
+  backgroundPosition: `${left}px ${top}px`,
+
+  I refreshed the preview. Still jittery.
+
+  So it wasn't the clamping. It wasn't the scale animation. The jitter was
+  somewhere in the core pan interpolation—or somewhere else entirely.
+
+  Time for the real diagnostic: frame-by-frame logging.
+
+  console.log(`[ImageLayer] frame=${frame} left=${left.toFixed(2)}
+    startLeft=${startLeft.toFixed(2)} endLeft=${endLeft.toFixed(2)}
+    scaledW=${scaledW.toFixed(2)}
+  imgSize=${imgSize?.width}x${imgSize?.height}`);
+
+  ---
+  The Breakthrough: Reading the Logs
+
+  The logs told a clear story. Here's a sample:
+
+  frame=84 left=-572.27 ...
+  frame=86 left=-578.84 ...
+  frame=88 left=-585.42 ...
+  frame=90 left=-592.00 ...
+
+  Wait. Frame 84 jumps to frame 86. Frame 88 jumps to frame 90. Frames 85 and 89
+   are missing.
+
+  I asked the AI to analyze the logs. Its response:
+
+  "The left values are changing smoothly—each frame increments by ~3.29px. All
+  parameters are stable. But frames are being skipped. When a frame is skipped,
+  the position jumps ~6.5px instead of ~3.3px. This suggests the jitter is a
+  Remotion Player preview performance issue, not a bug in the animation logic."
+
+  The animation math was perfect. The preview player was just dropping frames.
+
+  ---
+  The Confirmation: Render the Video
+
+  One way to confirm: render the actual video file instead of relying on the
+  preview.
+
+  I ran the Remotion render command. The output MP4 was buttery smooth. No
+  jitter. Every frame present and accounted for.
+
+  The "bug" was never in my code. It was the browser struggling to keep up with
+  30fps playback while also running React DevTools, console logging, and
+  everything else in my dev environment.
+
+  ---
+  The Fix: A Warning System for Future Me
+
+  The jitter wasn't a bug to fix—it was a diagnostic red herring. But I knew I'd
+   forget this lesson and waste hours on it again someday.
+
+  So we added a frame drop detector:
+
+  const prevFrameRef = useRef(frame);
+  useEffect(() => {
+      const frameDiff = frame - prevFrameRef.current;
+      if (frameDiff > 1 && frameDiff < 10) {
+          console.warn(`[ImageLayer] Preview frame drop: ${frameDiff - 1}
+  frame(s) skipped
+            (${prevFrameRef.current} → ${frame}). Jitter is from playback, not
+  animation logic.`);
+      }
+      prevFrameRef.current = frame;
+  }, [frame]);
+
+  Now when frames drop, I see:
+
+  [ImageLayer] Preview frame drop: 1 frame(s) skipped (84 → 86).
+  Jitter is from playback, not animation logic.
+
+  Future me will know immediately whether jitter is a real bug or just preview
+  performance.
+
+  ---
+  The Lessons: Debugging with AI as a Partner
+
+  1. Stop Asking AI to Fix. Start Asking AI to Diagnose.
+
+  "Fix this bug" produces guesses. "What could cause this, and how do we test
+  each hypothesis?" produces a diagnostic plan. The second approach treats AI as
+   a thinking partner, not a slot machine.
+
+  2. Isolate Variables Systematically
+
+  The AI suggested disabling clamping and scale animation before adding logging.
+   This follows the classic debugging principle: change one thing at a time.
+  When both changes didn't fix the jitter, we knew to look elsewhere.
+
+  3. Logs > Assumptions
+
+  I assumed the animation math was wrong because the symptom (jitter) looked
+  like a math problem. The logs proved the math was perfect. Never skip the
+  logging step—even when you're "sure" you know the cause.
+
+  4. Distinguish Symptoms from Causes
+
+  The symptom was "jittery preview." The assumed cause was "broken animation
+  code." The actual cause was "browser dropping frames." These are very
+  different problems with very different solutions. AI can help you enumerate
+  possible causes, but you have to test them.
+
+  5. Build Diagnostic Tools for Next Time
+
+  The frame drop warning isn't fixing a bug—it's preventing future misdiagnosis.
+   When you solve a tricky debugging problem, ask yourself: how do I make this
+  faster next time?
+
+  ---
+  The Meta-Lesson: AI Doesn't Know What's Wrong
+
+  Here's the uncomfortable truth: AI doesn't actually know what's wrong with
+  your code. It can pattern-match on symptoms and suggest common fixes, but it
+  can't see the runtime behavior. It can't watch the frames render. It can't
+  feel the jitter.
+
+  What AI can do is help you think systematically. It can enumerate hypotheses
+  you might not consider. It can suggest diagnostic approaches. It can analyze
+  logs and spot patterns.
+
+  But the debugging loop still requires you to run the experiments, observe the
+  results, and update your mental model.
+
+  The AI is a partner, not an oracle. Treat it that way, and you'll solve bugs
+  faster than either of you could alone.
+
+  ---
+  What's Next
+
+  The pan animation is working beautifully now—in rendered output, where it
+  matters. The preview still drops frames occasionally, but now I know that's
+  just my browser being lazy, not my code being broken.
+
+  Next up: adding the scale animation back in (it was disabled for debugging)
+  and shipping these real estate videos. The roadmap continues.
+
+  If you're building with Remotion and hitting similar preview performance
+  issues, remember: always verify with a real render before assuming your
+  animation code is broken. The preview is a convenience, not ground truth.
+  
