@@ -63,8 +63,9 @@ def create_direct_upload(auth, title=None):
         }
     }
     
-    # Add passthrough metadata if title provided
+    # Set asset title and passthrough metadata if title provided
     if title:
+        payload["new_asset_settings"]["meta"] = {"title": title}
         payload["new_asset_settings"]["passthrough"] = json.dumps({"title": title})
     
     response = requests.post(url, json=payload, auth=auth)

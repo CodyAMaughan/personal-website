@@ -1,7 +1,7 @@
 import { Ghost, Activity, Clapperboard, BadgeCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-import sayPlayLogo from '../assets/images/say-play-logo.png';
+import libreMotionLogo from '../assets/images/libre-motion-logo.png';
 import procodeLogo from '../assets/images/procode-logo.png';
 import ghostWriterLogo from '../assets/images/ghost-writer-logo.png';
 import autographLogo from '../assets/images/autograph-logo.png';
@@ -23,15 +23,15 @@ export interface Project {
 
 export const PROJECTS: Project[] = [
     {
-        title: "Say Play",
-        hook: "Orchestrates autonomous video production agents to compile raw text into dynamic Remotion code, bridging high-level intent with pixel-perfect execution via LangGraph and Python.",
-        description: "Say Play represents a paradigm shift in video creation. By leveraging agentic workflows, it doesn't just 'generate' video; it understands intent, writes code, and directs the scene. Built on top of Remotion, it ensures that every frame is programmatically perfect while being creatively directed by AI agents.",
+        title: "LibreMotion",
+        hook: "Creates social ads and short-form videos through an agentic Remotion pipeline that turns ideas into production-ready renders with consistent visual quality.",
+        description: "LibreMotion is my agentic video engine for repeatable, code-first storytelling. It combines planning, script generation, and Remotion composition so ad creatives and social clips can be produced quickly, iterated safely, and deployed in a structured workflow.",
         tags: ["Remotion", "Video AI", "Tool"],
-        isWaitlist: true,
+        link: "/libremotion",
         featured: true,
-        primaryColor: "#60a5fa", // Process Blue
-        secondaryColor: "#4ade80", // Terminal Green
-        logo: sayPlayLogo.src,
+        primaryColor: "#06b6d4", // LibreMotion Cyan
+        secondaryColor: "#a855f7", // LibreMotion Purple
+        logo: libreMotionLogo.src,
         icon: Clapperboard,
     },
     {

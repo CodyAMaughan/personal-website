@@ -10,7 +10,7 @@ import { getEntry } from "astro:content";
 import { marked } from "marked";
 import { getImage } from "astro:assets";
 import headshotImage from "../assets/images/heroImage.jpeg";
-import sayPlayLogo from "../assets/images/say-play-logo.png";
+import libreMotionLogo from "../assets/images/libre-motion-logo.png";
 import procodeLogo from "../assets/images/procode-logo.png";
 import ghostWriterLogo from "../assets/images/ghost-writer-logo.png";
 import autographLogo from "../assets/images/autograph-logo.png";
@@ -34,9 +34,9 @@ const heroData = {
     heroImage: headshotImage,
 };
 const optimizedLogos = {
-    "Say Play": (
+    LibreMotion: (
         await getImage({
-            src: sayPlayLogo,
+            src: libreMotionLogo,
             width: 128,
             height: 128,
             format: "webp",

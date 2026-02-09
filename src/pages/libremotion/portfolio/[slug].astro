@@ -1,0 +1,118 @@
+---
+export const prerender = true;
+import Layout from '../../../layouts/Layout.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { MuxPlayer } from '../../../components/MuxPlayer';
+
+export async function getStaticPaths() {
+  const videos = await getCollection('portfolio');
+
+  return videos.map((video) => ({
+    params: { slug: video.id },
+    props: { video },
+  }));
+}
+
+const { video } = Astro.props as { video: CollectionEntry<'portfolio'> };
+const { data } = video;
+
+const projectLabel: Record<string, string> = {
+  'libremotion': 'LibreMotion',
+  'follow-him-scripture-shorts': 'Follow Him Scripture Shorts',
+};
+
+const defaultFollowHimProfiles = [
+  { name: 'YouTube', url: 'https://www.youtube.com/@FollowHimScriptureShorts' },
+  { name: 'X', url: 'https://x.com/followhimshorts' },
+];
+const relatedProfiles =
+  data.profiles && data.profiles.length > 0
+    ? data.profiles
+    : data.project === 'follow-him-scripture-shorts'
+      ? defaultFollowHimProfiles
+      : [];
+const aspectRatio = data.aspectRatio === '9:16' ? '9 / 16' : '16 / 9';
+---
+
+<Layout title={`${data.title} | LibreMotion Portfolio`} description={data.description}>
+  <main class="max-w-5xl mx-auto px-6 py-20 space-y-8" data-pagefind-body>
+    <a href="/libremotion/portfolio" class="text-text-muted hover:text-primary transition-colors inline-block"><- Back to Portfolio</a>
+
+    <header class="space-y-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30">
+          {projectLabel[data.project] || data.project}
+        </span>
+        <span class="text-sm text-text-muted font-mono">
+          {data.pubDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            timeZone: 'UTC',
+          })}
+        </span>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-bold text-white leading-tight">{data.title}</h1>
+      {data.description && <p class="text-lg text-text-muted leading-relaxed max-w-3xl">{data.description}</p>}
+      {data.scripture && (
+        <p class="text-sm text-white/80 border-l-2 border-primary pl-3">
+          Scripture focus: {data.scripture}
+        </p>
+      )}
+    </header>
+
+    <section class="space-y-4">
+      {data.muxPlaybackId ? (
+        <MuxPlayer
+          client:visible
+          playbackId={data.muxPlaybackId}
+          title={data.title}
+          aspectRatio={data.aspectRatio}
+          className="w-full"
+        />
+      ) : data.youtubeId ? (
+        <div
+          class="w-full overflow-hidden rounded-2xl border border-white/10"
+          style={`aspect-ratio: ${aspectRatio};`}
+        >
+          <iframe
+            src={`https://www.youtube.com/embed/${data.youtubeId}`}
+            title={data.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            class="h-full w-full"
+            loading="lazy"
+          ></iframe>
+        </div>
+      ) : (
+        <div class="p-6 rounded-xl border border-white/10 bg-surface/40 text-text-muted">
+          No playback source configured for this portfolio item.
+        </div>
+      )}
+    </section>
+
+    {relatedProfiles.length > 0 && (
+      <section class="space-y-3">
+        <h2 class="text-xl font-semibold text-white">Related Profiles</h2>
+        <div class="flex flex-wrap gap-3">
+          {relatedProfiles.map((profile) => (
+            <a
+              href={profile.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-4 py-2 rounded-lg border border-white/15 text-white hover:border-primary/50 hover:text-primary transition-colors"
+            >
+              {profile.name}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="pt-4">
+      <a href="/follow-him-scripture-shorts" class="text-primary hover:text-primary-hover font-medium">
+        Explore Follow Him Scripture Shorts ->
+      </a>
+    </section>
+  </main>
+</Layout>

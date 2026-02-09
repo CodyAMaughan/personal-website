@@ -1,9 +1,5 @@
 ---
 import {
-    Ghost,
-    Activity,
-    Clapperboard,
-    BadgeCheck,
     ArrowLeft,
     ArrowRight,
 } from "lucide-react";
@@ -12,13 +8,13 @@ import { Image } from "astro:assets";
 import { WaitlistForm } from "./WaitlistForm";
 
 // Import all logos specifically for Astro:assets to ensure they are resized
-import sayPlayLogo from "../assets/images/say-play-logo.png";
+import libreMotionLogo from "../assets/images/libre-motion-logo.png";
 import procodeLogo from "../assets/images/procode-logo.png";
 import ghostWriterLogo from "../assets/images/ghost-writer-logo.png";
 import autographLogo from "../assets/images/autograph-logo.png";
 
 const logoMap: Record<string, any> = {
-    "Say Play": sayPlayLogo,
+    LibreMotion: libreMotionLogo,
     ProCode: procodeLogo,
     "Ghost Writer": ghostWriterLogo,
     Autograph: autographLogo,
@@ -53,6 +49,7 @@ const logoMap: Record<string, any> = {
                 PROJECTS.map((project, idx) => {
                     const Icon = project.icon;
                     const logoAsset = logoMap[project.title];
+                    const isExternalLink = !!project.link?.startsWith("http");
 
                     return (
                         <div class="relative group p-8 md:p-10 rounded-[2rem] bg-surface/30 backdrop-blur-xl border border-white/5 overflow-hidden transition-all hover:bg-surface/50">
@@ -122,8 +119,12 @@ const logoMap: Record<string, any> = {
                                     project.link && (
                                         <a
                                             href={project.link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                            target={isExternalLink
+                                                ? "_blank"
+                                                : undefined}
+                                            rel={isExternalLink
+                                                ? "noopener noreferrer"
+                                                : undefined}
                                             class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-black transition-transform hover:scale-105"
                                             style={`background-color: ${project.primaryColor}`}
                                         >

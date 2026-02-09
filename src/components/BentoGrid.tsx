@@ -37,6 +37,7 @@ const Card = ({ project, optimizedLogo }: { project: Project, optimizedLogo?: st
 
     // Assuming project.icon is still a React.ElementType from the imported Project type
     const Icon = project.icon;
+    const isExternalLink = !!project.link?.startsWith('http');
 
     return (
         <motion.div
@@ -118,8 +119,8 @@ const Card = ({ project, optimizedLogo }: { project: Project, optimizedLogo?: st
                     project.link && (
                         <a
                             href={project.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            target={isExternalLink ? '_blank' : undefined}
+                            rel={isExternalLink ? 'noopener noreferrer' : undefined}
                             className="inline-flex items-center gap-2 text-sm font-bold transition-transform group-hover:translate-x-1"
                             style={{ color: project.primaryColor }}
                         >

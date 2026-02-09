@@ -61,9 +61,37 @@ const aboutPage = defineCollection({
     })
 });
 
+const portfolio = defineCollection({
+    loader: glob({
+        pattern: '**/*.json',
+        base: './src/content/portfolio',
+        generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+    }),
+    schema: z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        muxPlaybackId: z.string().optional(),
+        youtubeId: z.string().optional(),
+        aspectRatio: z.enum(['16:9', '9:16']).optional(),
+        pubDate: z.coerce.date(),
+        project: z.enum(['libremotion', 'follow-him-scripture-shorts']),
+        featured: z.boolean().optional(),
+        scripture: z.string().optional(),
+        weekOf: z.coerce.date().optional(),
+        profiles: z.array(z.object({
+            name: z.string(),
+            url: z.string().url(),
+        })).optional(),
+    }).refine(
+        (data) => Boolean(data.muxPlaybackId || data.youtubeId),
+        { message: 'Each portfolio entry must include muxPlaybackId or youtubeId.' }
+    ),
+});
+
 export const collections = {
     'build-logs': buildLogs,
     'music': music,
     'home': homePage,
     'about': aboutPage,
+    'portfolio': portfolio,
 };
