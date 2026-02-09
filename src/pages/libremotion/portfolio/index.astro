@@ -1,14 +1,15 @@
 ---
 export const prerender = true;
-import Layout from '../../../layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import Layout from "../../../layouts/Layout.astro";
+import { getCollection } from "astro:content";
 
-const portfolioVideos = (await getCollection('portfolio')).sort(
-  (a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
+const portfolioVideos = (await getCollection("portfolio")).sort(
+  (a, b) =>
+    new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf(),
 );
 
 const getMuxThumbnail = (playbackId?: string) => {
-  if (!playbackId || playbackId.startsWith('REPLACE_')) return null;
+  if (!playbackId || playbackId.startsWith("REPLACE_")) return null;
   return `https://image.mux.com/${playbackId}/thumbnail.jpg?time=1`;
 };
 
@@ -18,8 +19,8 @@ const getYouTubeThumbnail = (youtubeId?: string) => {
 };
 
 const projectLabel: Record<string, string> = {
-  'libremotion': 'LibreMotion',
-  'follow-him-scripture-shorts': 'Follow Him Scripture Shorts',
+  libremotion: "LibreMotion",
+  "follow-him-scripture-shorts": "Follow Him Scripture Shorts",
 };
 ---
 
@@ -29,68 +30,90 @@ const projectLabel: Record<string, string> = {
 >
   <main class="max-w-6xl mx-auto px-6 py-20 space-y-10" data-pagefind-body>
     <section class="space-y-4">
-      <a href="/libremotion" class="text-text-muted hover:text-primary transition-colors inline-block"><- Back to LibreMotion</a>
-      <h1 class="text-4xl md:text-5xl font-bold text-white">LibreMotion Portfolio</h1>
+      <a
+        href="/libremotion"
+        class="text-text-muted hover:text-primary transition-colors inline-block"
+      >
+        &larr; Back to LibreMotion
+      </a>
+      <h1 class="text-4xl md:text-5xl font-bold text-white">
+        LibreMotion Portfolio
+      </h1>
       <p class="text-lg text-text-muted max-w-3xl">
-        A catalog of videos produced with LibreMotion, including paid ad creatives and scripture-based short-form content.
+        A catalog of videos produced with LibreMotion, including paid ad
+        creatives and scripture-based short-form content.
       </p>
     </section>
 
-    {portfolioVideos.length === 0 ? (
-      <div class="p-6 rounded-xl border border-white/10 bg-surface/40 text-text-muted">
-        No portfolio entries found. Add JSON files to <code>src/content/portfolio</code>.
-      </div>
-    ) : (
-      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {portfolioVideos.map((video) => {
-          const muxThumb = getMuxThumbnail(video.data.muxPlaybackId);
-          const youtubeThumb = getYouTubeThumbnail(video.data.youtubeId);
-          const thumbnail = muxThumb || youtubeThumb;
-          const isVertical = video.data.aspectRatio === '9:16';
+    {
+      portfolioVideos.length === 0 ? (
+        <div class="p-6 rounded-xl border border-white/10 bg-surface/40 text-text-muted">
+          No portfolio entries found. Add JSON files to{" "}
+          <code>src/content/portfolio</code>.
+        </div>
+      ) : (
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {portfolioVideos.map((video) => {
+            const muxThumb = getMuxThumbnail(video.data.muxPlaybackId);
+            const youtubeThumb = getYouTubeThumbnail(video.data.youtubeId);
+            const thumbnail = muxThumb || youtubeThumb;
+            const isVertical = video.data.aspectRatio === "9:16";
+            const aspectRatio = video.data.aspectRatio
+              ? video.data.aspectRatio.replace(":", "/")
+              : "16/9";
 
-          return (
-            <a
-              href={`/libremotion/portfolio/${video.id}`}
-              class="group rounded-2xl overflow-hidden border border-white/10 bg-surface/40 hover:border-primary/60 transition-colors"
-            >
-              <div class="w-full h-64 md:h-72 bg-black/40 border-b border-white/10 flex items-center justify-center">
-                {thumbnail ? (
-                  <img
-                    src={thumbnail}
-                    alt={`${video.data.title} thumbnail`}
-                    class={isVertical
-                      ? "h-full w-auto object-contain"
-                      : "max-h-full max-w-full object-contain"}
-                    loading="lazy"
-                  />
-                ) : (
-                  <div class="w-full h-full grid place-items-center text-white/80 bg-gradient-to-br from-cyan-500/30 to-purple-500/30 font-medium">
-                    Video Placeholder
-                  </div>
-                )}
-              </div>
-
-              <div class="p-4 space-y-2">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-xs uppercase tracking-wider font-semibold text-primary">
-                    {projectLabel[video.data.project] || video.data.project}
-                  </span>
-                  <span class="text-xs text-text-muted font-mono">
-                    {video.data.pubDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      timeZone: 'UTC',
-                    })}
-                  </span>
+            return (
+              <a
+                href={`/libremotion/portfolio/${video.id}`}
+                class="group rounded-2xl overflow-hidden border border-white/10 bg-surface/40 hover:border-primary/60 transition-colors flex flex-col"
+                style={{ maxHeight: "calc(100vh - 140px)" }}
+              >
+                <div class="flex-1 min-h-0 w-full flex items-center justify-center bg-black/40">
+                  {thumbnail ? (
+                    <img
+                      src={thumbnail}
+                      alt={`${video.data.title} thumbnail`}
+                      class="max-h-full max-w-full object-contain mx-auto"
+                      style={{
+                        aspectRatio: aspectRatio,
+                        width: "auto",
+                        height: "auto",
+                      }}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="w-full h-full grid place-items-center text-white/80 bg-gradient-to-br from-cyan-500/30 to-purple-500/30 font-medium">
+                      Video Placeholder
+                    </div>
+                  )}
                 </div>
-                <h2 class="text-white font-semibold group-hover:text-primary transition-colors">{video.data.title}</h2>
-                <p class="text-sm text-text-muted">{video.data.description || 'No description provided.'}</p>
-              </div>
-            </a>
-          );
-        })}
-      </section>
-    )}
+
+                <div class="p-4 space-y-2 flex-shrink-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs uppercase tracking-wider font-semibold text-primary">
+                      {projectLabel[video.data.project] || video.data.project}
+                    </span>
+                    <span class="text-xs text-text-muted font-mono">
+                      {video.data.pubDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })}
+                    </span>
+                  </div>
+                  <h2 class="text-white font-semibold group-hover:text-primary transition-colors">
+                    {video.data.title}
+                  </h2>
+                  <p class="text-sm text-text-muted">
+                    {video.data.description || "No description provided."}
+                  </p>
+                </div>
+              </a>
+            );
+          })}
+        </section>
+      )
+    }
   </main>
 </Layout>

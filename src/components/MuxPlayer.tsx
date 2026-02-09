@@ -7,6 +7,7 @@ interface MuxPlayerProps {
   className?: string;
   autoPlay?: boolean;
   aspectRatio?: '16:9' | '9:16';
+  style?: React.CSSProperties;
 }
 
 export function MuxPlayer({
@@ -15,6 +16,7 @@ export function MuxPlayer({
   className,
   autoPlay = false,
   aspectRatio = '16:9',
+  style,
 }: MuxPlayerProps) {
   const cssAspectRatio = aspectRatio === '9:16' ? '9 / 16' : '16 / 9';
 
@@ -47,18 +49,21 @@ export function MuxPlayer({
 
   return (
     <MuxPlayerReact
-      className={className}
-      playbackId={playbackId}
-      streamType="on-demand"
-      controls
-      autoPlay={autoPlay}
-      metadata={{ video_title: title }}
-      style={{
-        width: '100%',
-        aspectRatio: cssAspectRatio,
-        borderRadius: '1rem',
-        overflow: 'hidden',
-      }}
+      {...({
+        className,
+        playbackId,
+        streamType: "on-demand",
+        controls: true,
+        autoPlay,
+        metadata: { video_title: title },
+        style: {
+          width: '100%',
+          aspectRatio: cssAspectRatio,
+          borderRadius: '1rem',
+          overflow: 'hidden',
+          ...style,
+        }
+      } as any)}
     />
   );
 }
