@@ -1,10 +1,11 @@
 {
   "title": "Genesis 6:8 - Grace",
-  "description": "But Noah found grace in the eyes of the Lord.",
-  "muxPlaybackId": "tGY4Ltjh4tQ2JLov01xoHbhBqJtCj2SKzCXuVOr1wrZQ",
-  "pubDate": "2026-02-08",
+  "description": "A reverent short-form scripture video created for the weekly Come, Follow Me study and daily publishing cadence.",
+  "youtubeId": "eBV16n86cX8",
+  "pubDate": "2026-02-14",
   "project": "follow-him-scripture-shorts",
   "scripture": "Genesis 6:8",
+  "aspectRatio": "9:16",
   "profiles": [
     {
       "name": "YouTube",
@@ -14,6 +15,5 @@
       "name": "X",
       "url": "https://x.com/followhimshorts"
     }
-  ],
-  "aspectRatio": "9:16"
+  ]
 }

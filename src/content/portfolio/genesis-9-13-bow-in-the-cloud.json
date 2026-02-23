@@ -1,10 +1,11 @@
 {
   "title": "Genesis 9:13 - Bow in the Cloud",
-  "description": "I do set my bow in the cloud, and it shall be for a token of a covenant between me and the earth.",
-  "muxPlaybackId": "1ihtUYNK1Sb3EiC2djtufz2OaZAzBvBGYnwKwuYeN1o",
-  "pubDate": "2026-02-08",
+  "description": "A reverent short-form scripture video created for the weekly Come, Follow Me study and daily publishing cadence.",
+  "youtubeId": "4yCZEtppQCE",
+  "pubDate": "2026-02-12",
   "project": "follow-him-scripture-shorts",
   "scripture": "Genesis 9:13",
+  "aspectRatio": "9:16",
   "profiles": [
     {
       "name": "YouTube",
@@ -14,6 +15,5 @@
       "name": "X",
       "url": "https://x.com/followhimshorts"
     }
-  ],
-  "aspectRatio": "9:16"
+  ]
 }

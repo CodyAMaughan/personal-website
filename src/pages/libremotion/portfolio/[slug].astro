@@ -104,8 +104,8 @@ const aspectRatio = data.aspectRatio === "9:16" ? "9 / 16" : "16 / 9";
           </div>
         ) : data.youtubeId ? (
           <div
-            class="w-full overflow-hidden rounded-2xl border border-white/10"
-            style={`aspect-ratio: ${aspectRatio};`}
+            class="overflow-hidden rounded-2xl border border-white/10 mx-auto"
+            style={`aspect-ratio: ${aspectRatio}; max-height: calc(100vh - 150px); width: auto; height: auto;`}
           >
             <iframe
               src={`https://www.youtube.com/embed/${data.youtubeId}`}

@@ -136,8 +136,8 @@ const toAspectRatio = (ratio?: string) =>
               />
             ) : featuredVideo.data.youtubeId ? (
               <div
-                class="w-full overflow-hidden rounded-2xl border border-white/10"
-                style={`aspect-ratio: ${toAspectRatio(featuredVideo.data.aspectRatio)};`}
+                class="overflow-hidden rounded-2xl border border-white/10 mx-auto"
+                style={`aspect-ratio: ${toAspectRatio(featuredVideo.data.aspectRatio)}; max-height: calc(100vh - 150px); width: auto; height: auto;`}
               >
                 <iframe
                   src={`https://www.youtube.com/embed/${featuredVideo.data.youtubeId}`}
@@ -220,6 +220,17 @@ const toAspectRatio = (ratio?: string) =>
           </div>
         )
       }
+    </section>
+
+    <section class="flex justify-center">
+      <a
+        href="https://www.youtube.com/@FollowHimScriptureShorts"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center px-6 py-3 rounded-lg border border-white/25 text-white hover:border-white/60 hover:bg-white/10 transition-colors font-semibold"
+      >
+        Watch more on YouTube &rarr;
+      </a>
     </section>
 
     <section class="rounded-2xl border border-white/10 p-6 bg-surface/30">
