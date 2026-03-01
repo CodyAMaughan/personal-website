@@ -2,6 +2,7 @@
 import {
     ArrowLeft,
     ArrowRight,
+    Gamepad2,
 } from "lucide-react";
 import { PROJECTS } from "../data/projects";
 import { Image } from "astro:assets";
@@ -138,6 +139,35 @@ const logoMap: Record<string, any> = {
                     );
                 })
             }
+        </div>
+
+        {/* Games Section */}
+        <div class="mt-16 pt-12 border-t border-white/5">
+            <a
+                href="/games"
+                class="relative group p-8 md:p-10 rounded-[2rem] bg-surface/30 backdrop-blur-xl border border-white/5 overflow-hidden transition-all hover:bg-surface/50 block no-underline"
+            >
+                <div
+                    class="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.10] transition-opacity duration-500"
+                    style="background: linear-gradient(to right, #a855f7, transparent)"
+                />
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+                    <div class="shrink-0 w-16 h-16 rounded-2xl bg-surface border border-white/10 flex items-center justify-center overflow-hidden shadow-lg">
+                        <Gamepad2 className="w-8 h-8 text-[#a855f7]" />
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-3xl font-bold text-white mb-2">Games</h2>
+                        <p class="text-lg text-white/90 font-medium leading-relaxed max-w-2xl">
+                            Playable games built with Godot Engine — try them right in your browser.
+                        </p>
+                    </div>
+                    <div class="shrink-0">
+                        <span class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-black bg-[#a855f7] transition-transform group-hover:scale-105">
+                            Browse Games <ArrowRight className="w-4 h-4" />
+                        </span>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 </section>

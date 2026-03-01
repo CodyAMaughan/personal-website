@@ -1,0 +1,108 @@
+---
+export const prerender = true;
+import Layout from "../../layouts/Layout.astro";
+import { ArrowLeft, ArrowRight, Gamepad2 } from "lucide-react";
+
+const games = [
+    {
+        title: "Spell Surge",
+        description:
+            "A turn-based roguelike deckbuilder where you choose primal elements, craft powerful spells at the Forge, and battle through procedurally generated maps.",
+        link: "/games/spell-surge",
+        tags: ["Godot Engine", "GDScript", "Roguelike", "Deckbuilder"],
+        primaryColor: "#a855f7",
+        secondaryColor: "#6366f1",
+    },
+];
+---
+
+<Layout
+    title="Games | Cody Maughan"
+    description="Playable games built by Cody Maughan."
+    showBackground={false}
+>
+    <main data-pagefind-body class="relative min-h-screen bg-[#0a0a0a]">
+        <section
+            class="relative w-full min-h-screen py-24 md:py-32 px-6 overflow-hidden"
+        >
+            <div class="relative z-10 max-w-4xl mx-auto">
+                <div class="mb-12">
+                    <a
+                        href="/projects"
+                        class="inline-flex items-center gap-2 text-text-muted hover:text-white transition-colors mb-8 group"
+                    >
+                        <ArrowLeft
+                            className="w-4 h-4 group-hover:-translate-x-1 transition-transform"
+                        />
+                        Back to Projects
+                    </a>
+                    <h1
+                        class="text-4xl md:text-6xl font-bold text-white mb-6"
+                    >
+                        Games
+                    </h1>
+                    <p
+                        class="text-xl text-text-muted max-w-2xl leading-relaxed"
+                    >
+                        Playable games you can try right in your browser.
+                    </p>
+                </div>
+
+                <div class="flex flex-col gap-12">
+                    {
+                        games.map((game) => (
+                            <a
+                                href={game.link}
+                                class="relative group p-8 md:p-10 rounded-[2rem] bg-surface/30 backdrop-blur-xl border border-white/5 overflow-hidden transition-all hover:bg-surface/50 block no-underline"
+                            >
+                                {/* Background Tint */}
+                                <div
+                                    class="absolute inset-0 opacity-[0.05] group-hover:opacity-[0.10] transition-opacity duration-500"
+                                    style={`background: linear-gradient(to right, ${game.primaryColor}, transparent)`}
+                                />
+
+                                <div class="relative z-10 flex flex-col md:flex-row md:items-start gap-6 mb-8">
+                                    <div class="shrink-0 w-16 h-16 rounded-2xl bg-surface border border-white/10 flex items-center justify-center overflow-hidden shadow-lg">
+                                        <Gamepad2
+                                            className="w-8 h-8"
+                                            style={{
+                                                color: game.primaryColor,
+                                            }}
+                                        />
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex flex-wrap items-center gap-3 mb-2">
+                                            <h2 class="text-3xl font-bold text-white">
+                                                {game.title}
+                                            </h2>
+                                            <div class="flex gap-2">
+                                                {game.tags.map((tag) => (
+                                                    <span class="text-xs font-mono font-medium px-2 py-1 rounded-full bg-white/5 border border-white/5 text-text-muted uppercase tracking-wider">
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <p class="text-lg text-white/90 font-medium leading-relaxed max-w-2xl">
+                                            {game.description}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="relative z-10 pl-0 md:pl-[5.5rem]">
+                                    <span
+                                        class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-black transition-transform group-hover:scale-105"
+                                        style={`background-color: ${game.primaryColor}`}
+                                    >
+                                        Play Now{" "}
+                                        <ArrowRight className="w-4 h-4" />
+                                    </span>
+                                </div>
+                            </a>
+                        ))
+                    }
+                </div>
+            </div>
+        </section>
+    </main>
+</Layout>

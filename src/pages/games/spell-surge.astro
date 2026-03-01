@@ -1,0 +1,83 @@
+---
+export const prerender = true;
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout
+    title="Spell Surge | Cody Maughan"
+    description="A turn-based roguelike deckbuilder where players craft spells by combining Elements and Spell Frames."
+    showBackground={false}
+>
+    <main class="max-w-6xl mx-auto px-4 py-20">
+        <header class="mb-8 text-center">
+            <h1
+                class="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent"
+            >
+                Spell Surge
+            </h1>
+            <p class="text-text-muted text-lg font-mono">
+                A turn-based roguelike deckbuilder built in Godot Engine
+            </p>
+        </header>
+
+        <div
+            class="relative w-full border border-surface-highlight rounded-lg overflow-hidden bg-black"
+            style="aspect-ratio: 16 / 9;"
+        >
+            <iframe
+                id="game-frame"
+                src="/games/spell-surge/index.html"
+                class="w-full h-full border-0"
+                allow="autoplay; fullscreen; cross-origin-isolated"
+                allowfullscreen
+            >
+            </iframe>
+        </div>
+
+        <div class="flex justify-center gap-4 mt-4">
+            <button
+                id="fullscreen-btn"
+                class="px-4 py-2 text-sm font-mono border border-surface-highlight rounded-lg hover:border-primary hover:text-primary transition-all cursor-pointer bg-transparent text-text-muted"
+            >
+                Fullscreen
+            </button>
+        </div>
+
+        <section class="mt-12 border border-surface-highlight rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-4 text-text">About</h2>
+            <p class="text-text-muted leading-relaxed mb-4">
+                Spell Surge is a roguelike deckbuilder where you choose primal
+                elements, craft powerful spells at the Forge, and battle your way
+                through procedurally generated maps. Combine Fire, Water, Earth,
+                Lightning, and Wind to discover combo elements like Steam, Frost,
+                and Plasma.
+            </p>
+            <div class="flex flex-wrap gap-2">
+                {
+                    [
+                        "Godot Engine",
+                        "GDScript",
+                        "Roguelike",
+                        "Deckbuilder",
+                        "Turn-Based",
+                    ].map((tag) => (
+                        <span class="px-3 py-1 text-xs font-mono border border-surface-highlight rounded-full text-text-muted">
+                            {tag}
+                        </span>
+                    ))
+                }
+            </div>
+        </section>
+    </main>
+</Layout>
+
+<script>
+    document.getElementById("fullscreen-btn")?.addEventListener("click", () => {
+        const frame = document.getElementById(
+            "game-frame"
+        ) as HTMLIFrameElement;
+        if (frame) {
+            frame.requestFullscreen?.();
+        }
+    });
+</script>
