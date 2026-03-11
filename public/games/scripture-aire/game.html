@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Who Wants to Be a "Scripture-aire"?</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+#gameCanvas { display: block; width: 100%; cursor: default; }
+#controlPanel {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 110px;
+  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+  border-top: 2px solid #3a3a5c;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 8px 16px; z-index: 100; flex-wrap: wrap;
+}
+.ctrl-btn {
+  padding: 8px 14px; border: 2px solid #555; border-radius: 8px;
+  background: #2a2a4a; color: #ddd; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; min-width: 70px; text-align: center;
+  user-select: none;
+}
+.ctrl-btn:hover { background: #3a3a6a; border-color: #888; }
+.ctrl-btn:active { transform: scale(0.95); }
+.ctrl-btn.primary { background: #2a5a2a; border-color: #4a8a4a; color: #aaffaa; }
+.ctrl-btn.primary:hover { background: #3a7a3a; }
+.ctrl-btn.answer { background: #1a3a5a; border-color: #3a6a9a; color: #aaddff; min-width: 50px; }
+.ctrl-btn.answer:hover { background: #2a5a8a; }
+.ctrl-btn.danger { background: #5a2a2a; border-color: #8a4a4a; color: #ffaaaa; }
+.ctrl-btn.special { background: #4a3a1a; border-color: #8a7a4a; color: #ffddaa; }
+.ctrl-btn.special:hover { background: #6a5a2a; }
+.ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.ctrl-btn .key-hint { font-size: 10px; opacity: 0.6; display: block; margin-top: 1px; }
+.ctrl-sep { width: 1px; height: 40px; background: #3a3a5c; margin: 0 4px; }
+.vol-group { display: flex; align-items: center; gap: 4px; }
+.vol-group label { color: #999; font-size: 11px; white-space: nowrap; }
+.vol-group input[type="range"] { width: 60px; height: 6px; cursor: pointer; }
+.mute-btn {
+  background: none; border: 1px solid #555; border-radius: 4px; color: #ccc;
+  font-size: 16px; width: 28px; height: 28px; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.mute-btn:hover { border-color: #888; background: rgba(255,255,255,0.08); }
+.mute-btn.muted { color: #666; }
+#statusBar {
+  position: fixed; bottom: 110px; left: 0; right: 0; height: 30px;
+  background: rgba(15,15,30,0.9); border-top: 1px solid #2a2a4c;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; font-size: 13px; color: #aaa; z-index: 99;
+}
+.status-item { display: flex; align-items: center; gap: 6px; }
+.status-item .label { color: #777; }
+.status-item .value { color: #ddd; font-weight: 600; }
+#settingsOverlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8); z-index: 200; display: none;
+  align-items: center; justify-content: center;
+}
+#settingsOverlay.active { display: flex; }
+#settingsPanel {
+  background: #1a1a2e; border: 2px solid #3a3a5c; border-radius: 12px;
+  padding: 30px; min-width: 350px; color: #ddd;
+}
+#settingsPanel h2 { margin-bottom: 20px; color: #aaccff; }
+.setting-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; font-size: 15px;
+}
+.setting-row input[type="range"] { width: 120px; }
+.setting-row input[type="checkbox"] { width: 20px; height: 20px; }
+.setting-row .val { color: #aaffaa; font-weight: 600; min-width: 30px; text-align: right; }
+#settingsPanel button {
+  margin-top: 16px; padding: 10px 30px; border: none; border-radius: 6px;
+  background: #3a5a8a; color: #fff; font-size: 15px; cursor: pointer;
+}
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+
+<div id="statusBar">
+  <div class="status-item"><span class="label">Correct:</span><span class="value" id="statCorrect">0</span></div>
+  <div class="status-item"><span class="label">Strikes:</span><span class="value" id="statStrikes">0 / 3</span></div>
+  <div class="status-item"><span class="label">Tier:</span><span class="value" id="statTier">EASY</span></div>
+  <div class="status-item"><span class="label">Question:</span><span class="value" id="statQuestion">0/15</span></div>
+  <div class="status-item"><span class="label">State:</span><span class="value" id="statState">TITLE</span></div>
+</div>
+
+<div id="controlPanel">
+  <button class="ctrl-btn primary" id="btnStart" onclick="game.handleStart()">Start<span class="key-hint">SPACE</span></button>
+  <div class="ctrl-sep"></div>
+  <button class="ctrl-btn answer" id="btnA" onclick="game.selectAnswer(0)" disabled>A<span class="key-hint">1</span></button>
+  <button class="ctrl-btn answer" id="btnB" onclick="game.selectAnswer(1)" disabled>B<span class="key-hint">2</span></button>
+  <button class="ctrl-btn answer" id="btnC" onclick="game.selectAnswer(2)" disabled>C<span class="key-hint">3</span></button>
+  <button class="ctrl-btn answer" id="btnD" onclick="game.selectAnswer(3)" disabled>D<span class="key-hint">4</span></button>
+  <div class="ctrl-sep"></div>
+  <button class="ctrl-btn special" id="btnFifty" onclick="game.useFiftyFifty()" disabled>50:50<span class="key-hint">F</span></button>
+  <button class="ctrl-btn special" id="btnAskClass" onclick="game.useAskClass()" disabled>Ask Class<span class="key-hint">K</span></button>
+  <button class="ctrl-btn special" id="btnGospelLib" onclick="game.useGospelLibrary()" disabled>Gospel Lib<span class="key-hint">G</span></button>
+  <div class="ctrl-sep"></div>
+  <button class="ctrl-btn" id="btnPause" onclick="game.handlePause()">Pause<span class="key-hint">P</span></button>
+  <div class="ctrl-sep"></div>
+  <div class="vol-group">
+    <button class="mute-btn" id="btnMuteMusic" onclick="game.toggleMuteMusic()" title="Mute music">&#9835;</button>
+    <label>Music</label>
+    <input type="range" id="volMusic" min="0" max="100" value="30" oninput="game.setMusicVolume(this.value/100)">
+  </div>
+  <div class="vol-group">
+    <button class="mute-btn" id="btnMuteSfx" onclick="game.toggleMuteSfx()" title="Mute SFX">&#9834;</button>
+    <label>SFX</label>
+    <input type="range" id="volSfx" min="0" max="100" value="70" oninput="game.setSfxVolume(this.value/100)">
+  </div>
+  <button class="ctrl-btn" id="btnSettings" onclick="game.toggleSettings()">&#9881;</button>
+</div>
+
+<div id="settingsOverlay">
+  <div id="settingsPanel">
+    <h2>Settings</h2>
+    <div class="setting-row">
+      <span>Timer Duration</span>
+      <input type="range" id="setTimer" min="15" max="90" value="30" oninput="document.getElementById('setTimerVal').textContent=this.value">
+      <span class="val" id="setTimerVal">30</span><span>s</span>
+    </div>
+    <button onclick="game.applySettings()">Apply & Close</button>
+  </div>
+</div>
+
+<script>
+// ===================== roundRect POLYFILL =====================
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    const [tl, tr, br, bl] = r;
+    this.moveTo(x + tl, y);
+    this.lineTo(x + w - tr, y);
+    this.arcTo(x + w, y, x + w, y + tr, tr);
+    this.lineTo(x + w, y + h - br);
+    this.arcTo(x + w, y + h, x + w - br, y + h, br);
+    this.lineTo(x + bl, y + h);
+    this.arcTo(x, y + h, x, y + h - bl, bl);
+    this.lineTo(x, y + tl);
+    this.arcTo(x, y, x + tl, y, tl);
+    this.closePath();
+    return this;
+  };
+}
+
+// ===================== CONFIG =====================
+const CONFIG = {
+  questionsPerTier: 5,    // 5 easy + 5 medium + 5 hard = 15 to win
+  strikesToLose: 3,
+  timerDuration: 30,
+  musicVolume: 0.3,       // 0-1
+  sfxVolume: 0.7,         // 0-1
+  musicMuted: false,
+  sfxMuted: false,
+};
+
+// ===================== INLINE SCRIPTURE DATA =====================
+const INLINE_SCRIPTURES = [
+  { id:1,  reference:"Moses 1:39",         key_phrase:"This is my work and my glory\u2014to bring to pass the immortality and eternal life of man." },
+  { id:2,  reference:"Moses 7:18",         key_phrase:"The Lord called his people Zion, because they were of one heart and one mind." },
+  { id:3,  reference:"Abraham 2:9\u201311", key_phrase:"The Lord promised Abraham\u2019s seed would bear the ministry and Priesthood unto all nations." },
+  { id:4,  reference:"Abraham 3:22\u201323",key_phrase:"As spirits we were organized before the world was." },
+  { id:5,  reference:"Genesis 1:26\u201327",key_phrase:"God created man in his own image." },
+  { id:6,  reference:"Genesis 2:24",        key_phrase:"A man shall cleave unto his wife: and they shall be one." },
+  { id:7,  reference:"Genesis 39:9",        key_phrase:"How then can I do this great wickedness, and sin against God?" },
+  { id:8,  reference:"Exodus 20:3\u201317", key_phrase:"The Ten Commandments." },
+  { id:9,  reference:"Joshua 24:15",        key_phrase:"Choose you this day whom ye will serve." },
+  { id:10, reference:"Psalm 24:3\u20134",   key_phrase:"Who shall stand in his holy place? He that hath clean hands, and a pure heart." },
+  { id:11, reference:"Proverbs 3:5\u20136", key_phrase:"Trust in the Lord with all thine heart and he shall direct thy paths." },
+  { id:12, reference:"Isaiah 1:18",         key_phrase:"Though your sins be as scarlet, they shall be as white as snow." },
+  { id:13, reference:"Isaiah 5:20",         key_phrase:"Woe unto them that call evil good, and good evil." },
+  { id:14, reference:"Isaiah 29:13\u201314",key_phrase:"A marvellous work and a wonder." },
+  { id:15, reference:"Isaiah 53:3\u20135",  key_phrase:"Surely he hath borne our griefs, and carried our sorrows." },
+  { id:16, reference:"Isaiah 58:6\u20137",  key_phrase:"The blessings of a proper fast." },
+  { id:17, reference:"Isaiah 58:13\u201314",key_phrase:"Turn away from doing thy pleasure on my holy day; and call the sabbath a delight." },
+  { id:18, reference:"Jeremiah 1:4\u20135", key_phrase:"Before I formed thee in the belly I ordained thee a prophet unto the nations." },
+  { id:19, reference:"Ezekiel 3:16\u201317",key_phrase:"The prophet is a watchman unto the house of Israel." },
+  { id:20, reference:"Ezekiel 37:15\u201317",key_phrase:"The Bible and Book of Mormon shall become one in thine hand." },
+  { id:21, reference:"Daniel 2:44\u201345", key_phrase:"God shall set up a kingdom, which shall never be destroyed." },
+  { id:22, reference:"Amos 3:7",            key_phrase:"The Lord God revealeth his secret unto his servants the prophets." },
+  { id:23, reference:"Malachi 3:8\u201310", key_phrase:"The blessings of paying tithing." },
+  { id:24, reference:"Malachi 4:5\u20136",  key_phrase:"Elijah shall turn the heart of the children to their fathers." },
+];
+
+// ===================== DIFFICULTY POOLS =====================
+// Easy: most well-known, short, frequently quoted
+const EASY_IDS   = [1, 5, 8, 9, 11, 12, 13, 22];
+// Medium: known but require study, longer phrases
+const MEDIUM_IDS = [2, 6, 7, 14, 15, 21, 23, 24];
+// Hard: more obscure OT references, specific covenant language
+const HARD_IDS   = [3, 4, 10, 16, 17, 18, 19, 20];
+
+const TIER_NAMES = ['EASY', 'MEDIUM', 'HARD'];
+const TIER_COLORS = ['#4a8a4a', '#8a8a2a', '#aa4444'];
+
+// ===================== EMOJI CLUES =====================
+const EMOJI_CLUES = {
+  1:  { emoji: "🔨✨➡️👤🌟♾️",       hint: "His purpose for us" },
+  2:  { emoji: "👥❤️🧠 = ⛰️🏙️",      hint: "A united people" },
+  3:  { emoji: "👨‍👧‍👦🌍✋📜🙏",     hint: "A promise to all nations" },
+  4:  { emoji: "👻👻👻📋🌌⏰",         hint: "Before we were born" },
+  5:  { emoji: "🪞🧑 = 👆🖼️",         hint: "Created like Him" },
+  6:  { emoji: "👨➕👩 = 1️⃣",          hint: "Marriage" },
+  7:  { emoji: "🙅❌😈❓🤔💭",         hint: "Joseph resists" },
+  8:  { emoji: "🔟📜⛰️🔥",            hint: "Rules from the mountain" },
+  9:  { emoji: "👉📅🤔👑❓",           hint: "Decide today" },
+  10: { emoji: "⛪❓🧼🙌💎❤️",         hint: "Who can enter?" },
+  11: { emoji: "🫀🙏🚫🧠➡️🛤️",       hint: "Don't lean on yourself" },
+  12: { emoji: "🔴🩸➡️⬜❄️🧣",        hint: "Colors of forgiveness" },
+  13: { emoji: "😈='👍' 😇='👎' 😱",   hint: "Reversed values" },
+  14: { emoji: "🎩✨🏗️🤩❓",          hint: "An amazing work" },
+  15: { emoji: "🤕😢📦👤💪💔",         hint: "He suffered for us" },
+  16: { emoji: "🍽️❌➡️⛓️💥🍞🏠",     hint: "Going without food" },
+  17: { emoji: "🛑🎮📅☀️➡️😊",        hint: "A special day" },
+  18: { emoji: "🤰⬅️👆📋✍️🌍",       hint: "Known before birth" },
+  19: { emoji: "👀🏰🔭📢⚠️🏠",        hint: "A lookout for the people" },
+  20: { emoji: "📖➕📘 = 🤝✋",         hint: "Two books become one" },
+  21: { emoji: "👑🏰⬆️🙏💪♾️",        hint: "An eternal kingdom" },
+  22: { emoji: "🤫🔓➡️👂🧑‍🦳📢",    hint: "Nothing hidden from them" },
+  23: { emoji: "💰🔟➡️1️⃣➡️🪟🌧️🎁",  hint: "Giving back a portion" },
+  24: { emoji: "👴🔑❤️🔄👶👨‍👧‍👦",   hint: "Turning hearts" },
+};
+
+// ===================== STATES =====================
+const STATE = {
+  TITLE: 'TITLE',
+  INTRO: 'INTRO',
+  PRE_QUESTION: 'PRE_QUESTION',
+  QUESTION_DISPLAY: 'QUESTION_DISPLAY',
+  ANSWERING: 'ANSWERING',
+  CORRECT_FB: 'CORRECT_FB',
+  WRONG_FB: 'WRONG_FB',
+  VICTORY: 'VICTORY',
+  DEFEAT: 'DEFEAT',
+  PAUSED: 'PAUSED',
+};
+
+// ===================== PRE-QUESTION QUIPS =====================
+const PRE_QUESTION_QUIPS = [
+  { top: "Moses stretches forth his hand...", bottom: "Will the waters obey?" },
+  { top: "The chariots grow louder behind you.", bottom: "Better know this one." },
+  { top: "A cloud of dust rises on the horizon.", bottom: "No pressure." },
+  { top: "The Israelites look at you nervously.", bottom: "Don't let them down, Moses." },
+  { top: "You hear Pharaoh yelling something rude.", bottom: "Prove him wrong." },
+  { top: "The wind picks up over the sea.", bottom: "Something is about to happen..." },
+  { top: "An Israelite child tugs your robe.", bottom: "\"Are we gonna make it?\"" },
+  { top: "Your staff begins to glow.", bottom: "The Lord is with you." },
+  { top: "Somewhere, a donkey brays nervously.", bottom: "Even the animals are stressed." },
+  { top: "The water trembles before you.", bottom: "It knows what's coming." },
+  { top: "Pharaoh's fastest chariot pulls ahead.", bottom: "Tick tock, Moses." },
+  { top: "You take a deep breath of salty air.", bottom: "Here we go again." },
+  { top: "The pillar of fire crackles overhead.", bottom: "Heaven is watching." },
+  { top: "An Israelite whispers: \"I should've packed lighter.\"", bottom: "Focus, people." },
+  { top: "A seagull lands on your staff.", bottom: "Even nature is rooting for you." },
+  { top: "Moses adjusts his sandals.", bottom: "Can't part the sea with blisters." },
+  { top: "The ground shakes beneath your feet.", bottom: "That's either the Lord or the chariots." },
+  { top: "You glance back. Bad idea.", bottom: "SO many chariots." },
+  { top: "An elder shouts: \"We could've stayed in Egypt!\"", bottom: "We are NOT doing this again, Gerald." },
+  { top: "Lightning splits the sky.", bottom: "Dramatic? Yes. Effective? Also yes." },
+  { top: "The Red Sea stares back at you.", bottom: "It's a sea. It doesn't have eyes. Focus." },
+  { top: "You feel the Spirit strongly.", bottom: "Or that's adrenaline. Either way, let's go." },
+  { top: "Your beard flows majestically in the wind.", bottom: "Looking good won't save Israel, but it helps." },
+  { top: "A fish pokes its head above the water.", bottom: "\"You're really gonna do this, huh?\"" },
+];
+
+// ===================== INTRO CRAWL TEXT =====================
+const INTRO_LINES = [
+  { text: "The year is roughly 1446 B.C.", style: "dim" },
+  { text: "", style: "gap" },
+  { text: "You are Moses.", style: "bright" },
+  { text: "Former prince. Current prophet. Reluctant public speaker.", style: "dim" },
+  { text: "", style: "gap" },
+  { text: "After ten plagues, Pharaoh finally let your people go.", style: "normal" },
+  { text: "\"Fine! Take your people! Take your unleavened bread!\"", style: "italic" },
+  { text: "\"Just GO!\"", style: "italic" },
+  { text: "", style: "gap" },
+  { text: "But Pharaoh, being Pharaoh, changed his mind.", style: "normal" },
+  { text: "(Honestly, did anyone NOT see that coming?)", style: "dim" },
+  { text: "", style: "gap" },
+  { text: "Now his entire army is thundering behind you.", style: "bright" },
+  { text: "Chariots. Horses. Very angry Egyptians.", style: "normal" },
+  { text: "And in front of you? The Red Sea.", style: "bright" },
+  { text: "", style: "gap" },
+  { text: "The Lord has promised a way through.", style: "normal" },
+  { text: "But it's going to take faith.", style: "normal" },
+  { text: "And scripture knowledge.", style: "normal" },
+  { text: "Mostly scripture knowledge.", style: "dim" },
+  { text: "", style: "gap" },
+  { text: "Answer 15 Doctrinal Mastery questions to part the sea.", style: "bright" },
+  { text: "Get 3 wrong and Pharaoh catches you.", style: "danger" },
+  { text: "Back to making bricks. No benefits. Zero stars on Yelp.", style: "dim" },
+  { text: "", style: "gap" },
+  { text: "Your lifelines:", style: "normal" },
+  { text: "50:50  \u2022  Ask the Class  \u2022  Gospel Library App", style: "gold" },
+  { text: "(One each. Use them wisely.)", style: "dim" },
+  { text: "", style: "gap" },
+  { text: "The waters await. Pharaoh approaches.", style: "bright" },
+  { text: "May your Doctrinal Mastery be strong.", style: "gold" },
+];
+
+// ===================== TAUNTS =====================
+const PHARAOH_TAUNTS = [
+  "Is that the best Israel can do?",
+  "My chariots grow closer!",
+  "Moses can't run forever!",
+  "Your scriptures fail you!",
+  "Pharaoh is not impressed.",
+  "The desert will swallow you!",
+  "My horses are getting hungry!",
+  "You call that an answer?",
+  "Soon you will serve me again!",
+  "The Red Sea cannot protect you!",
+];
+
+// ===================== SPRITE SWAP SYSTEM =====================
+const sprites = {};
+const SPRITE_NAMES = ['moses', 'israelites', 'pharaoh', 'chariot', 'horse'];
+function loadSprites() {
+  SPRITE_NAMES.forEach(name => {
+    const img = new Image();
+    img.src = `sprites/${name}.png`;
+    img.onload = () => { sprites[name] = img; };
+  });
+}
+loadSprites();
+
+// ===================== SOUND ENGINE =====================
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function sfxVol(v) { return v * CONFIG.sfxVolume; }
+
+function playCorrectSound() {
+  if (CONFIG.sfxMuted) return;
+  const ctx = getAudioCtx(); const now = ctx.currentTime;
+  [261.63, 329.63, 392.00, 523.25].forEach((freq, i) => {
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(sfxVol(0.15), now + i * 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.4);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + i * 0.12); osc.stop(now + i * 0.12 + 0.4);
+  });
+}
+
+function playWrongSound() {
+  if (CONFIG.sfxMuted) return;
+  const ctx = getAudioCtx(); const now = ctx.currentTime;
+  [392.00, 311.13, 261.63].forEach((freq, i) => {
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sawtooth'; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(sfxVol(0.1), now + i * 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.3);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + i * 0.15); osc.stop(now + i * 0.15 + 0.3);
+  });
+  const osc = ctx.createOscillator(); const gain = ctx.createGain();
+  osc.type = 'sawtooth'; osc.frequency.value = 55;
+  gain.gain.setValueAtTime(sfxVol(0.12), now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(now); osc.stop(now + 0.6);
+}
+
+function playTickSound() {
+  if (CONFIG.sfxMuted) return;
+  const ctx = getAudioCtx(); const now = ctx.currentTime;
+  const osc = ctx.createOscillator(); const gain = ctx.createGain();
+  osc.type = 'sine'; osc.frequency.value = 880;
+  gain.gain.setValueAtTime(sfxVol(0.08), now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(now); osc.stop(now + 0.08);
+}
+
+function playVictorySound() {
+  if (CONFIG.sfxMuted) return;
+  const ctx = getAudioCtx(); const now = ctx.currentTime;
+  [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25].forEach((freq, i) => {
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(sfxVol(0.12), now + i * 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.5);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + i * 0.15); osc.stop(now + i * 0.15 + 0.5);
+  });
+}
+
+function playDefeatSound() {
+  if (CONFIG.sfxMuted) return;
+  const ctx = getAudioCtx(); const now = ctx.currentTime;
+  [392, 349, 311, 261, 196].forEach((freq, i) => {
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sawtooth'; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(sfxVol(0.1), now + i * 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.5);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + i * 0.2); osc.stop(now + i * 0.2 + 0.5);
+  });
+}
+
+// ===================== BACKGROUND MUSIC (MP3) =====================
+const bgMusicAudio = new Audio('music/Pixel Pharaoh Quiz.mp3');
+bgMusicAudio.loop = true;
+bgMusicAudio.volume = CONFIG.musicVolume;
+
+const bgMusic = {
+  play() {
+    if (CONFIG.musicMuted) return;
+    bgMusicAudio.volume = CONFIG.musicVolume;
+    bgMusicAudio.play().catch(() => {}); // browsers block autoplay until interaction
+  },
+  stop() { bgMusicAudio.pause(); bgMusicAudio.currentTime = 0; },
+  pause() { bgMusicAudio.pause(); },
+  resume() { if (!CONFIG.musicMuted) bgMusicAudio.play().catch(() => {}); },
+  setVolume(v) { CONFIG.musicVolume = v; bgMusicAudio.volume = CONFIG.musicMuted ? 0 : v; },
+  setMuted(m) { CONFIG.musicMuted = m; bgMusicAudio.volume = m ? 0 : CONFIG.musicVolume; },
+};
+
+// ===================== PARTICLE SYSTEM =====================
+class Particle {
+  constructor(x, y, vx, vy, life, color, size) {
+    this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+    this.life = life; this.maxLife = life; this.color = color; this.size = size;
+  }
+  update(dt) { this.x += this.vx * dt; this.y += this.vy * dt; this.vy += 20 * dt; this.life -= dt; }
+  get alpha() { return Math.max(0, this.life / this.maxLife); }
+  get alive() { return this.life > 0; }
+}
+
+class ParticleSystem {
+  constructor() { this.particles = []; }
+  emit(x, y, count, opts = {}) {
+    for (let i = 0; i < count; i++) {
+      this.particles.push(new Particle(
+        x + (Math.random() - 0.5) * (opts.spread || 20),
+        y + (Math.random() - 0.5) * (opts.spread || 20),
+        (Math.random() - 0.5) * (opts.speedX || 60),
+        -(Math.random()) * (opts.speedY || 80) + (opts.baseVY || 0),
+        (opts.life || 1.5) + Math.random() * (opts.lifeVar || 0.5),
+        opts.color || 'rgba(255,255,255,0.8)',
+        (opts.size || 3) + Math.random() * (opts.sizeVar || 2)
+      ));
+    }
+  }
+  update(dt) { this.particles.forEach(p => p.update(dt)); this.particles = this.particles.filter(p => p.alive); }
+  draw(ctx) {
+    this.particles.forEach(p => {
+      ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size * p.alpha, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ===================== EASING =====================
+function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+// ===================== TEXT WRAPPING =====================
+function wrapText(ctx, text, maxWidth) {
+  const lines = [];
+  text.split('\n').forEach(para => {
+    const words = para.split(' ');
+    let line = '';
+    words.forEach(word => {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = word; }
+      else line = test;
+    });
+    if (line) lines.push(line);
+  });
+  return lines;
+}
+
+// ===================== QUESTION ENGINE =====================
+class QuestionEngine {
+  constructor() {
+    this.scriptures = [];
+    this.questions = [];
+    this.currentIndex = 0;
+  }
+
+  async loadScriptures() {
+    try {
+      const res = await fetch('doctrinal-mastery-ot.json');
+      const data = await res.json();
+      this.scriptures = data.scriptures;
+    } catch (e) {
+      this.scriptures = INLINE_SCRIPTURES;
+    }
+  }
+
+  generateQuestions() {
+    const byId = {};
+    this.scriptures.forEach(s => byId[s.id] = s);
+
+    const pickFromPool = (ids, count) => {
+      const pool = ids.map(id => byId[id]).filter(Boolean);
+      const shuffled = pool.sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, count);
+    };
+
+    const easyScriptures  = pickFromPool(EASY_IDS, CONFIG.questionsPerTier);
+    const medScriptures   = pickFromPool(MEDIUM_IDS, CONFIG.questionsPerTier);
+    const hardScriptures  = pickFromPool(HARD_IDS, CONFIG.questionsPerTier);
+
+    const clueTypes = ['phrase_to_ref', 'emoji_to_ref', 'blank_to_ref', 'ref_to_phrase'];
+
+    const buildTier = (scriptures, tier) => {
+      return scriptures.map((s, i) => {
+        const clueType = clueTypes[i % clueTypes.length];
+        return this.buildMCQuestion(s, clueType, tier);
+      }).sort(() => Math.random() - 0.5);
+    };
+
+    this.questions = [
+      ...buildTier(easyScriptures, 0),
+      ...buildTier(medScriptures, 1),
+      ...buildTier(hardScriptures, 2),
+    ];
+    this.currentIndex = 0;
+  }
+
+  buildMCQuestion(scripture, clueType, tier) {
+    const others = this.scriptures.filter(s => s.id !== scripture.id);
+    const distractorPool = others.sort(() => Math.random() - 0.5).slice(0, 3);
+
+    let clue, clueSubtext, optionType;
+
+    switch (clueType) {
+      case 'phrase_to_ref':
+        clue = `"${scripture.key_phrase}"`;
+        clueSubtext = 'Name the scripture reference:';
+        optionType = 'reference';
+        break;
+      case 'emoji_to_ref': {
+        const ec = EMOJI_CLUES[scripture.id];
+        clue = ec ? ec.emoji : '📖❓';
+        clueSubtext = ec ? `Hint: ${ec.hint}` : 'Name the scripture:';
+        optionType = 'reference';
+        break;
+      }
+      case 'blank_to_ref': {
+        const words = scripture.key_phrase.split(' ');
+        const candidates = words.map((w, i) => ({ w, i })).filter(x => x.w.length > 3);
+        const numBlanks = Math.min(candidates.length, 2 + Math.floor(Math.random() * 2));
+        const chosen = candidates.sort(() => Math.random() - 0.5).slice(0, numBlanks);
+        const blankIds = new Set(chosen.map(c => c.i));
+        clue = words.map((w, i) => blankIds.has(i) ? '________' : w).join(' ');
+        clueSubtext = 'Fill in the blanks — which scripture is this?';
+        optionType = 'reference';
+        break;
+      }
+      case 'ref_to_phrase':
+        clue = scripture.reference;
+        clueSubtext = 'What is the key phrase?';
+        optionType = 'phrase';
+        break;
+    }
+
+    const correctText = optionType === 'reference' ? scripture.reference : scripture.key_phrase;
+    const distractorTexts = distractorPool.map(d => optionType === 'reference' ? d.reference : d.key_phrase);
+
+    const options = [
+      { text: correctText, correct: true },
+      ...distractorTexts.map(t => ({ text: t, correct: false })),
+    ].sort(() => Math.random() - 0.5);
+
+    const correctIndex = options.findIndex(o => o.correct);
+
+    return {
+      scripture, clueType, tier, clue, clueSubtext, optionType, options, correctIndex,
+      eliminated: [false, false, false, false],  // for 50/50
+      classPoll: null,  // for Ask the Class
+    };
+  }
+
+  currentQuestion() { return this.questions[this.currentIndex] || null; }
+  advance() { this.currentIndex++; }
+  reshuffleCurrent() {
+    const q = this.questions[this.currentIndex];
+    if (!q) return;
+    // Rebuild the question with a different clue type and fresh options
+    const clueTypes = ['phrase_to_ref', 'emoji_to_ref', 'blank_to_ref', 'ref_to_phrase'];
+    const otherTypes = clueTypes.filter(t => t !== q.clueType);
+    const newType = otherTypes[Math.floor(Math.random() * otherTypes.length)];
+    this.questions[this.currentIndex] = this.buildMCQuestion(q.scripture, newType, q.tier);
+  }
+  get remaining() { return this.questions.length - this.currentIndex; }
+  get total() { return this.questions.length; }
+}
+
+// ===================== MAIN GAME =====================
+class Game {
+  constructor() {
+    this.canvas = document.getElementById('gameCanvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.state = STATE.TITLE;
+    this.prevState = null;
+    this.time = 0; this.dt = 0; this.lastFrame = 0;
+
+    // Progress
+    this.seaProgress = 0; this.seaTarget = 0;
+    this.pharaohProgress = 0; this.pharaohTarget = 0;
+    this.correctCount = 0; this.strikes = 0;
+
+    // Lifelines (1 each per run)
+    this.fiftyFiftyUsed = false;
+    this.askClassUsed = false;
+    this.gospelLibUsed = false;
+
+    // Gospel Library timer
+    this.gospelLibActive = false;
+    this.gospelLibCountdown = 0;
+
+    // Timer
+    this.timer = 0; this.timerRunning = false; this.lastTickSecond = -1;
+
+    // Answer state
+    this.selectedAnswer = -1;
+    this.answerRevealed = false;
+
+    // Feedback
+    this.feedbackTimer = 0; this.feedbackDuration = 2.5;
+    this.screenShake = 0; this.godRayAlpha = 0;
+    this.currentTaunt = '';
+    this.currentQuip = null;
+    this.answerBoxes = []; // [{x,y,w,h}, ...] for click detection
+
+    // Victory/defeat
+    this.endTimer = 0; this.defeatWaterCollapse = 0;
+
+    // Intro crawl
+    this.introScrollY = 0;
+
+    // Milestones
+    this.pillarIntensity = 0.3; this.farShoreVisible = 0;
+    this.mosesX = 0;
+
+    // Particles
+    this.sprayParticles = new ParticleSystem();
+    this.dustParticles = new ParticleSystem();
+    this.divineParticles = new ParticleSystem();
+
+    // Question engine
+    this.questionEngine = new QuestionEngine();
+
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+    window.addEventListener('keydown', (e) => this.onKey(e));
+    this.canvas.addEventListener('click', (e) => this.onCanvasClick(e));
+    this.canvas.addEventListener('mousemove', (e) => this.onCanvasMove(e));
+
+    this.questionEngine.loadScriptures().then(() => {
+      this.updateButtons();
+      this.loop(performance.now());
+    });
+  }
+
+  resize() {
+    const controlH = 110 + 30;
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight - controlH;
+    this.W = this.canvas.width;
+    this.H = this.canvas.height;
+  }
+
+  // ==================== STATE MACHINE ====================
+  setState(newState) {
+    this.state = newState;
+    this.updateButtons();
+    document.getElementById('statState').textContent = newState;
+  }
+
+  updateButtons() {
+    const s = this.state;
+    const answering = s === STATE.ANSWERING;
+    document.getElementById('btnStart').disabled = ![STATE.TITLE, STATE.INTRO, STATE.PRE_QUESTION, STATE.CORRECT_FB, STATE.WRONG_FB].includes(s);
+    document.getElementById('btnA').disabled = !answering;
+    document.getElementById('btnB').disabled = !answering;
+    document.getElementById('btnC').disabled = !answering;
+    document.getElementById('btnD').disabled = !answering;
+    document.getElementById('btnFifty').disabled = !answering || this.fiftyFiftyUsed;
+    document.getElementById('btnAskClass').disabled = !answering || this.askClassUsed;
+    document.getElementById('btnGospelLib').disabled = !answering || this.gospelLibUsed;
+
+    const btnStart = document.getElementById('btnStart');
+    if (s === STATE.TITLE) btnStart.innerHTML = 'Start Game<span class="key-hint">SPACE</span>';
+    else if (s === STATE.INTRO) btnStart.innerHTML = 'Skip Intro<span class="key-hint">SPACE</span>';
+    else if (s === STATE.PRE_QUESTION) btnStart.innerHTML = 'Reveal<span class="key-hint">SPACE</span>';
+    else btnStart.innerHTML = 'Next<span class="key-hint">SPACE</span>';
+  }
+
+  updateStatus() {
+    document.getElementById('statCorrect').textContent = this.correctCount;
+    document.getElementById('statStrikes').textContent = `${'X'.repeat(this.strikes)}${'O'.repeat(CONFIG.strikesToLose - this.strikes)} (${this.strikes}/${CONFIG.strikesToLose})`;
+    const q = this.questionEngine.currentQuestion();
+    const tier = q ? TIER_NAMES[q.tier] : (this.correctCount >= CONFIG.questionsPerTier * 3 ? 'DONE' : '—');
+    document.getElementById('statTier').textContent = tier;
+    document.getElementById('statTier').style.color = q ? TIER_COLORS[q.tier] : '#ddd';
+    document.getElementById('statQuestion').textContent = `${this.correctCount}/${this.questionEngine.total}`;
+  }
+
+  // ==================== KEY HANDLER ====================
+  onKey(e) {
+    if (document.getElementById('settingsOverlay').classList.contains('active')) return;
+    switch (e.code) {
+      case 'Space': e.preventDefault(); this.handleStart(); break;
+      case 'Digit1': case 'Numpad1': this.selectAnswer(0); break;
+      case 'Digit2': case 'Numpad2': this.selectAnswer(1); break;
+      case 'Digit3': case 'Numpad3': this.selectAnswer(2); break;
+      case 'Digit4': case 'Numpad4': this.selectAnswer(3); break;
+      case 'KeyF': this.useFiftyFifty(); break;
+      case 'KeyK': this.useAskClass(); break;
+      case 'KeyG': this.useGospelLibrary(); break;
+      case 'KeyP': this.handlePause(); break;
+    }
+  }
+
+  onCanvasMove(e) {
+    if (this.state !== STATE.ANSWERING || this.answerBoxes.length === 0) {
+      this.canvas.style.cursor = 'default'; return;
+    }
+    const rect = this.canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+    const my = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+    const q = this.questionEngine.currentQuestion();
+    let hover = false;
+    for (let i = 0; i < this.answerBoxes.length; i++) {
+      const b = this.answerBoxes[i];
+      if (q && !q.eliminated[i] && mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+        hover = true; break;
+      }
+    }
+    this.canvas.style.cursor = hover ? 'pointer' : 'default';
+  }
+
+  onCanvasClick(e) {
+    if (this.state !== STATE.ANSWERING) return;
+    const rect = this.canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+    const my = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+    for (let i = 0; i < this.answerBoxes.length; i++) {
+      const b = this.answerBoxes[i];
+      if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+        this.selectAnswer(i);
+        return;
+      }
+    }
+  }
+
+  // ==================== HANDLERS ====================
+  handleStart() {
+    if (this.state === STATE.TITLE) {
+      // Show intro crawl, start music
+      this.introScrollY = 0;
+      bgMusic.play();
+      this.setState(STATE.INTRO);
+    }
+    else if (this.state === STATE.INTRO) { this.startGame(); }
+    else if (this.state === STATE.PRE_QUESTION) { this.revealQuestion(); }
+    else if (this.state === STATE.CORRECT_FB) { this.nextQuestion(true); }
+    else if (this.state === STATE.WRONG_FB) { this.nextQuestion(false); }
+    else if ((this.state === STATE.VICTORY || this.state === STATE.DEFEAT) && this.endTimer > 3) {
+      bgMusic.stop();
+      this.setState(STATE.TITLE);
+    }
+  }
+
+  selectAnswer(index) {
+    if (this.state !== STATE.ANSWERING) return;
+    const q = this.questionEngine.currentQuestion();
+    if (!q || q.eliminated[index]) return;
+
+    this.selectedAnswer = index;
+    this.answerRevealed = true;
+    this.timerRunning = false;
+    this.gospelLibActive = false;
+
+    if (index === q.correctIndex) {
+      // CORRECT
+      this.correctCount++;
+      this.seaTarget = Math.min(1, this.correctCount / (CONFIG.questionsPerTier * 3));
+      this.godRayAlpha = 1.0;
+      this.feedbackTimer = this.feedbackDuration;
+      playCorrectSound();
+      this.divineParticles.emit(this.W / 2, this.H * 0.2, 30, {
+        spread: this.W * 0.3, speedX: 40, speedY: 30, baseVY: 20,
+        life: 2, color: 'rgba(255,215,100,0.8)', size: 4, sizeVar: 3
+      });
+      this.checkMilestones();
+      this.updateStatus();
+      this.setState(STATE.CORRECT_FB);
+    } else {
+      // WRONG
+      this.strikes++;
+      this.pharaohTarget = Math.min(1, this.strikes / CONFIG.strikesToLose);
+      this.screenShake = 0.5;
+      this.feedbackTimer = this.feedbackDuration;
+      this.currentTaunt = PHARAOH_TAUNTS[Math.floor(Math.random() * PHARAOH_TAUNTS.length)];
+      playWrongSound();
+      const pharaohX = this.W * 0.05 + this.pharaohProgress * this.W * 0.4;
+      this.dustParticles.emit(pharaohX, this.H * 0.72, 15, {
+        spread: 30, speedX: -50, speedY: 20, life: 1.2,
+        color: 'rgba(180,150,100,0.6)', size: 5, sizeVar: 4
+      });
+      this.updateStatus();
+      this.setState(STATE.WRONG_FB);
+    }
+  }
+
+  useFiftyFifty() {
+    if (this.state !== STATE.ANSWERING || this.fiftyFiftyUsed) return;
+    this.fiftyFiftyUsed = true;
+    const q = this.questionEngine.currentQuestion();
+    if (!q) return;
+    // Eliminate 2 wrong answers
+    const wrongIndices = [0, 1, 2, 3].filter(i => i !== q.correctIndex && !q.eliminated[i]);
+    const toEliminate = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2);
+    toEliminate.forEach(i => q.eliminated[i] = true);
+    this.updateButtons();
+  }
+
+  useAskClass() {
+    if (this.state !== STATE.ANSWERING || this.askClassUsed) return;
+    this.askClassUsed = true;
+    const q = this.questionEngine.currentQuestion();
+    if (!q) return;
+    // Generate simulated class poll percentages
+    const poll = [0, 0, 0, 0];
+    // Correct answer gets 38-62%
+    poll[q.correctIndex] = 38 + Math.floor(Math.random() * 25);
+    let remaining = 100 - poll[q.correctIndex];
+    // Distribute rest among non-eliminated wrong answers
+    const activeWrong = [0, 1, 2, 3].filter(i => i !== q.correctIndex && !q.eliminated[i]);
+    activeWrong.forEach((idx, i) => {
+      if (i === activeWrong.length - 1) { poll[idx] = remaining; }
+      else { const share = Math.floor(Math.random() * remaining * 0.6); poll[idx] = share; remaining -= share; }
+    });
+    q.classPoll = poll;
+    this.updateButtons();
+  }
+
+  useGospelLibrary() {
+    if (this.state !== STATE.ANSWERING || this.gospelLibUsed) return;
+    this.gospelLibUsed = true;
+    this.gospelLibActive = true;
+    this.gospelLibCountdown = 30;
+    this.timerRunning = false; // Pause question timer
+    this.updateButtons();
+  }
+
+  handlePause() {
+    if (this.state === STATE.PAUSED) {
+      this.setState(this.prevState);
+      if (this.prevState === STATE.ANSWERING) this.timerRunning = true;
+    } else if (this.state !== STATE.VICTORY && this.state !== STATE.DEFEAT) {
+      this.prevState = this.state;
+      this.timerRunning = false;
+      this.setState(STATE.PAUSED);
+    }
+  }
+
+  toggleSettings() { document.getElementById('settingsOverlay').classList.toggle('active'); }
+  applySettings() {
+    CONFIG.timerDuration = parseInt(document.getElementById('setTimer').value);
+    this.toggleSettings();
+  }
+
+
+  setMusicVolume(v) { bgMusic.setVolume(v); }
+  setSfxVolume(v) { CONFIG.sfxVolume = v; }
+
+  toggleMuteMusic() {
+    CONFIG.musicMuted = !CONFIG.musicMuted;
+    bgMusic.setMuted(CONFIG.musicMuted);
+    const btn = document.getElementById('btnMuteMusic');
+    btn.classList.toggle('muted', CONFIG.musicMuted);
+    btn.innerHTML = CONFIG.musicMuted ? '&#9835;&#xFE0E;' : '&#9835;';
+  }
+
+  toggleMuteSfx() {
+    CONFIG.sfxMuted = !CONFIG.sfxMuted;
+    const btn = document.getElementById('btnMuteSfx');
+    btn.classList.toggle('muted', CONFIG.sfxMuted);
+    btn.innerHTML = CONFIG.sfxMuted ? '&#9834;&#xFE0E;' : '&#9834;';
+  }
+
+  // ==================== GAME FLOW ====================
+  startGame() {
+    this.correctCount = 0; this.strikes = 0;
+    this.seaProgress = 0; this.seaTarget = 0;
+    this.pharaohProgress = 0; this.pharaohTarget = 0;
+    this.fiftyFiftyUsed = false; this.askClassUsed = false; this.gospelLibUsed = false;
+    this.gospelLibActive = false;
+    this.pillarIntensity = 0.3; this.farShoreVisible = 0;
+    this.defeatWaterCollapse = 0;
+    this.questionEngine.generateQuestions();
+    this.updateStatus();
+    // Music already playing from intro; ensure it's going
+    bgMusic.resume();
+    this.showQuestion();
+  }
+
+  showQuestion() {
+    const q = this.questionEngine.currentQuestion();
+    if (!q) { this.checkEndCondition(); return; }
+    // Pick a random quip
+    this.currentQuip = PRE_QUESTION_QUIPS[Math.floor(Math.random() * PRE_QUESTION_QUIPS.length)];
+    this.updateStatus();
+    this.setState(STATE.PRE_QUESTION);
+  }
+
+  revealQuestion() {
+    const q = this.questionEngine.currentQuestion();
+    if (!q) { this.checkEndCondition(); return; }
+    this.timer = CONFIG.timerDuration;
+    this.timerRunning = true;
+    this.lastTickSecond = -1;
+    this.selectedAnswer = -1;
+    this.answerRevealed = false;
+    this.gospelLibActive = false;
+    this.setState(STATE.ANSWERING);
+  }
+
+  nextQuestion(wasCorrect) {
+    if (wasCorrect) {
+      this.questionEngine.advance();
+    } else {
+      // Wrong answer: re-shuffle the same question with new options/clue type
+      this.questionEngine.reshuffleCurrent();
+    }
+    this.feedbackTimer = 0; this.godRayAlpha = 0; this.screenShake = 0;
+    this.checkEndCondition();
+  }
+
+  checkEndCondition() {
+    const totalNeeded = CONFIG.questionsPerTier * 3;
+    if (this.correctCount >= totalNeeded) {
+      this.endTimer = 0; bgMusic.pause(); playVictorySound();
+      this.setState(STATE.VICTORY);
+    } else if (this.strikes >= CONFIG.strikesToLose) {
+      this.endTimer = 0; this.defeatWaterCollapse = 0; bgMusic.pause(); playDefeatSound();
+      this.setState(STATE.DEFEAT);
+    } else if (this.questionEngine.remaining <= 0) {
+      // Safety fallback — shouldn't happen since wrong answers don't advance
+      this.endTimer = 0; this.defeatWaterCollapse = 0; bgMusic.pause(); playDefeatSound();
+      this.setState(STATE.DEFEAT);
+    } else {
+      this.showQuestion();
+    }
+  }
+
+  checkMilestones() {
+    const pct = this.seaTarget;
+    if (pct >= 0.67) { this.pillarIntensity = 1.0; this.farShoreVisible = 1.0; }
+    else if (pct >= 0.33) { this.pillarIntensity = 0.7; this.farShoreVisible = 0.5; }
+    else if (pct >= 0.15) { this.pillarIntensity = 0.5; }
+  }
+
+  // ==================== MAIN LOOP ====================
+  loop(timestamp) {
+    this.dt = Math.min((timestamp - this.lastFrame) / 1000, 0.05);
+    this.lastFrame = timestamp;
+    this.time += this.dt;
+    this.update(this.dt);
+    this.render();
+    requestAnimationFrame((t) => this.loop(t));
+  }
+
+  update(dt) {
+    this.seaProgress += (this.seaTarget - this.seaProgress) * dt * 2.5;
+    this.pharaohProgress += (this.pharaohTarget - this.pharaohProgress) * dt * 2.5;
+    if (this.screenShake > 0) this.screenShake -= dt * 2;
+    if (this.godRayAlpha > 0) this.godRayAlpha -= dt * 0.5;
+    if (this.feedbackTimer > 0) this.feedbackTimer -= dt;
+
+    // Gospel Library countdown
+    if (this.gospelLibActive && this.gospelLibCountdown > 0) {
+      this.gospelLibCountdown -= dt;
+      if (this.gospelLibCountdown <= 0) {
+        this.gospelLibActive = false;
+        this.timerRunning = true;
+      }
+    }
+
+    // Question timer
+    if (this.timerRunning && this.state === STATE.ANSWERING) {
+      this.timer -= dt;
+      const sec = Math.ceil(this.timer);
+      if (sec <= 5 && sec !== this.lastTickSecond && sec > 0) { this.lastTickSecond = sec; playTickSound(); }
+      if (this.timer <= 0) {
+        this.timer = 0; this.timerRunning = false;
+        // Time's up = strike
+        this.strikes++;
+        this.pharaohTarget = Math.min(1, this.strikes / CONFIG.strikesToLose);
+        this.screenShake = 0.5;
+        this.feedbackTimer = this.feedbackDuration;
+        this.currentTaunt = "Time's up! Pharaoh advances!";
+        this.answerRevealed = true;
+        playWrongSound();
+        this.updateStatus();
+        this.setState(STATE.WRONG_FB);
+      }
+    }
+
+    // Particles
+    this.sprayParticles.update(dt);
+    this.dustParticles.update(dt);
+    this.divineParticles.update(dt);
+
+    // Spray from water walls
+    if (this.seaProgress > 0.05) {
+      const wallGap = this.seaProgress * this.W * 0.35;
+      const cx = this.W / 2;
+      if (Math.random() < 0.3) {
+        this.sprayParticles.emit(cx - wallGap, this.H * 0.5, 1, {
+          spread: 10, speedX: 30, speedY: 40, life: 1.5,
+          color: 'rgba(180,220,255,0.5)', size: 2, sizeVar: 2
+        });
+        this.sprayParticles.emit(cx + wallGap, this.H * 0.5, 1, {
+          spread: 10, speedX: -30, speedY: 40, life: 1.5,
+          color: 'rgba(180,220,255,0.5)', size: 2, sizeVar: 2
+        });
+      }
+    }
+
+    // Victory/defeat
+    if (this.state === STATE.VICTORY || this.state === STATE.DEFEAT) this.endTimer += dt;
+    if (this.state === STATE.DEFEAT) {
+      this.defeatWaterCollapse = Math.min(1, (this.defeatWaterCollapse || 0) + dt * 0.4);
+      this.pharaohTarget = 1.0;
+      this.seaTarget = Math.max(0, this.seaTarget - dt * 0.3);
+    }
+    if (this.state === STATE.VICTORY) this.seaTarget = 1.0;
+
+    // Intro crawl auto-scroll
+    if (this.state === STATE.INTRO) {
+      this.introScrollY += dt * 38; // pixels per second scroll speed
+    }
+  }
+
+  // ==================== RENDERING ====================
+  render() {
+    const ctx = this.ctx; const W = this.W; const H = this.H;
+    ctx.save();
+    if (this.screenShake > 0) {
+      ctx.translate((Math.random()-0.5)*8*this.screenShake, (Math.random()-0.5)*8*this.screenShake);
+    }
+    this.drawSky(ctx, W, H);
+    if (this.farShoreVisible > 0) this.drawFarShore(ctx, W, H);
+    this.drawDistantWater(ctx, W, H);
+    this.drawSeabed(ctx, W, H);
+    this.drawWaterWalls(ctx, W, H);
+    this.sprayParticles.draw(ctx);
+    this.drawMoses(ctx, W, H);
+    this.drawIsraelites(ctx, W, H);
+    this.drawPharaoh(ctx, W, H);
+    this.dustParticles.draw(ctx);
+    this.drawPillarOfFire(ctx, W, H);
+    if (this.godRayAlpha > 0) this.drawGodRays(ctx, W, H);
+    this.drawRedVignette(ctx, W, H);
+    this.divineParticles.draw(ctx);
+    this.drawUI(ctx, W, H);
+    ctx.restore();
+  }
+
+  // ---------- SKY ----------
+  drawSky(ctx, W, H) {
+    const horizonY = H * 0.45;
+    const bright = this.seaProgress * 0.3;
+    const grad = ctx.createLinearGradient(0, 0, 0, horizonY);
+    grad.addColorStop(0, `rgb(${Math.min(255,10+bright*40)},${Math.min(255,10+bright*30)},${Math.min(255,46+bright*60)})`);
+    grad.addColorStop(0.6, `rgb(${Math.min(255,60+bright*80)},${Math.min(255,40+bright*60)},${Math.min(255,80+bright*80)})`);
+    grad.addColorStop(1, `rgb(${Math.min(255,232)},${Math.min(255,168+bright*40)},${Math.min(255,84+bright*40)})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, horizonY + 20);
+    const starAlpha = Math.max(0, 0.6 - this.seaProgress * 0.5);
+    if (starAlpha > 0) {
+      ctx.fillStyle = `rgba(255,255,255,${starAlpha})`;
+      for (let i = 0; i < 60; i++) {
+        const sx = ((42*(i+1)*7919)%10000)/10000*W;
+        const sy = ((42*(i+1)*104729)%10000)/10000*horizonY*0.7;
+        const ss = 0.5+((42*(i+1)*3571)%100)/100*2;
+        ctx.globalAlpha = starAlpha*(Math.sin(this.time*2+i*1.5)*0.3+0.7);
+        ctx.beginPath(); ctx.arc(sx, sy, ss, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  drawFarShore(ctx, W, H) {
+    ctx.globalAlpha = this.farShoreVisible;
+    const horizonY = H * 0.45;
+    ctx.fillStyle = '#3a5a2a';
+    ctx.beginPath(); ctx.moveTo(W*0.7, horizonY);
+    for (let x = W*0.7; x <= W; x += 10) { ctx.lineTo(x, horizonY-10+Math.sin(x*0.01)*15+Math.sin(x*0.023)*8); }
+    ctx.lineTo(W, horizonY+10); ctx.lineTo(W*0.7, horizonY+10); ctx.closePath(); ctx.fill();
+    for (let i = 0; i < 4; i++) {
+      const tx = W*0.78+i*W*0.06, ty = horizonY-15;
+      ctx.fillStyle = '#5a3a1a'; ctx.fillRect(tx-2, ty-25, 4, 25);
+      ctx.fillStyle = '#2a6a1a';
+      for (let a = 0; a < 6; a++) {
+        const angle = (a/6)*Math.PI*2+Math.sin(this.time+i)*0.1;
+        ctx.beginPath(); ctx.ellipse(tx+Math.cos(angle)*12, ty-25+Math.sin(angle)*6, 14, 4, angle, 0, Math.PI*2); ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  drawDistantWater(ctx, W, H) {
+    const horizonY = H * 0.45;
+    const wg = ctx.createLinearGradient(0, horizonY, 0, H);
+    wg.addColorStop(0, '#1a3a6a'); wg.addColorStop(0.5, '#0a2a5a'); wg.addColorStop(1, '#061a3a');
+    ctx.fillStyle = wg; ctx.fillRect(0, horizonY, W, H-horizonY);
+    ctx.strokeStyle = 'rgba(100,160,220,0.15)'; ctx.lineWidth = 1;
+    for (let i = 0; i < 12; i++) {
+      const ry = horizonY+20+i*(H-horizonY)*0.07;
+      ctx.beginPath();
+      for (let x = 0; x < W; x += 3) {
+        const y = ry+Math.sin(x*0.02+this.time*1.5+i*0.5)*3+Math.sin(x*0.05+this.time*0.8+i*1.2)*1.5;
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  drawWaterWalls(ctx, W, H) {
+    if (this.seaProgress < 0.01) return;
+    const cx = W/2, horizonY = H*0.45, baseY = H*0.85, gap = this.seaProgress*W*0.35;
+    [
+      { offset: 15, colors: ['#061a3a','#0a2a5a','#0a2a5a'], alpha: 0.9 },
+      { offset: 5, colors: ['#0a3a6a','#1a5a8a','#1a5a8a'], alpha: 0.85 },
+      { offset: 0, colors: ['#2a7aaa','#3a9aca','#4abada'], alpha: 0.8 },
+    ].forEach(pass => {
+      this.drawSingleWall(ctx, cx-gap-pass.offset, horizonY, baseY, -1, pass.colors, pass.alpha);
+      this.drawSingleWall(ctx, cx+gap+pass.offset, horizonY, baseY, 1, pass.colors, pass.alpha);
+    });
+    ctx.fillStyle = 'rgba(200,230,255,0.4)';
+    for (let y = horizonY; y < baseY; y += 8) {
+      const fw = 3+Math.sin(y*0.1+this.time*3)*2;
+      ctx.beginPath(); ctx.arc(cx-gap+Math.sin(y*0.05+this.time*2)*3, y, fw, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx+gap+Math.sin(y*0.05+this.time*2+1)*3, y, fw, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  drawSingleWall(ctx, x, topY, bottomY, dir, colors, alpha) {
+    const W = this.W; ctx.globalAlpha = alpha;
+    const grad = ctx.createLinearGradient(0, topY, 0, bottomY);
+    grad.addColorStop(0, colors[0]); grad.addColorStop(0.5, colors[1]); grad.addColorStop(1, colors[2]);
+    ctx.fillStyle = grad; ctx.beginPath(); ctx.moveTo(x, topY);
+    for (let y = topY; y <= bottomY; y += 2) {
+      const wave = Math.sin(y*0.03+this.time*2)*8+Math.sin(y*0.07+this.time*1.3)*4
+                  +Math.sin(y*0.12+this.time*3.1)*2+Math.sin(y*0.02+this.time*0.7)*6;
+      ctx.lineTo(x+wave*dir*0.3, y);
+    }
+    ctx.lineTo(dir<0?0:W, bottomY); ctx.lineTo(dir<0?0:W, topY); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  drawSeabed(ctx, W, H) {
+    if (this.seaProgress < 0.01) return;
+    const cx = W/2, horizonY = H*0.45, baseY = H*0.85, gap = this.seaProgress*W*0.35;
+    const grad = ctx.createLinearGradient(0, horizonY, 0, baseY);
+    grad.addColorStop(0, '#8a7a5a'); grad.addColorStop(0.4, '#9a8a6a'); grad.addColorStop(1, '#7a6a4a');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.moveTo(cx-gap, horizonY); ctx.lineTo(cx-gap, baseY);
+    ctx.quadraticCurveTo(cx, baseY+10, cx+gap, baseY);
+    ctx.lineTo(cx+gap, horizonY); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(160,140,100,0.3)';
+    for (let i = 0; i < 40; i++) {
+      const sx = cx-gap+Math.random()*gap*2, sy = horizonY+40+Math.random()*(baseY-horizonY-60);
+      if (sx>cx-gap+5 && sx<cx+gap-5) { ctx.beginPath(); ctx.arc(sx,sy,1+Math.random()*2,0,Math.PI*2); ctx.fill(); }
+    }
+  }
+
+  drawMoses(ctx, W, H) {
+    const startX = W*0.35, endX = W*0.65;
+    const mosesX = startX+this.seaProgress*(endX-startX); this.mosesX = mosesX;
+    const mosesY = H*0.65;
+    if (sprites.moses) { const sh=H*0.2,sw=sh*(sprites.moses.width/sprites.moses.height); ctx.drawImage(sprites.moses,mosesX-sw/2,mosesY-sh,sw,sh); return; }
+    const scale = H/600, sway = Math.sin(this.time*2)*2;
+    ctx.fillStyle = '#4a4a7a';
+    ctx.beginPath(); ctx.moveTo(mosesX-12*scale+sway,mosesY); ctx.lineTo(mosesX-18*scale+sway*1.5,mosesY+55*scale);
+    ctx.quadraticCurveTo(mosesX,mosesY+60*scale,mosesX+18*scale+sway*1.5,mosesY+55*scale);
+    ctx.lineTo(mosesX+12*scale+sway,mosesY); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(mosesX,mosesY-8*scale,10*scale,0,Math.PI*2); ctx.fill();
+    const staffX = mosesX+20*scale;
+    ctx.strokeStyle='#3a2a1a'; ctx.lineWidth=3*scale;
+    ctx.beginPath(); ctx.moveTo(staffX,mosesY-15*scale); ctx.lineTo(staffX,mosesY+50*scale); ctx.stroke();
+    const gg = ctx.createRadialGradient(staffX,mosesY-15*scale,0,staffX,mosesY-15*scale,25*scale);
+    gg.addColorStop(0,`rgba(255,200,100,${0.3+Math.sin(this.time*3)*0.15})`); gg.addColorStop(1,'rgba(255,200,100,0)');
+    ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(staffX,mosesY-15*scale,25*scale,0,Math.PI*2); ctx.fill();
+  }
+
+  drawIsraelites(ctx, W, H) {
+    const baseX = this.mosesX-W*0.08, baseY = H*0.67, scale = H/600;
+    if (sprites.israelites) { const sh=H*0.15,sw=sh*(sprites.israelites.width/sprites.israelites.height); ctx.drawImage(sprites.israelites,baseX-sw/2,baseY-sh*0.6,sw,sh); return; }
+    ctx.fillStyle = '#3a3a5a';
+    for (let i = 0; i < 8; i++) {
+      const ox=-i*12*scale+Math.sin(this.time*1.5+i*0.8)*2, oy=(i%3-1)*10*scale, fs=0.6+(i%3)*0.15;
+      ctx.beginPath(); ctx.moveTo(baseX+ox-6*scale*fs,baseY+oy);
+      ctx.lineTo(baseX+ox-9*scale*fs,baseY+oy+30*scale*fs); ctx.lineTo(baseX+ox+9*scale*fs,baseY+oy+30*scale*fs);
+      ctx.lineTo(baseX+ox+6*scale*fs,baseY+oy); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(baseX+ox,baseY+oy-5*scale*fs,5*scale*fs,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  drawPharaoh(ctx, W, H) {
+    const startX=W*0.02, endX=this.mosesX-W*0.15;
+    const pharaohX=startX+this.pharaohProgress*(endX-startX), pharaohY=H*0.63, scale=H/600;
+    if (sprites.pharaoh||sprites.chariot) { const spr=sprites.chariot||sprites.pharaoh; const sh=H*0.18,sw=sh*(spr.width/spr.height); ctx.drawImage(spr,pharaohX-sw/2,pharaohY-sh*0.5,sw,sh); return; }
+    ctx.fillStyle='#6a2020';
+    ctx.beginPath(); ctx.moveTo(pharaohX-25*scale,pharaohY+15*scale); ctx.lineTo(pharaohX-15*scale,pharaohY-5*scale);
+    ctx.lineTo(pharaohX+10*scale,pharaohY-5*scale); ctx.lineTo(pharaohX+15*scale,pharaohY+15*scale); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#6a2020'; ctx.lineWidth=2*scale;
+    ctx.beginPath(); ctx.arc(pharaohX,pharaohY+18*scale,8*scale,0,Math.PI*2); ctx.stroke();
+    for (let a=0;a<4;a++) { const ang=a*Math.PI/2+this.time*3; ctx.beginPath(); ctx.moveTo(pharaohX,pharaohY+18*scale); ctx.lineTo(pharaohX+Math.cos(ang)*7*scale,pharaohY+18*scale+Math.sin(ang)*7*scale); ctx.stroke(); }
+    ctx.fillStyle='#6a2020'; ctx.beginPath(); ctx.arc(pharaohX-5*scale,pharaohY-15*scale,7*scale,0,Math.PI*2); ctx.fill();
+    ctx.fillRect(pharaohX-10*scale,pharaohY-10*scale,10*scale,20*scale);
+    for (let h=0;h<2;h++) {
+      const hx=pharaohX+25*scale+h*18*scale,hy=pharaohY; ctx.fillStyle='#5a1515';
+      ctx.beginPath(); ctx.ellipse(hx,hy,15*scale,8*scale,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(hx+15*scale,hy-10*scale,5*scale,8*scale,-0.4,0,Math.PI*2); ctx.fill();
+      const lp=this.time*6+h*Math.PI;
+      for (let l=0;l<4;l++) { const lx=hx-10*scale+l*7*scale, kick=Math.sin(lp+l*1.2)*5*scale; ctx.strokeStyle='#5a1515'; ctx.lineWidth=2*scale; ctx.beginPath(); ctx.moveTo(lx,hy+6*scale); ctx.lineTo(lx+kick*0.3,hy+22*scale+Math.abs(kick)); ctx.stroke(); }
+    }
+  }
+
+  drawPillarOfFire(ctx, W, H) {
+    const px=this.mosesX, py=H*0.1, int=this.pillarIntensity;
+    const g1=ctx.createRadialGradient(px,py,0,px,py,H*0.35*int);
+    g1.addColorStop(0,`rgba(255,150,30,${0.15*int})`); g1.addColorStop(0.4,`rgba(255,100,20,${0.08*int})`); g1.addColorStop(1,'rgba(255,80,20,0)');
+    ctx.fillStyle=g1; ctx.fillRect(0,0,W,H);
+    const cw=15+int*15;
+    const cg=ctx.createLinearGradient(px-cw,0,px+cw,0);
+    cg.addColorStop(0,'rgba(255,100,20,0)'); cg.addColorStop(0.3,`rgba(255,150,50,${0.2*int})`);
+    cg.addColorStop(0.5,`rgba(255,200,100,${0.35*int})`); cg.addColorStop(0.7,`rgba(255,150,50,${0.2*int})`); cg.addColorStop(1,'rgba(255,100,20,0)');
+    ctx.fillStyle=cg; ctx.fillRect(px-cw,0,cw*2,H*0.65);
+    for (let i=0;i<5;i++) { ctx.fillStyle=`rgba(255,${150+Math.random()*100},${30+Math.random()*50},${0.3*int})`; ctx.beginPath(); ctx.arc(px+(Math.random()-0.5)*cw*1.5,py+(Math.random()-0.5)*30,3+Math.random()*5,0,Math.PI*2); ctx.fill(); }
+  }
+
+  drawGodRays(ctx, W, H) {
+    ctx.save(); ctx.globalAlpha = this.godRayAlpha * 0.4;
+    const cx = W/2;
+    for (let i = 0; i < 8; i++) {
+      const angle = (i/8)*Math.PI*0.6-Math.PI*0.3;
+      const rg = ctx.createLinearGradient(cx,0,cx+Math.sin(angle)*W*0.4,H*0.7);
+      rg.addColorStop(0,'rgba(255,215,100,0.6)'); rg.addColorStop(1,'rgba(255,215,100,0)');
+      ctx.fillStyle=rg; ctx.beginPath(); ctx.moveTo(cx,0);
+      ctx.lineTo(cx+Math.sin(angle-0.05)*W*0.5,H*0.8); ctx.lineTo(cx+Math.sin(angle+0.05)*W*0.5,H*0.8);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  drawRedVignette(ctx, W, H) {
+    if (this.pharaohProgress < 0.3) return;
+    const int = (this.pharaohProgress-0.3)/0.7;
+    const g = ctx.createRadialGradient(W/2,H/2,W*0.3,W/2,H/2,W*0.8);
+    g.addColorStop(0,'rgba(150,0,0,0)'); g.addColorStop(1,`rgba(150,0,0,${int*0.4})`);
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  }
+
+  // ==================== UI OVERLAY ====================
+  drawUI(ctx, W, H) {
+    switch (this.state) {
+      case STATE.TITLE: this.drawTitleScreen(ctx, W, H); break;
+      case STATE.INTRO: this.drawIntro(ctx, W, H); break;
+      case STATE.PRE_QUESTION: this.drawPreQuestion(ctx, W, H); break;
+      case STATE.QUESTION_DISPLAY:
+      case STATE.ANSWERING: this.drawQuestionOverlay(ctx, W, H); break;
+      case STATE.CORRECT_FB: this.drawCorrectFeedback(ctx, W, H); break;
+      case STATE.WRONG_FB: this.drawWrongFeedback(ctx, W, H); break;
+      case STATE.VICTORY: this.drawVictory(ctx, W, H); break;
+      case STATE.DEFEAT: this.drawDefeat(ctx, W, H); break;
+      case STATE.PAUSED: this.drawPaused(ctx, W, H); break;
+    }
+
+    // Gospel Library timer overlay
+    if (this.gospelLibActive) {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(W*0.25, H*0.02, W*0.5, H*0.08);
+      ctx.strokeStyle = '#6ab04c'; ctx.lineWidth = 2;
+      ctx.strokeRect(W*0.25, H*0.02, W*0.5, H*0.08);
+      ctx.fillStyle = '#6ab04c';
+      ctx.font = `bold ${Math.min(26, W*0.024)}px sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(`Open Gospel Library! ${Math.ceil(this.gospelLibCountdown)}s`, W/2, H*0.06);
+    }
+
+    // Strikes display (top-right)
+    if (this.state !== STATE.TITLE) {
+      const sx = W - 120, sy = 20;
+      ctx.font = `bold ${Math.min(20, W*0.018)}px sans-serif`;
+      ctx.textAlign = 'right';
+      for (let i = 0; i < CONFIG.strikesToLose; i++) {
+        ctx.fillStyle = i < this.strikes ? '#ff4444' : 'rgba(255,255,255,0.2)';
+        ctx.fillText('X', sx + i * 30, sy + 15);
+      }
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = `${Math.min(12, W*0.011)}px sans-serif`;
+      ctx.fillText('STRIKES', sx + (CONFIG.strikesToLose-1) * 30, sy + 32);
+    }
+
+    // Timer bar
+    if (this.state === STATE.ANSWERING && !this.gospelLibActive) {
+      this.drawTimerBar(ctx, W, H);
+    }
+  }
+
+  drawTimerBar(ctx, W, H) {
+    const barW = W*0.3, barH = 10;
+    const barX = W/2-barW/2, barY = H*0.93;
+    const pct = this.timer / CONFIG.timerDuration;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.beginPath(); ctx.roundRect(barX-2,barY-2,barW+4,barH+4,6); ctx.fill();
+    const color = pct > 0.3 ? '#4a8a4a' : (pct > 0.15 ? '#8a8a2a' : '#8a2a2a');
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.roundRect(barX,barY,barW*pct,barH,4); ctx.fill();
+    ctx.fillStyle='#ddd'; ctx.font=`bold ${Math.min(16,W*0.014)}px sans-serif`;
+    ctx.textAlign='center'; ctx.fillText(`${Math.ceil(this.timer)}s`, W/2, barY+barH+16);
+  }
+
+  drawTitleScreen(ctx, W, H) {
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,W,H);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#e8a854'; ctx.font = `bold ${Math.min(64,W*0.06)}px serif`;
+    ctx.fillText('Who Wants to Be a "Scripture-aire"?', W/2, H*0.25);
+    ctx.fillStyle = '#aaccff'; ctx.font = `${Math.min(32,W*0.03)}px serif`;
+    ctx.fillText('Crossing the Red Sea', W/2, H*0.35);
+
+    ctx.fillStyle = '#bbb'; ctx.font = `${Math.min(20,W*0.018)}px sans-serif`;
+    ctx.fillText('Answer 15 Doctrinal Mastery questions to cross!', W/2, H*0.48);
+    ctx.fillText('5 Easy  \u2192  5 Medium  \u2192  5 Hard', W/2, H*0.53);
+    ctx.fillText(`${CONFIG.strikesToLose} strikes and Pharaoh catches you!`, W/2, H*0.58);
+
+    ctx.fillStyle = '#999'; ctx.font = `${Math.min(16,W*0.015)}px sans-serif`;
+    ctx.fillText('Lifelines: 50:50 (F)  \u2022  Ask the Class (K)  \u2022  Gospel Library (G)', W/2, H*0.66);
+    ctx.fillText('Select answers with 1, 2, 3, 4', W/2, H*0.71);
+
+    const pulse = 0.6+Math.sin(this.time*3)*0.4;
+    ctx.fillStyle = `rgba(170,255,170,${pulse})`;
+    ctx.font = `bold ${Math.min(26,W*0.024)}px sans-serif`;
+    ctx.fillText('Press SPACE to begin', W/2, H*0.84);
+  }
+
+  // ---------- INTRO CRAWL ----------
+  drawIntro(ctx, W, H) {
+    // Dark cinematic background
+    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+    ctx.fillRect(0, 0, W, H);
+
+    // Subtle animated border glow
+    const glowAlpha = 0.15 + Math.sin(this.time * 1.5) * 0.08;
+    ctx.strokeStyle = `rgba(232,168,84,${glowAlpha})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(W * 0.08, H * 0.04, W * 0.84, H * 0.88);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(W * 0.08, H * 0.04, W * 0.84, H * 0.88);
+    ctx.clip();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const lineH = Math.min(32, H * 0.042);
+    const startY = H * 0.92 - this.introScrollY; // scroll upward from bottom
+
+    const styleMap = {
+      bright: { color: '#ffffff', font: `bold ${lineH * 0.85}px serif` },
+      normal: { color: '#cccccc', font: `${lineH * 0.75}px serif` },
+      dim:    { color: '#888888', font: `${lineH * 0.7}px serif` },
+      italic: { color: '#bbaa88', font: `italic ${lineH * 0.75}px serif` },
+      danger: { color: '#ff6644', font: `bold ${lineH * 0.8}px serif` },
+      gold:   { color: '#e8a854', font: `bold ${lineH * 0.8}px serif` },
+      gap:    { color: 'transparent', font: `${lineH * 0.4}px serif` },
+    };
+
+    INTRO_LINES.forEach((line, i) => {
+      const y = startY + i * lineH * 1.3;
+      if (y < H * 0.0 || y > H * 0.96) return; // off-screen cull
+
+      // Fade at edges
+      let alpha = 1;
+      if (y < H * 0.15) alpha = Math.max(0, (y - H * 0.04) / (H * 0.11));
+      if (y > H * 0.82) alpha = Math.max(0, (H * 0.92 - y) / (H * 0.1));
+
+      const s = styleMap[line.style] || styleMap.normal;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = s.color;
+      ctx.font = s.font;
+      if (line.text) ctx.fillText(line.text, W / 2, y);
+    });
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // "Skip" prompt at bottom
+    const totalScrollH = INTRO_LINES.length * lineH * 1.3;
+    const scrollDone = this.introScrollY > totalScrollH - H * 0.3;
+
+    const skipAlpha = scrollDone ? 0.6 + Math.sin(this.time * 3) * 0.4 : 0.35;
+    ctx.fillStyle = `rgba(170,255,170,${skipAlpha})`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `bold ${Math.min(22, W * 0.02)}px sans-serif`;
+    ctx.fillText(scrollDone ? 'Press SPACE to begin!' : 'Press SPACE to skip intro', W / 2, H * 0.96);
+  }
+
+  // ---------- PRE-QUESTION SCREEN ----------
+  drawPreQuestion(ctx, W, H) {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Question number + tier badge
+    const q = this.questionEngine.currentQuestion();
+    if (q) {
+      const tierColor = TIER_COLORS[q.tier];
+      ctx.fillStyle = tierColor;
+      ctx.font = `bold ${Math.min(22, W * 0.02)}px sans-serif`;
+      ctx.fillText(`${TIER_NAMES[q.tier]} \u2022 Question ${this.correctCount + 1} of ${this.questionEngine.total}`, W / 2, H * 0.22);
+    }
+
+    // Quip text
+    if (this.currentQuip) {
+      // Top line — dramatic
+      ctx.fillStyle = '#cccccc';
+      ctx.font = `italic ${Math.min(28, W * 0.026)}px serif`;
+      ctx.fillText(this.currentQuip.top, W / 2, H * 0.40);
+
+      // Bottom line — punchline
+      ctx.fillStyle = '#e8a854';
+      ctx.font = `${Math.min(24, W * 0.022)}px serif`;
+      ctx.fillText(this.currentQuip.bottom, W / 2, H * 0.48);
+    }
+
+    // Pulsing "Press Space" prompt
+    const pulse = 0.4 + Math.sin(this.time * 2.5) * 0.4;
+    ctx.fillStyle = `rgba(170, 255, 170, ${pulse})`;
+    ctx.font = `bold ${Math.min(22, W * 0.02)}px sans-serif`;
+    ctx.fillText('Press [Space] for Next Question', W / 2, H * 0.68);
+
+    // Strikes reminder
+    if (this.strikes > 0) {
+      ctx.fillStyle = 'rgba(255,100,100,0.6)';
+      ctx.font = `${Math.min(16, W * 0.015)}px sans-serif`;
+      ctx.fillText(`${'X '.repeat(this.strikes).trim()}  \u2014  ${CONFIG.strikesToLose - this.strikes} strike${CONFIG.strikesToLose - this.strikes !== 1 ? 's' : ''} remaining`, W / 2, H * 0.78);
+    }
+  }
+
+  // ---------- QUESTION OVERLAY ----------
+  drawQuestionOverlay(ctx, W, H) {
+    const q = this.questionEngine.currentQuestion();
+    if (!q) return;
+
+    // Panel background
+    const panelX = W*0.06, panelY = H*0.03, panelW = W*0.88, panelH = H*0.88;
+    ctx.fillStyle = 'rgba(10,10,30,0.88)';
+    ctx.beginPath(); ctx.roundRect(panelX, panelY, panelW, panelH, 16); ctx.fill();
+    ctx.strokeStyle = 'rgba(100,140,200,0.4)'; ctx.lineWidth = 2; ctx.stroke();
+
+    // Tier badge
+    ctx.fillStyle = TIER_COLORS[q.tier];
+    ctx.font = `bold ${Math.min(16,W*0.015)}px sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillText(TIER_NAMES[q.tier], panelX+20, panelY+25);
+
+    // Clue type
+    const clueLabels = { phrase_to_ref:'Key Phrase', emoji_to_ref:'Emoji Decode', blank_to_ref:'Fill in the Blanks', ref_to_phrase:'Name the Phrase' };
+    ctx.fillStyle = '#7799bb';
+    ctx.font = `${Math.min(14,W*0.013)}px sans-serif`;
+    ctx.fillText(clueLabels[q.clueType]||q.clueType, panelX+80, panelY+25);
+
+    // Question number
+    ctx.textAlign = 'right'; ctx.fillStyle = '#888';
+    ctx.fillText(`Question ${this.correctCount+1} of ${this.questionEngine.total}`, panelX+panelW-20, panelY+25);
+
+    // Lifeline status
+    ctx.textAlign = 'center';
+    ctx.font = `${Math.min(14,W*0.013)}px sans-serif`;
+    const lfX = W/2, lfY = panelY+25;
+    ctx.fillStyle = this.fiftyFiftyUsed ? '#555' : '#ffddaa';
+    ctx.fillText(this.fiftyFiftyUsed ? '\u0336\u0035\u0336\u0030\u0336:\u0336\u0035\u0336\u0030\u0336' : '50:50', lfX-80, lfY);
+    ctx.fillStyle = this.askClassUsed ? '#555' : '#ffddaa';
+    ctx.fillText(this.askClassUsed ? '\u0336A\u0336s\u0336k' : 'Ask', lfX, lfY);
+    ctx.fillStyle = this.gospelLibUsed ? '#555' : '#ffddaa';
+    ctx.fillText(this.gospelLibUsed ? '\u0336A\u0336p\u0336p' : 'App', lfX+80, lfY);
+
+    // Clue subtext
+    ctx.fillStyle = '#99bbdd';
+    ctx.font = `${Math.min(20,W*0.019)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(q.clueSubtext, W/2, panelY+55);
+
+    // Main clue display
+    ctx.fillStyle = '#ffffff';
+    const clueFontSize = q.clueType === 'emoji_to_ref' ? Math.min(42,W*0.04) : Math.min(24,W*0.022);
+    ctx.font = `${clueFontSize}px serif`;
+    const clueLines = wrapText(ctx, q.clue, panelW-80);
+    const clueLineH = clueFontSize * 1.35;
+    const clueStartY = q.clueType === 'emoji_to_ref' ? panelY + 115 : panelY + 80;
+    clueLines.forEach((line, i) => { ctx.fillText(line, W/2, clueStartY + i*clueLineH); });
+
+    // Answer options (2x2 grid)
+    const optAreaTop = panelY + panelH * 0.45;
+    const optW = panelW * 0.44;
+    const optH = panelH * 0.2;
+    const optGap = panelW * 0.04;
+    const letters = ['A', 'B', 'C', 'D'];
+    this.answerBoxes = [];
+
+    for (let i = 0; i < 4; i++) {
+      const col = i % 2, row = Math.floor(i / 2);
+      const ox = panelX + panelW*0.04 + col*(optW + optGap);
+      const oy = optAreaTop + row*(optH + 12);
+      this.answerBoxes.push({ x: ox, y: oy, w: optW, h: optH });
+
+      // Determine option style
+      let bg, border, textColor;
+      if (q.eliminated[i]) {
+        bg = 'rgba(30,30,40,0.4)'; border = 'rgba(60,60,80,0.3)'; textColor = 'rgba(100,100,100,0.4)';
+      } else if (this.answerRevealed && i === q.correctIndex) {
+        bg = 'rgba(40,120,40,0.6)'; border = '#4a8a4a'; textColor = '#aaffaa';
+      } else if (this.answerRevealed && i === this.selectedAnswer && i !== q.correctIndex) {
+        bg = 'rgba(140,30,30,0.6)'; border = '#aa4444'; textColor = '#ffaaaa';
+      } else if (i === this.selectedAnswer) {
+        bg = 'rgba(180,140,40,0.4)'; border = '#ccaa44'; textColor = '#ffeeaa';
+      } else {
+        bg = 'rgba(20,35,60,0.7)'; border = 'rgba(60,100,160,0.5)'; textColor = '#ddeeff';
+      }
+
+      ctx.fillStyle = bg;
+      ctx.beginPath(); ctx.roundRect(ox, oy, optW, optH, 10); ctx.fill();
+      ctx.strokeStyle = border; ctx.lineWidth = 2; ctx.stroke();
+
+      // Letter badge
+      ctx.fillStyle = q.eliminated[i] ? 'rgba(80,80,80,0.3)' : 'rgba(80,120,180,0.8)';
+      ctx.beginPath(); ctx.arc(ox+22, oy+optH/2, 14, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = q.eliminated[i] ? 'rgba(60,60,60,0.3)' : '#fff';
+      ctx.font = `bold ${Math.min(16,W*0.015)}px sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(letters[i], ox+22, oy+optH/2);
+
+      // Option text (wrapped)
+      ctx.fillStyle = textColor;
+      const optFontSize = q.optionType === 'phrase' ? Math.min(14,W*0.013) : Math.min(17,W*0.016);
+      ctx.font = `${optFontSize}px serif`;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      const optLines = wrapText(ctx, q.eliminated[i] ? '—' : q.options[i].text, optW-55);
+      const optLineH = optFontSize * 1.3;
+      const textStartY = oy + (optH - optLines.length * optLineH) / 2;
+      optLines.forEach((line, li) => { ctx.fillText(line, ox+44, textStartY + li*optLineH); });
+
+      // Class poll bar
+      if (q.classPoll && !q.eliminated[i]) {
+        const pollPct = q.classPoll[i] / 100;
+        const pollBarW = optW - 55;
+        const pollBarH = 6;
+        const pollBarY = oy + optH - 12;
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fillRect(ox+44, pollBarY, pollBarW, pollBarH);
+        ctx.fillStyle = i === q.correctIndex ? 'rgba(100,200,100,0.7)' : 'rgba(100,150,200,0.5)';
+        ctx.fillRect(ox+44, pollBarY, pollBarW*pollPct, pollBarH);
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = `${Math.min(11,W*0.01)}px sans-serif`;
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.fillText(`${q.classPoll[i]}%`, ox+44+pollBarW, pollBarY-4);
+      }
+    }
+
+    ctx.textBaseline = 'alphabetic';
+
+    // Teacher hint (subtle small answer for reference)
+    if (!this.answerRevealed) {
+      ctx.fillStyle = 'rgba(80,80,80,0.3)';
+      ctx.font = `${Math.min(11,W*0.01)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(`[${letters[q.correctIndex]}]`, W/2, panelY+panelH-8);
+    }
+  }
+
+  drawCorrectFeedback(ctx, W, H) {
+    this.drawQuestionOverlay(ctx, W, H);
+    const alpha = Math.max(0, this.feedbackTimer/this.feedbackDuration*0.25);
+    ctx.fillStyle = `rgba(50,200,50,${alpha})`; ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#aaffaa'; ctx.font=`bold ${Math.min(48,W*0.045)}px serif`;
+    ctx.fillText('CORRECT!', W/2, H*0.95);
+  }
+
+  drawWrongFeedback(ctx, W, H) {
+    this.drawQuestionOverlay(ctx, W, H);
+    const alpha = Math.max(0, this.feedbackTimer/this.feedbackDuration*0.25);
+    ctx.fillStyle = `rgba(200,30,30,${alpha})`; ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#ffaaaa'; ctx.font=`bold ${Math.min(44,W*0.04)}px serif`;
+    ctx.fillText('WRONG!', W/2, H*0.88);
+    if (this.currentTaunt) {
+      ctx.fillStyle='#ffcc88'; ctx.font=`italic ${Math.min(22,W*0.02)}px serif`;
+      ctx.fillText(`"${this.currentTaunt}"`, W/2, H*0.95);
+    }
+  }
+
+  drawVictory(ctx, W, H) {
+    const t = Math.min(this.endTimer/3, 1);
+    ctx.fillStyle = `rgba(255,215,100,${t*0.15})`; ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    const scale = easeOutCubic(Math.min(this.endTimer/1.5,1));
+    ctx.save(); ctx.translate(W/2,H*0.3); ctx.scale(scale,scale);
+    ctx.fillStyle='#ffd700'; ctx.font=`bold ${Math.min(72,W*0.07)}px serif`;
+    ctx.fillText('VICTORY!', 0, 0); ctx.restore();
+    ctx.fillStyle='#aaffaa'; ctx.font=`${Math.min(32,W*0.03)}px serif`;
+    ctx.fillText('Israel has crossed the Red Sea!', W/2, H*0.48);
+    ctx.fillStyle='#ddd'; ctx.font=`${Math.min(24,W*0.022)}px sans-serif`;
+    ctx.fillText(`${this.correctCount} correct \u00b7 ${this.strikes} strike${this.strikes!==1?'s':''}`, W/2, H*0.58);
+    if (this.endTimer > 3) {
+      const p=0.5+Math.sin(this.time*3)*0.5;
+      ctx.fillStyle=`rgba(170,255,170,${p})`; ctx.font=`${Math.min(22,W*0.02)}px sans-serif`;
+      ctx.fillText('Press SPACE to play again', W/2, H*0.75);
+    }
+  }
+
+  drawDefeat(ctx, W, H) {
+    const collapse = this.defeatWaterCollapse||0;
+    if (collapse > 0.3) {
+      const ca = Math.min(1,(collapse-0.3)*2);
+      ctx.fillStyle=`rgba(10,40,80,${ca*0.6})`; ctx.fillRect(0,H*0.4,W,H*0.5);
+      ctx.fillStyle=`rgba(180,220,255,${ca*0.4})`;
+      for (let i=0;i<20;i++) { const wx=W*0.2+(i/20)*W*0.6, wy=H*0.45+Math.sin(wx*0.03+this.time*4)*15+Math.sin(this.time*6+i)*10; ctx.beginPath(); ctx.arc(wx,wy,8+Math.random()*12,0,Math.PI*2); ctx.fill(); }
+    }
+    const t=Math.min(this.endTimer/2,1);
+    ctx.fillStyle=`rgba(80,0,0,${t*0.55})`; ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    const ta=Math.min(1,this.endTimer/1.5); ctx.globalAlpha=ta;
+    ctx.fillStyle='#ff6644'; ctx.font=`bold ${Math.min(60,W*0.055)}px serif`;
+    ctx.fillText('PHARAOH CATCHES UP!', W/2, H*0.28);
+    ctx.fillStyle='#ffaaaa'; ctx.font=`${Math.min(26,W*0.024)}px serif`;
+    ctx.fillText('The waters close in... Israel is overtaken!', W/2, H*0.40);
+    ctx.fillStyle='#ddd'; ctx.font=`${Math.min(22,W*0.02)}px sans-serif`;
+    ctx.fillText(`${this.correctCount} correct \u00b7 ${this.strikes} strike${this.strikes!==1?'s':''}`, W/2, H*0.52);
+    ctx.fillStyle='#ffcc88'; ctx.font=`italic ${Math.min(20,W*0.018)}px serif`;
+    ctx.fillText('"Keep studying your Doctrinal Mastery scriptures!"', W/2, H*0.63);
+    ctx.globalAlpha=1;
+    if (this.endTimer > 3) {
+      const p=0.5+Math.sin(this.time*3)*0.5;
+      ctx.fillStyle=`rgba(255,170,170,${p})`; ctx.font=`${Math.min(20,W*0.018)}px sans-serif`;
+      ctx.fillText('Press SPACE to try again', W/2, H*0.78);
+    }
+  }
+
+  drawPaused(ctx, W, H) {
+    ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#aaccff'; ctx.font=`bold ${Math.min(52,W*0.05)}px sans-serif`;
+    ctx.fillText('PAUSED', W/2, H*0.4);
+    ctx.fillStyle='#888'; ctx.font=`${Math.min(22,W*0.02)}px sans-serif`;
+    ctx.fillText('Press P to resume', W/2, H*0.55);
+  }
+}
+
+// ==================== INIT ====================
+const game = new Game();
+</script>
+</body>
+</html>

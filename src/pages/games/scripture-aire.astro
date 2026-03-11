@@ -1,0 +1,92 @@
+---
+export const prerender = true;
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout
+    title="Scripture-aire | Cody Maughan"
+    description="A cooperative seminary classroom quiz game where the class helps Moses cross the Red Sea by answering Doctrinal Mastery questions."
+    showBackground={false}
+>
+    <main class="max-w-6xl mx-auto px-4 py-20">
+        <header class="mb-8 text-center">
+            <h1
+                class="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent"
+            >
+                Who Wants to Be a "Scripture-aire?"
+            </h1>
+            <p class="text-text-muted text-lg font-mono">
+                A seminary classroom quiz game — help Moses cross the Red Sea!
+            </p>
+        </header>
+
+        <div
+            class="relative w-full border border-surface-highlight rounded-lg overflow-hidden bg-black"
+            style="aspect-ratio: 16 / 9;"
+        >
+            <iframe
+                id="game-frame"
+                src="/games/scripture-aire/game.html"
+                class="w-full h-full border-0"
+                allow="autoplay; fullscreen; cross-origin-isolated"
+                allowfullscreen
+            >
+            </iframe>
+        </div>
+
+        <div class="flex justify-center gap-4 mt-4">
+            <button
+                id="fullscreen-btn"
+                class="px-4 py-2 text-sm font-mono border border-surface-highlight rounded-lg hover:border-primary hover:text-primary transition-all cursor-pointer bg-transparent text-text-muted"
+            >
+                Fullscreen
+            </button>
+        </div>
+
+        <section class="mt-12 border border-surface-highlight rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-4 text-text">About</h2>
+            <p class="text-text-muted leading-relaxed mb-4">
+                Scripture-aire is a cooperative seminary classroom game inspired by
+                "Who Wants to Be a Millionaire?" The whole class works together to
+                answer Old Testament Doctrinal Mastery questions across three
+                difficulty tiers. Each correct answer parts the Red Sea further,
+                helping Moses and the Israelites escape. Three strikes and Pharaoh
+                catches up! Features lifelines (50:50, Ask the Class, Gospel Library
+                App), multiple clue types (key phrases, emoji decode, fill-in-the-blank,
+                and reference matching), and an animated Red Sea canvas scene.
+            </p>
+            <div class="flex flex-wrap gap-2">
+                {
+                    [
+                        "HTML5 Canvas",
+                        "JavaScript",
+                        "Seminary",
+                        "Quiz Game",
+                        "Classroom",
+                    ].map((tag) => (
+                        <span class="px-3 py-1 text-xs font-mono border border-surface-highlight rounded-full text-text-muted">
+                            {tag}
+                        </span>
+                    ))
+                }
+            </div>
+        </section>
+    </main>
+</Layout>
+
+<script>
+    document.getElementById("fullscreen-btn")?.addEventListener("click", () => {
+        const frame = document.getElementById(
+            "game-frame"
+        ) as HTMLIFrameElement;
+        if (frame) {
+            frame.requestFullscreen?.();
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+    });
+</script>
