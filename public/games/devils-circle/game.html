@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Devil's Circle</title>
+<style>
+  :root {
+    --bg: #08080f;
+    --surface: #12121f;
+    --surface-light: #1c1c30;
+    --border: #2a2a45;
+    --text: #e2e8f0;
+    --text-muted: #8888aa;
+    --accent: #a855f7;
+    --accent-dim: #7c3aed;
+    --good: #3b82f6;
+    --outsider: #06b6d4;
+    --minion: #f97316;
+    --demon: #ef4444;
+    --demon-glow: #dc262644;
+    --success: #22c55e;
+    --gold: #eab308;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    --circle-size: min(85vw, 340px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%; width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+
+  #app {
+    height: 100%; width: 100%;
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+
+  /* ============ MENU SCREEN ============ */
+  .menu-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; padding: 2rem 1.5rem; text-align: center; gap: 1.5rem;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .menu-title {
+    font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--demon), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    line-height: 1.1;
+  }
+
+  .menu-subtitle {
+    font-size: 0.95rem; color: var(--text-muted); max-width: 300px; line-height: 1.5;
+  }
+
+  .menu-icon {
+    font-size: 4rem; margin-bottom: 0.5rem;
+    animation: pulse 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px var(--demon-glow));
+  }
+
+  .difficulty-select {
+    display: flex; flex-direction: column; gap: 0.75rem; width: 100%; max-width: 280px;
+  }
+
+  .diff-btn {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    color: var(--text); font-size: 1rem; font-weight: 600; padding: 1rem;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .diff-btn:hover, .diff-btn:active { border-color: var(--accent); background: var(--surface-light); }
+  .diff-btn .diff-info { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+
+  .menu-links {
+    display: flex; gap: 1rem; margin-top: 0.5rem;
+  }
+
+  .link-btn {
+    background: none; border: none; color: var(--accent); font-size: 0.85rem;
+    cursor: pointer; text-decoration: underline; font-family: var(--font);
+    padding: 0.5rem;
+  }
+
+  /* ============ HOW TO PLAY ============ */
+  .how-to-play {
+    height: 100%; overflow-y: auto; padding: 1.5rem;
+    animation: fadeIn 0.3s ease;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .how-to-play h2 { font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent); }
+  .how-to-play h3 { font-size: 1.1rem; margin: 1.25rem 0 0.5rem; color: var(--text); }
+
+  .how-to-play p, .how-to-play li {
+    font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.5rem;
+  }
+
+  .how-to-play ul { padding-left: 1.25rem; }
+
+  .role-ref {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.75rem 1rem; margin: 0.5rem 0;
+  }
+
+  .role-ref .role-name { font-weight: 700; font-size: 0.9rem; }
+  .role-ref .role-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+  .role-ref.team-townsfolk .role-name { color: var(--good); }
+  .role-ref.team-outsider .role-name { color: var(--outsider); }
+  .role-ref.team-minion .role-name { color: var(--minion); }
+  .role-ref.team-demon .role-name { color: var(--demon); }
+
+  .back-btn {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-size: 0.9rem; padding: 0.75rem 1.5rem;
+    cursor: pointer; font-family: var(--font); margin-top: 1.5rem; margin-bottom: 2rem;
+    display: block; width: 100%;
+  }
+
+  /* ============ GAME SCREEN ============ */
+  .game-screen {
+    display: flex; flex-direction: column; height: 100%;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .game-header {
+    padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .game-header-left { display: flex; align-items: center; gap: 0.5rem; }
+
+  .header-title {
+    font-size: 1rem; font-weight: 700;
+    background: linear-gradient(135deg, var(--demon), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .header-badge {
+    font-size: 0.65rem; font-weight: 600; padding: 0.2rem 0.5rem;
+    border-radius: 6px; background: var(--surface-light); color: var(--text-muted);
+    border: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  .header-icons { display: flex; gap: 0.25rem; }
+
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface-light); color: var(--text-muted); font-size: 1.1rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .icon-btn:hover, .icon-btn:active { border-color: var(--accent); color: var(--text); }
+
+  .circle-area {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    position: relative; min-height: 0; padding: 1rem;
+  }
+
+  .player-circle {
+    width: var(--circle-size); height: var(--circle-size);
+    position: relative;
+  }
+
+  .player-node {
+    position: absolute; width: 54px; height: 54px;
+    transform: translate(-50%, -50%);
+    cursor: pointer; transition: transform 0.2s, filter 0.2s;
+    z-index: 2;
+  }
+
+  .player-node:active { transform: translate(-50%, -50%) scale(0.92); }
+
+  .player-avatar {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: var(--surface-light); border: 2.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 700; color: var(--text);
+    transition: all 0.3s; position: relative; overflow: hidden;
+  }
+
+  .player-node.selected .player-avatar { border-color: var(--accent); box-shadow: 0 0 16px var(--accent-dim); }
+  .player-node.suspect .player-avatar { border-color: var(--demon); box-shadow: 0 0 12px var(--demon-glow); }
+  .player-node.cleared .player-avatar { border-color: var(--good); opacity: 0.7; }
+
+  .player-name {
+    position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+    font-size: 0.65rem; font-weight: 600; white-space: nowrap;
+    color: var(--text-muted); text-align: center;
+    max-width: 70px; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .player-node.selected .player-name { color: var(--accent); }
+  .player-node.suspect .player-name { color: var(--demon); }
+
+  .player-mark {
+    position: absolute; top: -4px; right: -4px; width: 18px; height: 18px;
+    border-radius: 50%; font-size: 0.6rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3; border: 2px solid var(--bg);
+  }
+
+  .mark-suspect { background: var(--demon); color: white; }
+  .mark-cleared { background: var(--good); color: white; }
+
+  .circle-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center; z-index: 1; pointer-events: none;
+  }
+
+  .circle-center-icon { font-size: 2rem; opacity: 0.15; }
+
+  /* Claim Panel (bottom sheet) */
+  .claim-panel {
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 1rem 1.25rem 1.5rem; flex-shrink: 0;
+    transition: all 0.3s ease; max-height: 45vh; overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .claim-panel.empty {
+    padding: 1rem 1.25rem;
+  }
+
+  .claim-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;
+  }
+
+  .claim-player-name { font-size: 1.1rem; font-weight: 700; }
+  .claim-role-badge {
+    font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem;
+    border-radius: 8px; background: var(--good); color: white;
+  }
+
+  .claim-text {
+    font-size: 0.95rem; line-height: 1.6; color: var(--text-muted);
+    background: var(--bg); border-radius: 10px; padding: 0.85rem 1rem;
+    border: 1px solid var(--border); margin-bottom: 0.75rem;
+    font-style: italic;
+  }
+
+  .claim-actions {
+    display: flex; gap: 0.5rem;
+  }
+
+  .claim-action-btn {
+    flex: 1; padding: 0.6rem; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface-light); color: var(--text-muted); font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: var(--font);
+  }
+
+  .claim-action-btn:hover, .claim-action-btn:active { color: var(--text); }
+  .claim-action-btn.suspect-btn:hover, .claim-action-btn.suspect-btn:active { border-color: var(--demon); color: var(--demon); }
+  .claim-action-btn.clear-btn:hover, .claim-action-btn.clear-btn:active { border-color: var(--good); color: var(--good); }
+
+  .claim-empty {
+    text-align: center; color: var(--text-muted); font-size: 0.85rem;
+    padding: 0.25rem 0;
+  }
+
+  /* Action Bar */
+  .action-bar {
+    padding: 0.75rem 1.25rem; border-top: 1px solid var(--border);
+    background: var(--bg); flex-shrink: 0;
+    display: flex; gap: 0.5rem;
+  }
+
+  .action-btn {
+    flex: 1; padding: 0.85rem; border-radius: 12px; border: none;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer;
+    font-family: var(--font); transition: all 0.2s;
+  }
+
+  .action-btn:active { transform: scale(0.97); }
+
+  .accuse-btn {
+    background: linear-gradient(135deg, var(--demon), #991b1b);
+    color: white; box-shadow: 0 4px 16px var(--demon-glow);
+  }
+
+  .accuse-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .grimoire-btn {
+    background: var(--surface); border: 1px solid var(--border) !important;
+    color: var(--text-muted); flex: 0.4;
+  }
+
+  /* ============ ACCUSATION MODE ============ */
+  .accuse-overlay {
+    position: absolute; inset: 0; background: rgba(8, 8, 15, 0.85);
+    z-index: 50; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    animation: fadeIn 0.3s ease; padding: 1.5rem;
+  }
+
+  .accuse-prompt {
+    font-size: 1.3rem; font-weight: 700; color: var(--demon);
+    text-align: center; margin-bottom: 0.5rem;
+  }
+
+  .accuse-sub {
+    font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 1.5rem;
+  }
+
+  .accuse-cancel {
+    margin-top: 1.5rem; padding: 0.75rem 2rem; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 0.9rem; cursor: pointer; font-family: var(--font);
+  }
+
+  /* ============ REVEAL SCREEN ============ */
+  .reveal-screen {
+    height: 100%; overflow-y: auto; padding: 1.5rem;
+    -webkit-overflow-scrolling: touch;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .reveal-result {
+    text-align: center; padding: 2rem 0 1.5rem; animation: popIn 0.6s ease;
+  }
+
+  .reveal-icon { font-size: 3.5rem; margin-bottom: 0.75rem; }
+
+  .reveal-title {
+    font-size: 2rem; font-weight: 800;
+  }
+
+  .reveal-title.win { color: var(--success); }
+  .reveal-title.lose { color: var(--demon); }
+
+  .reveal-subtitle {
+    font-size: 0.95rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.5;
+  }
+
+  .reveal-score {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    margin-top: 1rem; font-size: 1.2rem; font-weight: 700; color: var(--gold);
+  }
+
+  .reveal-players {
+    display: flex; flex-direction: column; gap: 0.5rem; margin: 1.5rem 0;
+  }
+
+  .reveal-player {
+    display: flex; align-items: center; gap: 0.75rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 0.75rem 1rem; animation: slideUp 0.4s ease both;
+  }
+
+  .reveal-player .rp-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+    border: 2px solid var(--border);
+  }
+
+  .reveal-player.team-townsfolk .rp-avatar { background: var(--good); color: white; border-color: var(--good); }
+  .reveal-player.team-outsider .rp-avatar { background: var(--outsider); color: white; border-color: var(--outsider); }
+  .reveal-player.team-minion .rp-avatar { background: var(--minion); color: white; border-color: var(--minion); }
+  .reveal-player.team-demon .rp-avatar { background: var(--demon); color: white; border-color: var(--demon); }
+
+  .reveal-player .rp-info { flex: 1; }
+  .reveal-player .rp-name { font-weight: 700; font-size: 0.9rem; }
+  .reveal-player .rp-role { font-size: 0.8rem; color: var(--text-muted); }
+  .reveal-player .rp-claim { font-size: 0.7rem; color: var(--text-muted); opacity: 0.7; font-style: italic; margin-top: 0.15rem; }
+
+  .reveal-player .rp-tag {
+    font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.5rem;
+    border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0;
+  }
+
+  .rp-tag.accused { background: var(--demon); color: white; }
+  .rp-tag.actual-demon { background: var(--demon); color: white; }
+
+  .reveal-actions {
+    display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; padding-bottom: 2rem;
+  }
+
+  .reveal-btn {
+    padding: 1rem; border-radius: 12px; border: none;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    font-family: var(--font); transition: all 0.2s;
+  }
+
+  .reveal-btn:active { transform: scale(0.97); }
+
+  .play-again-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+    color: white;
+  }
+
+  .menu-return-btn {
+    background: var(--surface); border: 1px solid var(--border) !important;
+    color: var(--text-muted);
+  }
+
+  /* ============ CONFIRM MODAL ============ */
+  .modal-overlay {
+    position: absolute; inset: 0; background: rgba(8, 8, 15, 0.9);
+    z-index: 100; display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem; animation: fadeIn 0.2s ease;
+  }
+
+  .modal {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.75rem; max-width: 300px; width: 100%; text-align: center;
+    animation: popIn 0.3s ease;
+  }
+
+  .modal h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .modal p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5; }
+
+  .modal-btns { display: flex; gap: 0.5rem; }
+
+  .modal-btn {
+    flex: 1; padding: 0.75rem; border-radius: 10px; border: none;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: var(--font);
+  }
+
+  .modal-cancel { background: var(--surface-light); color: var(--text-muted); border: 1px solid var(--border) !important; }
+  .modal-confirm { background: var(--demon); color: white; }
+
+  /* ============ ANIMATIONS ============ */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+  @keyframes nodeAppear {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+
+  .player-node.animating {
+    animation: nodeAppear 0.4s ease both;
+  }
+
+  /* ============ NIGHT OVERLAY ============ */
+  .night-overlay {
+    position: absolute; inset: 0; z-index: 60;
+    background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1rem; animation: fadeIn 0.5s ease;
+  }
+
+  .night-text {
+    font-size: 1.4rem; font-weight: 700; color: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .night-sub { font-size: 0.85rem; color: var(--text-muted); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (min-width: 500px) {
+    :root { --circle-size: 380px; }
+    .player-avatar { width: 60px; height: 60px; font-size: 1.3rem; }
+    .player-node { width: 60px; height: 60px; }
+  }
+
+  @media (min-width: 768px) {
+    :root { --circle-size: 420px; }
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Safe area for notched phones */
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .action-bar { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)); }
+    .reveal-actions { padding-bottom: calc(2rem + env(safe-area-inset-bottom)); }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ==========================================
+// DEVIL'S CIRCLE - A Clocktower Deduction Game
+// ==========================================
+
+// === CONSTANTS ===
+
+const NAMES = [
+  'Aldric','Beatrix','Cedric','Dahlia','Edmund','Fiona','Gareth','Helena',
+  'Isolde','Jasper','Katarina','Leopold','Morgana','Nikolai','Ophelia',
+  'Percival','Quinn','Rosalind','Silas','Thalia','Ulric','Vivienne'
+];
+
+const TOWNSFOLK_ROLES = {
+  washerwoman: {
+    name: 'Washerwoman',
+    team: 'townsfolk',
+    desc: 'You learn that 1 of 2 players is a specific Townsfolk.',
+    claimType: 'pair_townsfolk'
+  },
+  librarian: {
+    name: 'Librarian',
+    team: 'townsfolk',
+    desc: 'You learn that 1 of 2 players is a specific Outsider — or that no Outsiders are in play.',
+    claimType: 'pair_outsider'
+  },
+  investigator: {
+    name: 'Investigator',
+    team: 'townsfolk',
+    desc: 'You learn that 1 of 2 players is a specific Minion.',
+    claimType: 'pair_minion'
+  },
+  chef: {
+    name: 'Chef',
+    team: 'townsfolk',
+    desc: 'You learn how many pairs of evil players are sitting next to each other.',
+    claimType: 'chef_count'
+  },
+  empath: {
+    name: 'Empath',
+    team: 'townsfolk',
+    desc: 'You learn how many of your 2 alive neighbors are evil.',
+    claimType: 'empath_count'
+  },
+  fortuneTeller: {
+    name: 'Fortune Teller',
+    team: 'townsfolk',
+    desc: 'You check 1 player and learn if they are the Demon. (You have a red herring who falsely shows as Demon.)',
+    claimType: 'fortune_check'
+  }
+};
+
+const OUTSIDER_ROLES = {
+  drunk: {
+    name: 'Drunk',
+    team: 'outsider',
+    desc: 'You think you are a Townsfolk, but you are not. Your information is wrong.',
+  },
+  recluse: {
+    name: 'Recluse',
+    team: 'outsider',
+    desc: 'You might register as evil to information abilities.',
+  }
+};
+
+const MINION_ROLES = {
+  poisoner: {
+    name: 'Poisoner',
+    team: 'minion',
+    desc: 'Each night, you choose a player — their ability malfunctions tonight and tomorrow.',
+  },
+  baron: {
+    name: 'Baron',
+    team: 'minion',
+    desc: 'There are extra Outsiders in play.',
+  }
+};
+
+const DEMON_ROLES = {
+  imp: {
+    name: 'Imp',
+    team: 'demon',
+    desc: 'You are the Demon. You kill at night. Evil wins when few enough players remain.',
+  }
+};
+
+const DIFFICULTY_CONFIG = {
+  easy:   { players: 5, townsfolk: 3, outsiders: 0, minions: 1, demons: 1, label: 'Easy', info: '5 players' },
+  normal: { players: 7, townsfolk: 4, outsiders: 1, minions: 1, demons: 1, label: 'Normal', info: '7 players' },
+  hard:   { players: 9, townsfolk: 5, outsiders: 1, minions: 2, demons: 1, label: 'Hard', info: '9 players' }
+};
+
+
+// === UTILITY FUNCTIONS ===
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function pickN(arr, n) { return shuffle(arr).slice(0, n); }
+
+
+// === GAME ENGINE ===
+
+function generateGame(difficulty) {
+  const config = DIFFICULTY_CONFIG[difficulty];
+  const numPlayers = config.players;
+
+  // Pick names
+  const names = pickN(NAMES, numPlayers);
+
+  // Pick Townsfolk roles from pool
+  const townsfolkKeys = shuffle(Object.keys(TOWNSFOLK_ROLES));
+  const assignedTownsfolkKeys = townsfolkKeys.slice(0, config.townsfolk);
+
+  // Create player array with seat indices
+  const players = names.map((name, i) => ({
+    id: i,
+    name,
+    seatIndex: i,
+    actualRole: null,
+    actualTeam: null,
+    claimedRole: null,
+    claimText: '',
+    claimDetail: null,
+    isEvil: false,
+    isPoisoned: false,
+    isDrunk: false,
+    mark: null, // 'suspect', 'cleared', or null
+    revealed: false,
+  }));
+
+  // Assign seats randomly
+  const seatOrder = shuffle([...Array(numPlayers).keys()]);
+
+  // Assign roles
+  let seatIdx = 0;
+
+  // Townsfolk
+  const townsfolkSeats = [];
+  for (let i = 0; i < config.townsfolk; i++) {
+    const seat = seatOrder[seatIdx++];
+    const roleKey = assignedTownsfolkKeys[i];
+    const role = TOWNSFOLK_ROLES[roleKey];
+    players[seat].actualRole = { key: roleKey, ...role };
+    players[seat].actualTeam = 'townsfolk';
+    players[seat].claimedRole = role.name;
+    townsfolkSeats.push(seat);
+  }
+
+  // Outsiders
+  const outsiderSeats = [];
+  if (config.outsiders > 0) {
+    const seat = seatOrder[seatIdx++];
+    // Drunk claims a townsfolk role they don't have
+    const remainingTFKeys = townsfolkKeys.filter(k => !assignedTownsfolkKeys.includes(k));
+    const drunkClaimKey = remainingTFKeys.length > 0 ? remainingTFKeys[0] : pick(assignedTownsfolkKeys);
+    const drunkClaimRole = TOWNSFOLK_ROLES[drunkClaimKey];
+
+    players[seat].actualRole = { key: 'drunk', ...OUTSIDER_ROLES.drunk, drunkClaimKey, drunkClaimRole: drunkClaimRole.name };
+    players[seat].actualTeam = 'outsider';
+    players[seat].claimedRole = drunkClaimRole.name;
+    players[seat].isDrunk = true;
+    outsiderSeats.push(seat);
+  }
+
+  // Minions
+  const minionSeats = [];
+  for (let i = 0; i < config.minions; i++) {
+    const seat = seatOrder[seatIdx++];
+    const minionRole = i === 0 ? MINION_ROLES.poisoner : MINION_ROLES.baron;
+    const minionKey = i === 0 ? 'poisoner' : 'baron';
+    players[seat].actualRole = { key: minionKey, ...minionRole };
+    players[seat].actualTeam = 'minion';
+    players[seat].isEvil = true;
+    minionSeats.push(seat);
+  }
+
+  // Demon
+  const demonSeat = seatOrder[seatIdx++];
+  players[demonSeat].actualRole = { key: 'imp', ...DEMON_ROLES.imp };
+  players[demonSeat].actualTeam = 'demon';
+  players[demonSeat].isEvil = true;
+
+  // Poisoner picks a target (first minion is always Poisoner if exists)
+  let poisonedSeat = null;
+  if (config.minions > 0 && config.outsiders > 0) {
+    // Poison a random townsfolk (not outsider, not evil)
+    const poisonTargets = townsfolkSeats;
+    if (poisonTargets.length > 0) {
+      poisonedSeat = pick(poisonTargets);
+      players[poisonedSeat].isPoisoned = true;
+    }
+  }
+
+  // Evil players need to claim Townsfolk roles
+  // Collect all currently claimed roles
+  const claimedRoleNames = new Set();
+  for (const p of players) {
+    if (p.claimedRole) claimedRoleNames.add(p.claimedRole);
+  }
+
+  // Assign evil claims - ensure at least 1 duplicate for deduction
+  const evilSeats = [...minionSeats, demonSeat];
+  const unclaimedRoles = Object.values(TOWNSFOLK_ROLES)
+    .map(r => r.name)
+    .filter(name => !claimedRoleNames.has(name));
+
+  // Strategy: first evil gets unclaimed role (if any), rest duplicate
+  for (let i = 0; i < evilSeats.length; i++) {
+    const seat = evilSeats[i];
+    if (i === 0 && unclaimedRoles.length > 0) {
+      players[seat].claimedRole = unclaimedRoles.shift();
+    } else {
+      // Duplicate a role claimed by a townsfolk
+      const townsfolkClaimedRoles = townsfolkSeats.map(s => players[s].claimedRole);
+      players[seat].claimedRole = pick(townsfolkClaimedRoles);
+    }
+  }
+
+  // In easy mode (no outsiders/poison), ensure at least one duplicate
+  if (difficulty === 'easy') {
+    const roleCounts = {};
+    players.forEach(p => { roleCounts[p.claimedRole] = (roleCounts[p.claimedRole] || 0) + 1; });
+    const hasDuplicate = Object.values(roleCounts).some(c => c > 1);
+    if (!hasDuplicate) {
+      // Force demon to duplicate someone
+      const demonPlayer = players[demonSeat];
+      demonPlayer.claimedRole = players[townsfolkSeats[0]].claimedRole;
+    }
+  }
+
+  // Generate claims for each player
+  for (const player of players) {
+    generateClaim(player, players, numPlayers, demonSeat, minionSeats, outsiderSeats, townsfolkSeats, poisonedSeat);
+  }
+
+  return {
+    difficulty,
+    config,
+    players,
+    demonSeat,
+    minionSeats,
+    outsiderSeats,
+    townsfolkSeats,
+    poisonedSeat,
+  };
+}
+
+
+function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, outsiderSeats, townsfolkSeats, poisonedSeat) {
+  const isHonestAndAccurate = player.actualTeam === 'townsfolk' && !player.isPoisoned;
+  const isDrunk = player.isDrunk;
+  const isEvil = player.isEvil;
+  const isPoisoned = player.isPoisoned;
+
+  // Find the role definition this player is claiming
+  const claimedRoleName = player.claimedRole;
+  const claimedRoleEntry = Object.values(TOWNSFOLK_ROLES).find(r => r.name === claimedRoleName);
+  if (!claimedRoleEntry) {
+    player.claimText = `I am the ${claimedRoleName}.`;
+    return;
+  }
+
+  const claimType = claimedRoleEntry.claimType;
+  const othersExcludingSelf = allPlayers.filter(p => p.id !== player.id);
+
+  if (claimType === 'pair_townsfolk') {
+    // Washerwoman: "One of [A] or [B] is the [TownsfolkRole]"
+    if (isHonestAndAccurate) {
+      // Pick a real townsfolk (not self)
+      const targets = townsfolkSeats.filter(s => s !== player.id);
+      if (targets.length > 0) {
+        const realTarget = pick(targets);
+        const realRole = allPlayers[realTarget].claimedRole;
+        const decoys = othersExcludingSelf.filter(p => p.id !== realTarget);
+        const decoy = pick(decoys);
+        const pair = shuffle([allPlayers[realTarget], decoy]);
+        player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${realRole}.`;
+        player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: realRole };
+      }
+    } else {
+      // False info: pick 2 random players, claim a role neither actually has (or inaccurate)
+      const pair = pickN(othersExcludingSelf, 2);
+      // Pick a role to attribute
+      const roleToClaim = pick(Object.values(TOWNSFOLK_ROLES)).name;
+      player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${roleToClaim}.`;
+      player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: roleToClaim };
+    }
+  }
+
+  else if (claimType === 'pair_outsider') {
+    // Librarian: "One of [A] or [B] is the [OutsiderRole]" or "No outsiders"
+    if (isHonestAndAccurate) {
+      if (outsiderSeats.length === 0) {
+        player.claimText = 'There are no Outsiders in this game.';
+        player.claimDetail = { type: 'no_outsiders' };
+      } else {
+        const realTarget = pick(outsiderSeats);
+        const outsiderRole = allPlayers[realTarget].actualRole.name;
+        const decoys = othersExcludingSelf.filter(p => p.id !== realTarget);
+        const decoy = pick(decoys);
+        const pair = shuffle([allPlayers[realTarget], decoy]);
+        player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${outsiderRole}.`;
+        player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: outsiderRole };
+      }
+    } else {
+      if (outsiderSeats.length === 0) {
+        // Lie: claim there are outsiders or claim no outsiders (flip)
+        const pair = pickN(othersExcludingSelf, 2);
+        const fakeRole = pick(Object.values(OUTSIDER_ROLES)).name;
+        player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${fakeRole}.`;
+        player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: fakeRole };
+      } else {
+        // Give wrong info
+        const nonOutsiders = othersExcludingSelf.filter(p => !outsiderSeats.includes(p.id));
+        if (nonOutsiders.length >= 2) {
+          const pair = pickN(nonOutsiders, 2);
+          const fakeRole = pick(Object.values(OUTSIDER_ROLES)).name;
+          player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${fakeRole}.`;
+          player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: fakeRole };
+        } else {
+          player.claimText = 'There are no Outsiders in this game.';
+          player.claimDetail = { type: 'no_outsiders' };
+        }
+      }
+    }
+  }
+
+  else if (claimType === 'pair_minion') {
+    // Investigator: "One of [A] or [B] is the [MinionRole]"
+    if (isHonestAndAccurate) {
+      const realTarget = pick(minionSeats);
+      const minionRole = allPlayers[realTarget].actualRole.name;
+      const decoys = othersExcludingSelf.filter(p => p.id !== realTarget);
+      const decoy = pick(decoys);
+      const pair = shuffle([allPlayers[realTarget], decoy]);
+      player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${minionRole}.`;
+      player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: minionRole };
+    } else {
+      // False info
+      const nonMinions = othersExcludingSelf.filter(p => !minionSeats.includes(p.id));
+      const pair = pickN(nonMinions.length >= 2 ? nonMinions : othersExcludingSelf, 2);
+      const fakeMinionRole = pick(Object.values(MINION_ROLES)).name;
+      player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${fakeMinionRole}.`;
+      player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: fakeMinionRole };
+    }
+  }
+
+  else if (claimType === 'chef_count') {
+    // Chef: count adjacent evil pairs
+    if (isHonestAndAccurate) {
+      let pairs = 0;
+      for (let i = 0; i < numPlayers; i++) {
+        const next = (i + 1) % numPlayers;
+        if (allPlayers[i].isEvil && allPlayers[next].isEvil) pairs++;
+      }
+      player.claimText = `There ${pairs === 1 ? 'is' : 'are'} ${pairs} pair${pairs !== 1 ? 's' : ''} of evil players sitting next to each other.`;
+      player.claimDetail = { type: 'count', value: pairs };
+    } else {
+      // Wrong count
+      let realPairs = 0;
+      for (let i = 0; i < numPlayers; i++) {
+        const next = (i + 1) % numPlayers;
+        if (allPlayers[i].isEvil && allPlayers[next].isEvil) realPairs++;
+      }
+      let fakePairs = realPairs;
+      while (fakePairs === realPairs) {
+        fakePairs = Math.floor(Math.random() * 3);
+      }
+      player.claimText = `There ${fakePairs === 1 ? 'is' : 'are'} ${fakePairs} pair${fakePairs !== 1 ? 's' : ''} of evil players sitting next to each other.`;
+      player.claimDetail = { type: 'count', value: fakePairs };
+    }
+  }
+
+  else if (claimType === 'empath_count') {
+    // Empath: count evil neighbors
+    if (isHonestAndAccurate) {
+      const leftIdx = (player.id - 1 + numPlayers) % numPlayers;
+      const rightIdx = (player.id + 1) % numPlayers;
+      let evilNeighbors = 0;
+      if (allPlayers[leftIdx].isEvil) evilNeighbors++;
+      if (allPlayers[rightIdx].isEvil) evilNeighbors++;
+      player.claimText = `${evilNeighbors} of my neighbors ${evilNeighbors === 1 ? 'is' : 'are'} evil.`;
+      player.claimDetail = { type: 'count', value: evilNeighbors };
+    } else {
+      // Wrong count
+      const leftIdx = (player.id - 1 + numPlayers) % numPlayers;
+      const rightIdx = (player.id + 1) % numPlayers;
+      let realCount = 0;
+      if (allPlayers[leftIdx].isEvil) realCount++;
+      if (allPlayers[rightIdx].isEvil) realCount++;
+      let fakeCount = realCount;
+      while (fakeCount === realCount) {
+        fakeCount = Math.floor(Math.random() * 3);
+      }
+      player.claimText = `${fakeCount} of my neighbors ${fakeCount === 1 ? 'is' : 'are'} evil.`;
+      player.claimDetail = { type: 'count', value: fakeCount };
+    }
+  }
+
+  else if (claimType === 'fortune_check') {
+    // Fortune Teller: check one player for demon
+    if (isHonestAndAccurate) {
+      // Pick a player to check (not self)
+      // Red herring: one good player who shows as demon
+      const goodPlayers = othersExcludingSelf.filter(p => !p.isEvil && p.id !== demonSeat);
+      const redHerring = goodPlayers.length > 0 ? pick(goodPlayers).id : null;
+
+      // Pick who to check: sometimes the demon, sometimes others
+      const checkTarget = pick(othersExcludingSelf);
+      const isDemon = checkTarget.id === demonSeat || checkTarget.id === redHerring;
+      player.claimText = `I checked ${checkTarget.name} — they are ${isDemon ? '' : 'NOT '}the Demon.`;
+      player.claimDetail = { type: 'fortune', target: checkTarget.name, isDemon };
+    } else {
+      // Wrong info
+      const checkTarget = pick(othersExcludingSelf);
+      const actuallyDemon = checkTarget.id === demonSeat;
+      // Give wrong answer
+      const claimedDemon = !actuallyDemon;
+      player.claimText = `I checked ${checkTarget.name} — they are ${claimedDemon ? '' : 'NOT '}the Demon.`;
+      player.claimDetail = { type: 'fortune', target: checkTarget.name, isDemon: claimedDemon };
+    }
+  }
+}
+
+
+// === STATE ===
+
+const state = {
+  screen: 'menu', // menu, howToPlay, game, reveal
+  game: null,
+  selectedPlayer: null,
+  accuseMode: false,
+  confirmAccuse: null,
+  streak: 0,
+  totalScore: 0,
+};
+
+
+// === UI RENDERER ===
+
+const app = document.getElementById('app');
+
+function render() {
+  switch (state.screen) {
+    case 'menu': renderMenu(); break;
+    case 'howToPlay': renderHowToPlay(); break;
+    case 'game': renderGame(); break;
+    case 'reveal': renderReveal(); break;
+  }
+}
+
+function renderMenu() {
+  app.innerHTML = `
+    <div class="menu-screen">
+      <div class="menu-icon">🩸</div>
+      <h1 class="menu-title">Devil's Circle</h1>
+      <p class="menu-subtitle">A social deduction puzzle. Read the claims, find the contradictions, and unmask the Demon hiding in the circle.</p>
+      <div class="difficulty-select">
+        <button class="diff-btn" data-diff="easy">
+          <span>Easy</span>
+          <span class="diff-info">5 players · No Drunk</span>
+        </button>
+        <button class="diff-btn" data-diff="normal">
+          <span>Normal</span>
+          <span class="diff-info">7 players · Drunk + Poison</span>
+        </button>
+        <button class="diff-btn" data-diff="hard">
+          <span>Hard</span>
+          <span class="diff-info">9 players · 2 Minions</span>
+        </button>
+      </div>
+      ${state.totalScore > 0 ? `<div style="color: var(--gold); font-size: 0.85rem; font-weight: 600;">Score: ${state.totalScore} · Streak: ${state.streak}</div>` : ''}
+      <div class="menu-links">
+        <button class="link-btn" id="how-to-play-btn">How to Play</button>
+      </div>
+    </div>
+  `;
+
+  app.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => startGame(btn.dataset.diff));
+  });
+
+  app.querySelector('#how-to-play-btn').addEventListener('click', () => {
+    state.screen = 'howToPlay';
+    render();
+  });
+}
+
+function renderHowToPlay() {
+  const allRoles = [
+    ...Object.values(TOWNSFOLK_ROLES).map(r => ({ ...r, teamClass: 'team-townsfolk' })),
+    ...Object.values(OUTSIDER_ROLES).map(r => ({ ...r, teamClass: 'team-outsider' })),
+    ...Object.values(MINION_ROLES).map(r => ({ ...r, teamClass: 'team-minion' })),
+    ...Object.values(DEMON_ROLES).map(r => ({ ...r, teamClass: 'team-demon' })),
+  ];
+
+  app.innerHTML = `
+    <div class="how-to-play">
+      <h2>How to Play</h2>
+      <p>A demon and its minions hide among the townsfolk in a circle. Everyone claims to be good — but evil players always lie.</p>
+
+      <h3>🎯 Your Goal</h3>
+      <p>Read everyone's claims, find contradictions, and correctly accuse the <strong style="color:var(--demon)">Demon</strong>.</p>
+
+      <h3>📜 The Rules</h3>
+      <ul>
+        <li><strong style="color:var(--good)">Townsfolk</strong> always tell the truth. Their information is accurate.</li>
+        <li><strong style="color:var(--outsider)">The Drunk</strong> thinks they're a Townsfolk, but their info is <em>wrong</em>. They don't know they're drunk.</li>
+        <li><strong style="color:var(--minion)">Minions</strong> claim to be a Townsfolk and fabricate their information.</li>
+        <li><strong style="color:var(--demon)">The Demon</strong> claims to be a Townsfolk and fabricates information.</li>
+        <li>The <strong style="color:var(--minion)">Poisoner</strong> (Minion) poisons one Townsfolk, making that player's info wrong — but they still claim their real role.</li>
+      </ul>
+
+      <h3>🔍 Deduction Tips</h3>
+      <ul>
+        <li>If two players claim the <strong>same role</strong>, at least one is lying.</li>
+        <li>Cross-reference claims — if the Washerwoman says "A or B is the Chef," check what the Chef claims.</li>
+        <li>The Empath's neighbor count can confirm or deny evil in specific seats.</li>
+        <li>The Chef's adjacent-evil-pair count constrains where evil can sit.</li>
+        <li>Mark players as suspect (🔴) or cleared (🟢) to track your deductions.</li>
+      </ul>
+
+      <h3>📖 Role Reference</h3>
+      ${allRoles.map(r => `
+        <div class="role-ref ${r.teamClass}">
+          <div class="role-name">${r.name}</div>
+          <div class="role-desc">${r.desc}</div>
+        </div>
+      `).join('')}
+
+      <button class="back-btn" id="back-to-menu">← Back to Menu</button>
+    </div>
+  `;
+
+  app.querySelector('#back-to-menu').addEventListener('click', () => {
+    state.screen = 'menu';
+    render();
+  });
+}
+
+function startGame(difficulty) {
+  state.game = generateGame(difficulty);
+  state.selectedPlayer = null;
+  state.accuseMode = false;
+  state.confirmAccuse = null;
+  state.screen = 'game';
+  render();
+
+  // Animate players appearing
+  setTimeout(() => {
+    const nodes = app.querySelectorAll('.player-node');
+    nodes.forEach((node, i) => {
+      node.style.animationDelay = `${i * 0.08}s`;
+      node.classList.add('animating');
+    });
+  }, 50);
+}
+
+function renderGame() {
+  const g = state.game;
+  const n = g.players.length;
+  const circleSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--circle-size'));
+
+  // Calculate player positions in circle
+  const positions = g.players.map((p, i) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2; // start from top
+    const radius = 0.42; // as fraction of circle size
+    const x = 50 + radius * 100 * Math.cos(angle);
+    const y = 50 + radius * 100 * Math.sin(angle);
+    return { x, y };
+  });
+
+  const selectedP = state.selectedPlayer !== null ? g.players[state.selectedPlayer] : null;
+
+  // Detect duplicate claimed roles
+  const roleCounts = {};
+  g.players.forEach(p => { roleCounts[p.claimedRole] = (roleCounts[p.claimedRole] || 0) + 1; });
+
+  app.innerHTML = `
+    <div class="game-screen">
+      <div class="game-header">
+        <div class="game-header-left">
+          <span class="header-title">Devil's Circle</span>
+          <span class="header-badge">${g.config.label}</span>
+        </div>
+        <div class="header-icons">
+          <button class="icon-btn" id="grimoire-btn" title="Role Reference">📖</button>
+          <button class="icon-btn" id="restart-btn" title="New Game">🔄</button>
+        </div>
+      </div>
+
+      <div class="circle-area">
+        <div class="player-circle">
+          <div class="circle-center">
+            <div class="circle-center-icon">🩸</div>
+          </div>
+          ${g.players.map((p, i) => {
+            const pos = positions[i];
+            const isSelected = state.selectedPlayer === i;
+            const classes = [
+              'player-node',
+              isSelected ? 'selected' : '',
+              p.mark === 'suspect' ? 'suspect' : '',
+              p.mark === 'cleared' ? 'cleared' : '',
+            ].filter(Boolean).join(' ');
+
+            const markHTML = p.mark === 'suspect'
+              ? '<div class="player-mark mark-suspect">!</div>'
+              : p.mark === 'cleared'
+              ? '<div class="player-mark mark-cleared">✓</div>'
+              : '';
+
+            return `
+              <div class="${classes}" data-player="${i}"
+                   style="left: ${pos.x}%; top: ${pos.y}%;">
+                <div class="player-avatar">${p.name[0]}</div>
+                <div class="player-name">${p.name}</div>
+                ${markHTML}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="claim-panel ${selectedP ? '' : 'empty'}">
+        ${selectedP ? `
+          <div class="claim-header">
+            <span class="claim-player-name">${selectedP.name}</span>
+            <span class="claim-role-badge" style="background: ${roleCounts[selectedP.claimedRole] > 1 ? 'var(--gold)' : 'var(--good)'}">
+              ${selectedP.claimedRole}${roleCounts[selectedP.claimedRole] > 1 ? ' ⚠' : ''}
+            </span>
+          </div>
+          <div class="claim-text">"${selectedP.claimText}"</div>
+          <div class="claim-actions">
+            <button class="claim-action-btn suspect-btn" data-action="suspect">🔴 Suspect</button>
+            <button class="claim-action-btn clear-btn" data-action="cleared">🟢 Clear</button>
+            <button class="claim-action-btn" data-action="reset">Reset</button>
+          </div>
+        ` : `
+          <div class="claim-empty">Tap a player to read their claim</div>
+        `}
+      </div>
+
+      <div class="action-bar">
+        <button class="action-btn grimoire-btn" id="grimoire-btn-bottom">📖</button>
+        <button class="action-btn accuse-btn" id="accuse-btn">⚔ Accuse the Demon</button>
+      </div>
+
+      ${state.accuseMode ? `
+        <div class="accuse-overlay" id="accuse-overlay">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">⚔</div>
+          <div class="accuse-prompt">Who is the Demon?</div>
+          <div class="accuse-sub">Tap the player you believe is the Demon</div>
+          <button class="accuse-cancel" id="cancel-accuse">Cancel</button>
+        </div>
+      ` : ''}
+
+      ${state.confirmAccuse !== null ? `
+        <div class="modal-overlay">
+          <div class="modal">
+            <h3>Accuse ${g.players[state.confirmAccuse].name}?</h3>
+            <p>You believe <strong>${g.players[state.confirmAccuse].name}</strong> is the Demon. This will end the game and reveal all roles.</p>
+            <div class="modal-btns">
+              <button class="modal-btn modal-cancel" id="cancel-confirm">Cancel</button>
+              <button class="modal-btn modal-confirm" id="confirm-accuse">Accuse</button>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  // Event listeners
+  app.querySelectorAll('.player-node').forEach(node => {
+    node.addEventListener('click', () => {
+      const idx = parseInt(node.dataset.player);
+      if (state.accuseMode) {
+        state.confirmAccuse = idx;
+        state.accuseMode = false;
+        render();
+      } else {
+        state.selectedPlayer = state.selectedPlayer === idx ? null : idx;
+        render();
+      }
+    });
+  });
+
+  app.querySelectorAll('.claim-action-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.selectedPlayer === null) return;
+      const action = btn.dataset.action;
+      const player = g.players[state.selectedPlayer];
+      if (action === 'reset') {
+        player.mark = null;
+      } else {
+        player.mark = player.mark === action ? null : action;
+      }
+      render();
+    });
+  });
+
+  const accuseBtn = app.querySelector('#accuse-btn');
+  if (accuseBtn) {
+    accuseBtn.addEventListener('click', () => {
+      state.accuseMode = true;
+      state.selectedPlayer = null;
+      render();
+    });
+  }
+
+  const cancelAccuse = app.querySelector('#cancel-accuse');
+  if (cancelAccuse) {
+    cancelAccuse.addEventListener('click', () => {
+      state.accuseMode = false;
+      render();
+    });
+  }
+
+  const cancelConfirm = app.querySelector('#cancel-confirm');
+  if (cancelConfirm) {
+    cancelConfirm.addEventListener('click', () => {
+      state.confirmAccuse = null;
+      render();
+    });
+  }
+
+  const confirmAccuse = app.querySelector('#confirm-accuse');
+  if (confirmAccuse) {
+    confirmAccuse.addEventListener('click', () => {
+      resolveAccusation(state.confirmAccuse);
+    });
+  }
+
+  const grimoireBtn = app.querySelector('#grimoire-btn');
+  const grimoireBtnBottom = app.querySelector('#grimoire-btn-bottom');
+  const openGrimoire = () => { state.screen = 'howToPlay'; render(); };
+  if (grimoireBtn) grimoireBtn.addEventListener('click', openGrimoire);
+  if (grimoireBtnBottom) grimoireBtnBottom.addEventListener('click', openGrimoire);
+
+  const restartBtn = app.querySelector('#restart-btn');
+  if (restartBtn) {
+    restartBtn.addEventListener('click', () => {
+      startGame(g.difficulty);
+    });
+  }
+}
+
+
+function resolveAccusation(accusedId) {
+  const g = state.game;
+  const won = accusedId === g.demonSeat;
+
+  // Calculate score
+  let score = 0;
+  if (won) {
+    score += 100;
+    state.streak++;
+    score += state.streak * 10; // streak bonus
+
+    // Bonus for marking minions as suspect
+    for (const ms of g.minionSeats) {
+      if (g.players[ms].mark === 'suspect') score += 50;
+    }
+  } else {
+    state.streak = 0;
+  }
+
+  state.totalScore += score;
+  state.game.result = { won, accusedId, score };
+  state.screen = 'reveal';
+  state.confirmAccuse = null;
+  state.accuseMode = false;
+  render();
+}
+
+
+function renderReveal() {
+  const g = state.game;
+  const r = g.result;
+  const teamOrder = { demon: 0, minion: 1, outsider: 2, townsfolk: 3 };
+
+  // Sort: demon first, then minions, then outsiders, then townsfolk
+  const sortedPlayers = [...g.players].sort((a, b) => {
+    return (teamOrder[a.actualTeam] || 3) - (teamOrder[b.actualTeam] || 3);
+  });
+
+  app.innerHTML = `
+    <div class="reveal-screen">
+      <div class="reveal-result">
+        <div class="reveal-icon">${r.won ? '🎉' : '💀'}</div>
+        <div class="reveal-title ${r.won ? 'win' : 'lose'}">${r.won ? 'VICTORY!' : 'DEFEATED'}</div>
+        <div class="reveal-subtitle">
+          ${r.won
+            ? `You found the Demon! ${g.players[g.demonSeat].name} was the ${g.players[g.demonSeat].actualRole.name}.`
+            : `You accused ${g.players[r.accusedId].name}, but the Demon was ${g.players[g.demonSeat].name}!`
+          }
+        </div>
+        ${r.score > 0 ? `<div class="reveal-score">⭐ +${r.score} points (Streak: ${state.streak})</div>` : ''}
+      </div>
+
+      <div class="reveal-players">
+        ${sortedPlayers.map((p, i) => {
+          const teamClass = `team-${p.actualTeam}`;
+          const wasAccused = p.id === r.accusedId;
+          const isDemon = p.actualTeam === 'demon';
+          const wasPoisoned = p.isPoisoned;
+          const isDrunk = p.isDrunk;
+
+          let roleLabel = p.actualRole.name;
+          if (isDrunk) roleLabel += ' (thought they were ' + p.claimedRole + ')';
+          if (wasPoisoned) roleLabel += ' (Poisoned)';
+
+          let tagHTML = '';
+          if (wasAccused && !isDemon) tagHTML = '<span class="rp-tag accused">Accused</span>';
+          if (isDemon) tagHTML = '<span class="rp-tag actual-demon">Demon</span>';
+
+          return `
+            <div class="reveal-player ${teamClass}" style="animation-delay: ${i * 0.08}s">
+              <div class="rp-avatar">${p.name[0]}</div>
+              <div class="rp-info">
+                <div class="rp-name">${p.name}</div>
+                <div class="rp-role">${roleLabel}</div>
+                <div class="rp-claim">Claimed: ${p.claimedRole} — "${p.claimText}"</div>
+              </div>
+              ${tagHTML}
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      ${g.poisonedSeat !== null ? `
+        <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin: 0.5rem 0; line-height: 1.5;">
+          🧪 ${g.players[g.poisonedSeat].name} was <strong style="color: var(--minion)">poisoned</strong> by the Poisoner — their information was wrong.
+        </div>
+      ` : ''}
+
+      <div class="reveal-actions">
+        <button class="reveal-btn play-again-btn" id="play-again">Play Again (${g.config.label})</button>
+        <button class="reveal-btn menu-return-btn" id="return-menu">Back to Menu</button>
+      </div>
+    </div>
+  `;
+
+  app.querySelector('#play-again').addEventListener('click', () => {
+    startGame(g.difficulty);
+  });
+
+  app.querySelector('#return-menu').addEventListener('click', () => {
+    state.screen = 'menu';
+    render();
+  });
+}
+
+
+// === GRIMOIRE RETURN HANDLING ===
+// Override howToPlay back button to return to game if in-game
+const origRenderHowToPlay = renderHowToPlay;
+renderHowToPlay = function() {
+  origRenderHowToPlay();
+  const backBtn = app.querySelector('#back-to-menu');
+  if (backBtn && state.game && state.game.result === undefined) {
+    backBtn.textContent = '← Back to Game';
+    backBtn.addEventListener('click', (e) => {
+      e.stopImmediatePropagation();
+      state.screen = 'game';
+      render();
+    }, { capture: true });
+  }
+};
+
+
+// === INIT ===
+render();
+
+</script>
+</body>
+</html>
