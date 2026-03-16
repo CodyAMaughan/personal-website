@@ -23,7 +23,7 @@
     --gold: #eab308;
     --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
     --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-    --circle-size: min(85vw, 340px);
+    --circle-size: min(85vw, 360px);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -70,12 +70,13 @@
   }
 
   .difficulty-select {
-    display: flex; flex-direction: column; gap: 0.75rem; width: 100%; max-width: 280px;
+    display: flex; flex-direction: column; gap: 0.5rem; width: 100%; max-width: 280px;
+    max-height: 50vh; overflow-y: auto;
   }
 
   .diff-btn {
     background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-    color: var(--text); font-size: 1rem; font-weight: 600; padding: 1rem;
+    color: var(--text); font-size: 0.95rem; font-weight: 600; padding: 0.75rem 1rem;
     cursor: pointer; transition: all 0.2s;
     display: flex; align-items: center; justify-content: space-between;
   }
@@ -517,6 +518,7 @@ const ROLE_ICONS = {
   'Chef': '🍳',
   'Empath': '💜',
   'Fortune Teller': '🔮',
+  'Recluse': '🎭',
 };
 
 const TOWNSFOLK_ROLES = {
@@ -563,6 +565,11 @@ const OUTSIDER_ROLES = {
     name: 'Drunk',
     team: 'outsider',
     desc: 'You think you are a Townsfolk, but you are not. Your information is wrong.',
+  },
+  recluse: {
+    name: 'Recluse',
+    team: 'outsider',
+    desc: 'You honestly claim to be the Recluse, but you register as evil to all detection abilities.',
   }
 };
 
@@ -570,12 +577,17 @@ const MINION_ROLES = {
   poisoner: {
     name: 'Poisoner',
     team: 'minion',
-    desc: 'Each night, you choose a player — their ability malfunctions tonight and tomorrow.',
+    desc: 'You poison a player sitting next to you — their ability malfunctions and their information is wrong.',
   },
   baron: {
     name: 'Baron',
     team: 'minion',
-    desc: 'There are extra Outsiders in play.',
+    desc: 'You add one extra Outsider to the game. You must sit next to that Outsider.',
+  },
+  godfather: {
+    name: 'Godfather',
+    team: 'minion',
+    desc: 'You register as good to all detection abilities. The Empath, Chef, Investigator, and Fortune Teller cannot detect you.',
   }
 };
 
@@ -583,15 +595,25 @@ const DEMON_ROLES = {
   imp: {
     name: 'Imp',
     team: 'demon',
-    desc: 'You are the Demon. You kill at night. Evil wins when few enough players remain.',
+    desc: 'You are the Demon. You claim a Townsfolk role and fabricate information.',
   }
 };
 
 const DIFFICULTY_CONFIG = {
-  easy:   { players: 5, townsfolk: 3, outsiders: 0, minions: 1, demons: 1, label: 'Easy', info: '5 players' },
-  normal: { players: 7, townsfolk: 4, outsiders: 1, minions: 1, demons: 1, label: 'Normal', info: '7 players' },
-  hard:   { players: 9, townsfolk: 5, outsiders: 1, minions: 2, demons: 1, label: 'Hard', info: '9 players' }
+  five:   { players: 5,  townsfolk: 4, outsiders: 0, minions: 0, demons: 1, label: '5P',  info: '1 evil' },
+  six:    { players: 6,  townsfolk: 4, outsiders: 1, minions: 0, demons: 1, label: '6P',  info: '1 evil · 1 outsider' },
+  seven:  { players: 7,  townsfolk: 4, outsiders: 1, minions: 1, demons: 1, label: '7P',  info: '2 evil · 1 outsider' },
+  eight:  { players: 8,  townsfolk: 4, outsiders: 2, minions: 1, demons: 1, label: '8P',  info: '2 evil · 2 outsiders' },
+  nine:   { players: 9,  townsfolk: 5, outsiders: 1, minions: 2, demons: 1, label: '9P',  info: '3 evil · 1 outsider' },
+  ten:    { players: 10, townsfolk: 5, outsiders: 2, minions: 2, demons: 1, label: '10P', info: '3 evil · 2 outsiders' },
 };
+
+// Helper: does a player register as evil for detection abilities?
+function detectsAsEvil(player) {
+  if (player.registersAsGood) return false;  // Godfather
+  if (player.registersAsEvil) return true;   // Recluse
+  return player.isEvil;
+}
 
 
 // === UTILITY FUNCTIONS ===
@@ -633,20 +655,102 @@ function generateGame(difficulty) {
     isEvil: false,
     isPoisoned: false,
     isDrunk: false,
-    mark: null, // 'suspect', 'cleared', or null
+    registersAsEvil: false,
+    registersAsGood: false,
+    mark: null,
     revealed: false,
   }));
 
-  // Assign seats randomly
-  const seatOrder = shuffle([...Array(numPlayers).keys()]);
+  // Determine which outsider roles to use
+  let outsiderKeys = [];
+  if (config.outsiders === 1) {
+    outsiderKeys = [pick(['drunk', 'recluse'])];
+  } else if (config.outsiders >= 2) {
+    outsiderKeys = ['drunk', 'recluse'];
+  }
 
-  // Assign roles
-  let seatIdx = 0;
+  // Determine which minion roles to use
+  const minionKeyOrder = ['poisoner', 'baron', 'godfather'];
+  const minionKeys = minionKeyOrder.slice(0, config.minions);
 
-  // Townsfolk
+  // We need to handle seating constraints:
+  // - Baron must sit next to an outsider
+  // - Poisoner poisons a neighbor (townsfolk only)
+  // So we place constrained roles first, then fill the rest.
+
+  const allSeats = [...Array(numPlayers).keys()];
+  const usedSeats = new Set();
+
+  function pickUnusedSeat() {
+    const available = allSeats.filter(s => !usedSeats.has(s));
+    const seat = pick(available);
+    usedSeats.add(seat);
+    return seat;
+  }
+
+  function getNeighbors(seat) {
+    return [(seat - 1 + numPlayers) % numPlayers, (seat + 1) % numPlayers];
+  }
+
   const townsfolkSeats = [];
+  const outsiderSeats = [];
+  const minionSeats = [];
+  let demonSeat = -1;
+  let poisonedSeat = null;
+
+  const hasBaron = minionKeys.includes('baron');
+  const hasPoisoner = minionKeys.includes('poisoner');
+
+  // Step 1: If Baron exists, place Baron and an outsider next to each other
+  if (hasBaron && outsiderKeys.length > 0) {
+    const baronSeat = pickUnusedSeat();
+    const neighbors = getNeighbors(baronSeat);
+    const availableNeighbors = neighbors.filter(s => !usedSeats.has(s));
+    const outsiderSeat = availableNeighbors.length > 0 ? pick(availableNeighbors) : pickUnusedSeat();
+    usedSeats.add(outsiderSeat);
+
+    // Place Baron
+    players[baronSeat].actualRole = { key: 'baron', ...MINION_ROLES.baron };
+    players[baronSeat].actualTeam = 'minion';
+    players[baronSeat].isEvil = true;
+    minionSeats.push(baronSeat);
+
+    // Place the outsider next to Baron (pick which one)
+    const outsiderKey = pick(outsiderKeys);
+    outsiderKeys = outsiderKeys.filter(k => k !== outsiderKey);
+    assignOutsider(players, outsiderSeat, outsiderKey, townsfolkKeys, assignedTownsfolkKeys);
+    outsiderSeats.push(outsiderSeat);
+  }
+
+  // Step 2: Place remaining outsiders
+  for (const oKey of outsiderKeys) {
+    const seat = pickUnusedSeat();
+    assignOutsider(players, seat, oKey, townsfolkKeys, assignedTownsfolkKeys);
+    outsiderSeats.push(seat);
+  }
+
+  // Step 3: Place remaining minions (Poisoner, Godfather)
+  for (const mKey of minionKeys) {
+    if (mKey === 'baron') continue; // already placed
+    const seat = pickUnusedSeat();
+    players[seat].actualRole = { key: mKey, ...MINION_ROLES[mKey] };
+    players[seat].actualTeam = 'minion';
+    players[seat].isEvil = true;
+    if (mKey === 'godfather') {
+      players[seat].registersAsGood = true;
+    }
+    minionSeats.push(seat);
+  }
+
+  // Step 4: Place Demon
+  demonSeat = pickUnusedSeat();
+  players[demonSeat].actualRole = { key: 'imp', ...DEMON_ROLES.imp };
+  players[demonSeat].actualTeam = 'demon';
+  players[demonSeat].isEvil = true;
+
+  // Step 5: Place Townsfolk in remaining seats
   for (let i = 0; i < config.townsfolk; i++) {
-    const seat = seatOrder[seatIdx++];
+    const seat = pickUnusedSeat();
     const roleKey = assignedTownsfolkKeys[i];
     const role = TOWNSFOLK_ROLES[roleKey];
     players[seat].actualRole = { key: roleKey, ...role };
@@ -655,86 +759,44 @@ function generateGame(difficulty) {
     townsfolkSeats.push(seat);
   }
 
-  // Outsiders
-  const outsiderSeats = [];
-  if (config.outsiders > 0) {
-    const seat = seatOrder[seatIdx++];
-    // Drunk claims a townsfolk role they don't have
-    const remainingTFKeys = townsfolkKeys.filter(k => !assignedTownsfolkKeys.includes(k));
-    const drunkClaimKey = remainingTFKeys.length > 0 ? remainingTFKeys[0] : pick(assignedTownsfolkKeys);
-    const drunkClaimRole = TOWNSFOLK_ROLES[drunkClaimKey];
-
-    players[seat].actualRole = { key: 'drunk', ...OUTSIDER_ROLES.drunk, drunkClaimKey, drunkClaimRole: drunkClaimRole.name };
-    players[seat].actualTeam = 'outsider';
-    players[seat].claimedRole = drunkClaimRole.name;
-    players[seat].isDrunk = true;
-    outsiderSeats.push(seat);
-  }
-
-  // Minions
-  const minionSeats = [];
-  for (let i = 0; i < config.minions; i++) {
-    const seat = seatOrder[seatIdx++];
-    const minionRole = i === 0 ? MINION_ROLES.poisoner : MINION_ROLES.baron;
-    const minionKey = i === 0 ? 'poisoner' : 'baron';
-    players[seat].actualRole = { key: minionKey, ...minionRole };
-    players[seat].actualTeam = 'minion';
-    players[seat].isEvil = true;
-    minionSeats.push(seat);
-  }
-
-  // Demon
-  const demonSeat = seatOrder[seatIdx++];
-  players[demonSeat].actualRole = { key: 'imp', ...DEMON_ROLES.imp };
-  players[demonSeat].actualTeam = 'demon';
-  players[demonSeat].isEvil = true;
-
-  // Poisoner picks a target (first minion is always Poisoner if exists)
-  let poisonedSeat = null;
-  if (config.minions > 0 && config.outsiders > 0) {
-    // Poison a random townsfolk (not outsider, not evil)
-    const poisonTargets = townsfolkSeats;
-    if (poisonTargets.length > 0) {
-      poisonedSeat = pick(poisonTargets);
+  // Step 6: Poisoner poisons a neighbor (must be townsfolk)
+  if (hasPoisoner) {
+    const poisonerSeat = minionSeats.find(s => players[s].actualRole.key === 'poisoner');
+    const neighbors = getNeighbors(poisonerSeat);
+    const townsfolkNeighbors = neighbors.filter(s => townsfolkSeats.includes(s));
+    if (townsfolkNeighbors.length > 0) {
+      poisonedSeat = pick(townsfolkNeighbors);
       players[poisonedSeat].isPoisoned = true;
     }
   }
 
-  // Evil players need to claim Townsfolk roles
-  // Collect all currently claimed roles
+  // Step 7: Assign evil claims (Townsfolk roles for evil players to fake)
   const claimedRoleNames = new Set();
   for (const p of players) {
     if (p.claimedRole) claimedRoleNames.add(p.claimedRole);
   }
 
-  // Assign evil claims - ensure at least 1 duplicate for deduction
   const evilSeats = [...minionSeats, demonSeat];
   const unclaimedRoles = Object.values(TOWNSFOLK_ROLES)
     .map(r => r.name)
     .filter(name => !claimedRoleNames.has(name));
 
-  // Strategy: first evil gets unclaimed role (if any), rest duplicate
   for (let i = 0; i < evilSeats.length; i++) {
     const seat = evilSeats[i];
     if (i === 0 && unclaimedRoles.length > 0) {
       players[seat].claimedRole = unclaimedRoles.shift();
     } else {
-      // Duplicate a role claimed by a townsfolk
       const townsfolkClaimedRoles = townsfolkSeats.map(s => players[s].claimedRole);
       players[seat].claimedRole = pick(townsfolkClaimedRoles);
     }
   }
 
-  // In easy mode (no outsiders/poison), ensure at least one duplicate
-  if (difficulty === 'easy') {
-    const roleCounts = {};
-    players.forEach(p => { roleCounts[p.claimedRole] = (roleCounts[p.claimedRole] || 0) + 1; });
-    const hasDuplicate = Object.values(roleCounts).some(c => c > 1);
-    if (!hasDuplicate) {
-      // Force demon to duplicate someone
-      const demonPlayer = players[demonSeat];
-      demonPlayer.claimedRole = players[townsfolkSeats[0]].claimedRole;
-    }
+  // Ensure at least one duplicate for deduction
+  const roleCounts = {};
+  players.forEach(p => { if (p.claimedRole) roleCounts[p.claimedRole] = (roleCounts[p.claimedRole] || 0) + 1; });
+  const hasDuplicate = Object.values(roleCounts).some(c => c > 1);
+  if (!hasDuplicate && townsfolkSeats.length > 0) {
+    players[demonSeat].claimedRole = players[townsfolkSeats[0]].claimedRole;
   }
 
   // Generate claims for each player
@@ -751,15 +813,37 @@ function generateGame(difficulty) {
     outsiderSeats,
     townsfolkSeats,
     poisonedSeat,
+    evilSeats: [...minionSeats, demonSeat],
   };
+}
+
+function assignOutsider(players, seat, outsiderKey, townsfolkKeys, assignedTownsfolkKeys) {
+  if (outsiderKey === 'drunk') {
+    const remainingTFKeys = townsfolkKeys.filter(k => !assignedTownsfolkKeys.includes(k));
+    const drunkClaimKey = remainingTFKeys.length > 0 ? remainingTFKeys[0] : pick(assignedTownsfolkKeys);
+    const drunkClaimRole = TOWNSFOLK_ROLES[drunkClaimKey];
+    players[seat].actualRole = { key: 'drunk', ...OUTSIDER_ROLES.drunk, drunkClaimKey, drunkClaimRole: drunkClaimRole.name };
+    players[seat].actualTeam = 'outsider';
+    players[seat].claimedRole = drunkClaimRole.name;
+    players[seat].isDrunk = true;
+  } else if (outsiderKey === 'recluse') {
+    players[seat].actualRole = { key: 'recluse', ...OUTSIDER_ROLES.recluse };
+    players[seat].actualTeam = 'outsider';
+    players[seat].claimedRole = 'Recluse';
+    players[seat].registersAsEvil = true;
+  }
 }
 
 
 function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, outsiderSeats, townsfolkSeats, poisonedSeat) {
   const isHonestAndAccurate = player.actualTeam === 'townsfolk' && !player.isPoisoned;
-  const isDrunk = player.isDrunk;
-  const isEvil = player.isEvil;
-  const isPoisoned = player.isPoisoned;
+
+  // Recluse claims honestly as Recluse
+  if (player.actualRole && player.actualRole.key === 'recluse') {
+    player.claimText = 'I am the Recluse. I register as evil to detection abilities, but I am on the good team.';
+    player.claimDetail = { type: 'recluse' };
+    return;
+  }
 
   // Find the role definition this player is claiming
   const claimedRoleName = player.claimedRole;
@@ -773,9 +857,7 @@ function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, o
   const othersExcludingSelf = allPlayers.filter(p => p.id !== player.id);
 
   if (claimType === 'pair_townsfolk') {
-    // Washerwoman: "One of [A] or [B] is the [TownsfolkRole]"
     if (isHonestAndAccurate) {
-      // Pick a real townsfolk (not self)
       const targets = townsfolkSeats.filter(s => s !== player.id);
       if (targets.length > 0) {
         const realTarget = pick(targets);
@@ -787,7 +869,6 @@ function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, o
         player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: realRole };
       }
     } else {
-      // False info: pick 2 random players, claim a role neither actually has (or inaccurate)
       const pair = pickN(othersExcludingSelf, 2);
       const roleToClaim = pick(Object.values(TOWNSFOLK_ROLES)).name;
       player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${roleToClaim}.`;
@@ -796,13 +877,14 @@ function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, o
   }
 
   else if (claimType === 'pair_outsider') {
-    // Librarian: "One of [A] or [B] is the [OutsiderRole]" or "No outsiders"
+    // Librarian: Recluse does NOT register as outsider; only Drunk does
     if (isHonestAndAccurate) {
-      if (outsiderSeats.length === 0) {
+      const detectableOutsiders = outsiderSeats.filter(s => allPlayers[s].actualRole.key !== 'recluse');
+      if (detectableOutsiders.length === 0) {
         player.claimText = 'There are no Outsiders in this game.';
         player.claimDetail = { type: 'no_outsiders' };
       } else {
-        const realTarget = pick(outsiderSeats);
+        const realTarget = pick(detectableOutsiders);
         const outsiderRole = allPlayers[realTarget].actualRole.name;
         const decoys = othersExcludingSelf.filter(p => p.id !== realTarget);
         const decoy = pick(decoys);
@@ -812,13 +894,11 @@ function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, o
       }
     } else {
       if (outsiderSeats.length === 0) {
-        // Lie: claim there are outsiders or claim no outsiders (flip)
         const pair = pickN(othersExcludingSelf, 2);
         const fakeRole = pick(Object.values(OUTSIDER_ROLES)).name;
         player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${fakeRole}.`;
         player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: fakeRole };
       } else {
-        // Give wrong info
         const nonOutsiders = othersExcludingSelf.filter(p => !outsiderSeats.includes(p.id));
         if (nonOutsiders.length >= 2) {
           const pair = pickN(nonOutsiders, 2);
@@ -834,17 +914,29 @@ function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, o
   }
 
   else if (claimType === 'pair_minion') {
-    // Investigator: "One of [A] or [B] is the [MinionRole]"
+    // Investigator: Recluse can show as a minion; Godfather is invisible
     if (isHonestAndAccurate) {
-      const realTarget = pick(minionSeats);
-      const minionRole = allPlayers[realTarget].actualRole.name;
-      const decoys = othersExcludingSelf.filter(p => p.id !== realTarget);
-      const decoy = pick(decoys);
-      const pair = shuffle([allPlayers[realTarget], decoy]);
-      player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${minionRole}.`;
-      player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: minionRole };
+      // Build pool of detectable targets: real minions (non-Godfather) + Recluse
+      const detectableMinions = minionSeats.filter(s => !allPlayers[s].registersAsGood);
+      const recluseSeats = outsiderSeats.filter(s => allPlayers[s].registersAsEvil);
+      const targetPool = [...detectableMinions, ...recluseSeats];
+      if (targetPool.length > 0) {
+        const realTarget = pick(targetPool);
+        // For Recluse, claim a random minion role; for actual minions, use their real role
+        const minionRole = allPlayers[realTarget].isEvil
+          ? allPlayers[realTarget].actualRole.name
+          : pick(Object.values(MINION_ROLES)).name;
+        const decoys = othersExcludingSelf.filter(p => p.id !== realTarget);
+        const decoy = pick(decoys);
+        const pair = shuffle([allPlayers[realTarget], decoy]);
+        player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${minionRole}.`;
+        player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: minionRole };
+      } else {
+        // No detectable minions at all (e.g. only Godfather), give generic info
+        player.claimText = 'I could not detect any Minions.';
+        player.claimDetail = { type: 'no_minions' };
+      }
     } else {
-      // False info
       const nonMinions = othersExcludingSelf.filter(p => !minionSeats.includes(p.id));
       const pair = pickN(nonMinions.length >= 2 ? nonMinions : othersExcludingSelf, 2);
       const fakeMinionRole = pick(Object.values(MINION_ROLES)).name;
@@ -854,21 +946,20 @@ function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, o
   }
 
   else if (claimType === 'chef_count') {
-    // Chef: count adjacent evil pairs
+    // Chef: uses detectsAsEvil (Recluse = evil, Godfather = good)
     if (isHonestAndAccurate) {
       let pairs = 0;
       for (let i = 0; i < numPlayers; i++) {
         const next = (i + 1) % numPlayers;
-        if (allPlayers[i].isEvil && allPlayers[next].isEvil) pairs++;
+        if (detectsAsEvil(allPlayers[i]) && detectsAsEvil(allPlayers[next])) pairs++;
       }
       player.claimText = `There ${pairs === 1 ? 'is' : 'are'} ${pairs} pair${pairs !== 1 ? 's' : ''} of evil players sitting next to each other.`;
       player.claimDetail = { type: 'count', value: pairs };
     } else {
-      // Wrong count
       let realPairs = 0;
       for (let i = 0; i < numPlayers; i++) {
         const next = (i + 1) % numPlayers;
-        if (allPlayers[i].isEvil && allPlayers[next].isEvil) realPairs++;
+        if (detectsAsEvil(allPlayers[i]) && detectsAsEvil(allPlayers[next])) realPairs++;
       }
       let fakePairs = realPairs;
       while (fakePairs === realPairs) {
@@ -880,22 +971,21 @@ function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, o
   }
 
   else if (claimType === 'empath_count') {
-    // Empath: count evil neighbors
+    // Empath: uses detectsAsEvil
     if (isHonestAndAccurate) {
       const leftIdx = (player.id - 1 + numPlayers) % numPlayers;
       const rightIdx = (player.id + 1) % numPlayers;
       let evilNeighbors = 0;
-      if (allPlayers[leftIdx].isEvil) evilNeighbors++;
-      if (allPlayers[rightIdx].isEvil) evilNeighbors++;
+      if (detectsAsEvil(allPlayers[leftIdx])) evilNeighbors++;
+      if (detectsAsEvil(allPlayers[rightIdx])) evilNeighbors++;
       player.claimText = `${evilNeighbors} of my neighbors ${evilNeighbors === 1 ? 'is' : 'are'} evil.`;
       player.claimDetail = { type: 'count', value: evilNeighbors };
     } else {
-      // Wrong count
       const leftIdx = (player.id - 1 + numPlayers) % numPlayers;
       const rightIdx = (player.id + 1) % numPlayers;
       let realCount = 0;
-      if (allPlayers[leftIdx].isEvil) realCount++;
-      if (allPlayers[rightIdx].isEvil) realCount++;
+      if (detectsAsEvil(allPlayers[leftIdx])) realCount++;
+      if (detectsAsEvil(allPlayers[rightIdx])) realCount++;
       let fakeCount = realCount;
       while (fakeCount === realCount) {
         fakeCount = Math.floor(Math.random() * 3);
@@ -906,23 +996,20 @@ function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, o
   }
 
   else if (claimType === 'fortune_check') {
-    // Fortune Teller: check one player for demon
+    // Fortune Teller: uses detectsAsEvil for demon detection
     if (isHonestAndAccurate) {
-      // Pick a player to check (not self)
-      // Red herring: one good player who shows as demon
-      const goodPlayers = othersExcludingSelf.filter(p => !p.isEvil && p.id !== demonSeat);
+      const goodPlayers = othersExcludingSelf.filter(p => !detectsAsEvil(p) && p.id !== demonSeat);
       const redHerring = goodPlayers.length > 0 ? pick(goodPlayers).id : null;
 
-      // Pick who to check: sometimes the demon, sometimes others
       const checkTarget = pick(othersExcludingSelf);
-      const isDemon = checkTarget.id === demonSeat || checkTarget.id === redHerring;
-      player.claimText = `I checked ${checkTarget.name} — they are ${isDemon ? '' : 'NOT '}the Demon.`;
-      player.claimDetail = { type: 'fortune', target: checkTarget.name, isDemon };
+      // Demon OR red herring OR Recluse (registers as evil -> shows as demon)
+      const showsAsDemon = checkTarget.id === demonSeat || checkTarget.id === redHerring ||
+        (checkTarget.registersAsEvil && Math.random() > 0.5);
+      player.claimText = `I checked ${checkTarget.name} — they are ${showsAsDemon ? '' : 'NOT '}the Demon.`;
+      player.claimDetail = { type: 'fortune', target: checkTarget.name, isDemon: showsAsDemon };
     } else {
-      // Wrong info
       const checkTarget = pick(othersExcludingSelf);
       const actuallyDemon = checkTarget.id === demonSeat;
-      // Give wrong answer
       const claimedDemon = !actuallyDemon;
       player.claimText = `I checked ${checkTarget.name} — they are ${claimedDemon ? '' : 'NOT '}the Demon.`;
       player.claimDetail = { type: 'fortune', target: checkTarget.name, isDemon: claimedDemon };
@@ -938,7 +1025,7 @@ const state = {
   game: null,
   selectedPlayer: null,
   accuseMode: false,
-  confirmAccuse: null,
+  confirmAccuse: false,
   streak: 0,
   totalScore: 0,
 };
@@ -958,24 +1045,19 @@ function render() {
 }
 
 function renderMenu() {
+  const difficulties = Object.entries(DIFFICULTY_CONFIG);
   app.innerHTML = `
     <div class="menu-screen">
       <div class="menu-icon">🩸</div>
       <h1 class="menu-title">Devil's Circle</h1>
-      <p class="menu-subtitle">A social deduction puzzle. Read the claims, find the contradictions, and unmask the Demon hiding in the circle.</p>
+      <p class="menu-subtitle">A social deduction puzzle. Read the claims, find the contradictions, and unmask all the evil players hiding in the circle.</p>
       <div class="difficulty-select">
-        <button class="diff-btn" data-diff="easy">
-          <span>Easy</span>
-          <span class="diff-info">5 players · No Drunk</span>
-        </button>
-        <button class="diff-btn" data-diff="normal">
-          <span>Normal</span>
-          <span class="diff-info">7 players · Drunk + Poison</span>
-        </button>
-        <button class="diff-btn" data-diff="hard">
-          <span>Hard</span>
-          <span class="diff-info">9 players · 2 Minions</span>
-        </button>
+        ${difficulties.map(([key, cfg]) => `
+          <button class="diff-btn" data-diff="${key}">
+            <span>${cfg.players} Players</span>
+            <span class="diff-info">${cfg.info}</span>
+          </button>
+        `).join('')}
       </div>
       ${state.totalScore > 0 ? `<div style="color: var(--gold); font-size: 0.85rem; font-weight: 600;">Score: ${state.totalScore} · Streak: ${state.streak}</div>` : ''}
       <div class="menu-links">
@@ -1008,24 +1090,29 @@ function renderHowToPlay() {
       <p>A demon and its minions hide among the townsfolk in a circle. Everyone claims to be good — but evil players always lie.</p>
 
       <h3>🎯 Your Goal</h3>
-      <p>Read everyone's claims, find contradictions, and correctly accuse the <strong style="color:var(--demon)">Demon</strong>.</p>
+      <p>Read everyone's claims, find contradictions, and mark <strong>ALL</strong> evil players (Demon + Minions) as suspect. Then submit your accusation.</p>
 
       <h3>📜 The Rules</h3>
       <ul>
         <li><strong style="color:var(--good)">Townsfolk</strong> always tell the truth. Their information is accurate.</li>
         <li><strong style="color:var(--outsider)">The Drunk</strong> thinks they're a Townsfolk, but their info is <em>wrong</em>. They don't know they're drunk.</li>
+        <li><strong style="color:var(--outsider)">The Recluse</strong> honestly claims to be the Recluse, but <em>registers as evil</em> to all detection abilities (Empath, Chef, Investigator, Fortune Teller).</li>
         <li><strong style="color:var(--minion)">Minions</strong> claim to be a Townsfolk and fabricate their information.</li>
         <li><strong style="color:var(--demon)">The Demon</strong> claims to be a Townsfolk and fabricates information.</li>
-        <li>The <strong style="color:var(--minion)">Poisoner</strong> (Minion) poisons one Townsfolk, making that player's info wrong — but they still claim their real role.</li>
+        <li>The <strong style="color:var(--minion)">Poisoner</strong> poisons a player sitting <em>next to them</em>, making that player's info wrong — but they still claim their real role.</li>
+        <li>The <strong style="color:var(--minion)">Baron</strong> adds an extra Outsider and always sits <em>next to</em> that Outsider.</li>
+        <li>The <strong style="color:var(--minion)">Godfather</strong> registers as <em>good</em> to all detection abilities — invisible to Empath, Chef, Investigator, and Fortune Teller.</li>
       </ul>
 
       <h3>🔍 Deduction Tips</h3>
       <ul>
         <li>If two players claim the <strong>same role</strong>, at least one is lying.</li>
         <li>Cross-reference claims — if the Washerwoman says "#2 or #5 is the Chef," check what the Chef claims.</li>
-        <li>The Empath's neighbor count can confirm or deny evil in specific seats.</li>
+        <li>The Empath's neighbor count can confirm or deny evil in specific seats — but Recluse counts as evil and Godfather counts as good!</li>
         <li>The Chef's adjacent-evil-pair count constrains where evil can sit.</li>
+        <li>The Poisoner's target is always one of their neighbors — use this to narrow down who could be poisoned.</li>
         <li>Mark players as suspect (🔴) or cleared (🟢) to track your deductions.</li>
+        <li>You must find <strong>ALL</strong> evil players (Demon + all Minions) to win!</li>
       </ul>
 
       <h3>📖 Role Reference</h3>
@@ -1050,7 +1137,7 @@ function startGame(difficulty) {
   state.game = generateGame(difficulty);
   state.selectedPlayer = null;
   state.accuseMode = false;
-  state.confirmAccuse = null;
+  state.confirmAccuse = false;
   state.screen = 'game';
   render();
 
@@ -1089,7 +1176,7 @@ function renderGame() {
       <div class="game-header">
         <div class="game-header-left">
           <span class="header-title">Devil's Circle</span>
-          <span class="header-badge">${g.config.label}</span>
+          <span class="header-badge">${g.config.players}P</span>
         </div>
         <div class="header-icons">
           <button class="icon-btn" id="grimoire-btn" title="Role Reference">📖</button>
@@ -1135,8 +1222,8 @@ function renderGame() {
       <div class="claim-panel ${selectedP || state.accuseMode ? '' : 'empty'}">
         ${state.accuseMode ? `
           <div class="accuse-banner">
-            <div class="accuse-prompt">⚔ Who is the Demon?</div>
-            <div class="accuse-sub">Tap the player you believe is the Demon</div>
+            <div class="accuse-prompt">⚔ Mark all evil players as suspect</div>
+            <div class="accuse-sub">Use 🔴 Suspect marks, then tap "Submit Accusation" when ready</div>
             <button class="accuse-cancel" id="cancel-accuse">Cancel</button>
           </div>
         ` : selectedP ? `
@@ -1159,17 +1246,21 @@ function renderGame() {
 
       <div class="action-bar">
         <button class="action-btn grimoire-btn" id="grimoire-btn-bottom">📖</button>
-        <button class="action-btn accuse-btn" id="accuse-btn" ${state.accuseMode ? 'style="display:none"' : ''}>⚔ Accuse the Demon</button>
+        ${state.accuseMode ? `
+          <button class="action-btn accuse-btn" id="submit-accuse-btn">⚔ Submit Accusation (${g.players.filter(p => p.mark === 'suspect').length} marked)</button>
+        ` : `
+          <button class="action-btn accuse-btn" id="accuse-btn">⚔ Find All Evil</button>
+        `}
       </div>
 
-      ${state.confirmAccuse !== null ? `
+      ${state.confirmAccuse ? `
         <div class="modal-overlay">
           <div class="modal">
-            <h3>Accuse Player ${g.players[state.confirmAccuse].number}?</h3>
-            <p>You believe <strong>Player ${g.players[state.confirmAccuse].number}</strong> is the Demon. This will end the game and reveal all roles.</p>
+            <h3>Submit Accusation?</h3>
+            <p>You have marked <strong>${g.players.filter(p => p.mark === 'suspect').length} player${g.players.filter(p => p.mark === 'suspect').length !== 1 ? 's' : ''}</strong> as evil: ${g.players.filter(p => p.mark === 'suspect').map(p => p.name).join(', ') || 'none'}. This will end the game and reveal all roles.</p>
             <div class="modal-btns">
               <button class="modal-btn modal-cancel" id="cancel-confirm">Cancel</button>
-              <button class="modal-btn modal-confirm" id="confirm-accuse">Accuse</button>
+              <button class="modal-btn modal-confirm" id="confirm-accuse">Submit</button>
             </div>
           </div>
         </div>
@@ -1181,14 +1272,8 @@ function renderGame() {
   app.querySelectorAll('.player-node').forEach(node => {
     node.addEventListener('click', () => {
       const idx = parseInt(node.dataset.player);
-      if (state.accuseMode) {
-        state.confirmAccuse = idx;
-        state.accuseMode = false;
-        render();
-      } else {
-        state.selectedPlayer = state.selectedPlayer === idx ? null : idx;
-        render();
-      }
+      state.selectedPlayer = state.selectedPlayer === idx ? null : idx;
+      render();
     });
   });
 
@@ -1215,6 +1300,14 @@ function renderGame() {
     });
   }
 
+  const submitAccuseBtn = app.querySelector('#submit-accuse-btn');
+  if (submitAccuseBtn) {
+    submitAccuseBtn.addEventListener('click', () => {
+      state.confirmAccuse = true;
+      render();
+    });
+  }
+
   const cancelAccuse = app.querySelector('#cancel-accuse');
   if (cancelAccuse) {
     cancelAccuse.addEventListener('click', () => {
@@ -1226,7 +1319,7 @@ function renderGame() {
   const cancelConfirm = app.querySelector('#cancel-confirm');
   if (cancelConfirm) {
     cancelConfirm.addEventListener('click', () => {
-      state.confirmAccuse = null;
+      state.confirmAccuse = false;
       render();
     });
   }
@@ -1234,7 +1327,7 @@ function renderGame() {
   const confirmAccuse = app.querySelector('#confirm-accuse');
   if (confirmAccuse) {
     confirmAccuse.addEventListener('click', () => {
-      resolveAccusation(state.confirmAccuse);
+      resolveAccusation();
     });
   }
 
@@ -1253,29 +1346,52 @@ function renderGame() {
 }
 
 
-function resolveAccusation(accusedId) {
+function resolveAccusation() {
   const g = state.game;
-  const won = accusedId === g.demonSeat;
 
-  // Calculate score
+  // Check: all evil players must be marked suspect
+  const suspectIds = new Set(g.players.filter(p => p.mark === 'suspect').map(p => p.id));
+  const evilIds = new Set(g.evilSeats);
+
+  let allEvilFound = true;
+  for (const eid of evilIds) {
+    if (!suspectIds.has(eid)) { allEvilFound = false; break; }
+  }
+
+  // Count false accusations (innocents marked suspect)
+  let falseAccusations = 0;
+  for (const sid of suspectIds) {
+    if (!evilIds.has(sid)) falseAccusations++;
+  }
+
+  const won = allEvilFound && falseAccusations === 0;
+  const partialWin = allEvilFound && falseAccusations > 0;
+
   let score = 0;
-  if (won) {
+  if (allEvilFound) {
     score += 100;
-    state.streak++;
-    score += state.streak * 10; // streak bonus
-
-    // Bonus for marking minions as suspect
-    for (const ms of g.minionSeats) {
-      if (g.players[ms].mark === 'suspect') score += 50;
+    if (won) {
+      state.streak++;
+      score += state.streak * 10;
+      score += 50; // perfect bonus
+    } else {
+      // Partial: found all evil but had false accusations
+      score -= falseAccusations * 25;
+      state.streak = Math.max(0, state.streak - 1);
     }
   } else {
     state.streak = 0;
   }
 
+  score = Math.max(0, score);
   state.totalScore += score;
-  state.game.result = { won, accusedId, score };
+
+  const missedEvil = [...evilIds].filter(id => !suspectIds.has(id));
+  const wrongSuspects = [...suspectIds].filter(id => !evilIds.has(id));
+
+  state.game.result = { won, partialWin, score, falseAccusations, missedEvil, wrongSuspects, allEvilFound };
   state.screen = 'reveal';
-  state.confirmAccuse = null;
+  state.confirmAccuse = false;
   state.accuseMode = false;
   render();
 }
@@ -1286,40 +1402,61 @@ function renderReveal() {
   const r = g.result;
   const teamOrder = { demon: 0, minion: 1, outsider: 2, townsfolk: 3 };
 
-  // Sort: demon first, then minions, then outsiders, then townsfolk
   const sortedPlayers = [...g.players].sort((a, b) => {
     return (teamOrder[a.actualTeam] || 3) - (teamOrder[b.actualTeam] || 3);
   });
 
+  let resultTitle, resultIcon, resultClass, resultSubtitle;
+  if (r.won) {
+    resultIcon = '🎉';
+    resultTitle = 'VICTORY!';
+    resultClass = 'win';
+    resultSubtitle = `You correctly identified all ${g.evilSeats.length} evil players!`;
+  } else if (r.partialWin) {
+    resultIcon = '😅';
+    resultTitle = 'CLOSE!';
+    resultClass = 'lose';
+    resultSubtitle = `You found all evil players but also accused ${r.falseAccusations} innocent${r.falseAccusations > 1 ? 's' : ''}.`;
+  } else {
+    resultIcon = '💀';
+    resultTitle = 'DEFEATED';
+    resultClass = 'lose';
+    const missed = r.missedEvil.map(id => `Player ${g.players[id].number}`).join(', ');
+    resultSubtitle = `You missed: ${missed}`;
+  }
+
   app.innerHTML = `
     <div class="reveal-screen">
       <div class="reveal-result">
-        <div class="reveal-icon">${r.won ? '🎉' : '💀'}</div>
-        <div class="reveal-title ${r.won ? 'win' : 'lose'}">${r.won ? 'VICTORY!' : 'DEFEATED'}</div>
-        <div class="reveal-subtitle">
-          ${r.won
-            ? `You found the Demon! Player ${g.players[g.demonSeat].number} was the ${g.players[g.demonSeat].actualRole.name}.`
-            : `You accused Player ${g.players[r.accusedId].number}, but the Demon was Player ${g.players[g.demonSeat].number}!`
-          }
-        </div>
+        <div class="reveal-icon">${resultIcon}</div>
+        <div class="reveal-title ${resultClass}">${resultTitle}</div>
+        <div class="reveal-subtitle">${resultSubtitle}</div>
         ${r.score > 0 ? `<div class="reveal-score">⭐ +${r.score} points (Streak: ${state.streak})</div>` : ''}
       </div>
 
       <div class="reveal-players">
         ${sortedPlayers.map((p, i) => {
           const teamClass = `team-${p.actualTeam}`;
-          const wasAccused = p.id === r.accusedId;
-          const isDemon = p.actualTeam === 'demon';
+          const wasSuspected = p.mark === 'suspect';
+          const isActuallyEvil = p.isEvil;
           const wasPoisoned = p.isPoisoned;
           const isDrunk = p.isDrunk;
+          const isRecluse = p.actualRole && p.actualRole.key === 'recluse';
 
           let roleLabel = p.actualRole.name;
           if (isDrunk) roleLabel += ' (thought they were ' + p.claimedRole + ')';
-          if (wasPoisoned) roleLabel += ' (Poisoned)';
+          if (wasPoisoned) roleLabel += ' 🧪 Poisoned — info was wrong';
+          if (isRecluse) roleLabel += ' (registered as evil)';
+          if (p.registersAsGood && p.isEvil) roleLabel += ' (registered as good)';
 
           let tagHTML = '';
-          if (wasAccused && !isDemon) tagHTML = '<span class="rp-tag accused">Accused</span>';
-          if (isDemon) tagHTML = '<span class="rp-tag actual-demon">Demon</span>';
+          if (isActuallyEvil && wasSuspected) {
+            tagHTML = '<span class="rp-tag" style="background: var(--success); color: white;">✓ Found</span>';
+          } else if (isActuallyEvil && !wasSuspected) {
+            tagHTML = '<span class="rp-tag actual-demon">Missed</span>';
+          } else if (!isActuallyEvil && wasSuspected) {
+            tagHTML = '<span class="rp-tag accused">Wrong</span>';
+          }
 
           return `
             <div class="reveal-player ${teamClass}" style="animation-delay: ${i * 0.08}s">
@@ -1337,12 +1474,12 @@ function renderReveal() {
 
       ${g.poisonedSeat !== null ? `
         <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin: 0.5rem 0; line-height: 1.5;">
-          🧪 Player ${g.players[g.poisonedSeat].number} was <strong style="color: var(--minion)">poisoned</strong> by the Poisoner — their information was wrong.
+          🧪 Player ${g.players[g.poisonedSeat].number} was <strong style="color: var(--minion)">poisoned</strong> by the Poisoner (their neighbor) — their information was wrong.
         </div>
       ` : ''}
 
       <div class="reveal-actions">
-        <button class="reveal-btn play-again-btn" id="play-again">Play Again (${g.config.label})</button>
+        <button class="reveal-btn play-again-btn" id="play-again">Play Again (${g.config.players}P)</button>
         <button class="reveal-btn menu-return-btn" id="return-menu">Back to Menu</button>
       </div>
     </div>
