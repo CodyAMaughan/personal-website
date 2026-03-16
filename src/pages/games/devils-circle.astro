@@ -1,0 +1,90 @@
+---
+export const prerender = true;
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout
+    title="Devil's Circle | Cody Maughan"
+    description="A single-player social deduction puzzle inspired by Blood on the Clocktower. Read the claims, find the contradictions, and unmask the Demon hiding in the circle."
+    showBackground={false}
+>
+    <main class="max-w-6xl mx-auto px-4 py-20">
+        <header class="mb-8 text-center">
+            <h1
+                class="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-500"
+            >
+                Devil's Circle
+            </h1>
+            <p class="text-text-muted text-lg font-mono">
+                A social deduction puzzle — find the Demon in the circle
+            </p>
+        </header>
+
+        <div
+            class="relative w-full border border-surface-highlight rounded-lg overflow-hidden bg-black"
+            style="max-width: 430px; margin: 0 auto; aspect-ratio: 9 / 16;"
+        >
+            <iframe
+                id="game-frame"
+                src="/games/devils-circle/game.html"
+                class="w-full h-full border-0"
+                allow="autoplay; fullscreen"
+                allowfullscreen
+            >
+            </iframe>
+        </div>
+
+        <div class="flex justify-center gap-4 mt-4">
+            <button
+                id="fullscreen-btn"
+                class="px-4 py-2 text-sm font-mono border border-surface-highlight rounded-lg hover:border-primary hover:text-primary transition-all cursor-pointer bg-transparent text-text-muted"
+            >
+                Fullscreen
+            </button>
+        </div>
+
+        <section class="mt-12 border border-surface-highlight rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-4 text-text">About</h2>
+            <p class="text-text-muted leading-relaxed mb-4">
+                Devil's Circle is a single-player social deduction puzzle inspired by
+                Blood on the Clocktower. A demon and its minions hide among the
+                townsfolk in a circle — everyone claims to be good, but evil players
+                always lie. Read the claims, find the contradictions, and correctly
+                accuse the Demon. Features three difficulty levels with mechanics like
+                the Drunk (gets wrong info without knowing) and the Poisoner (corrupts
+                a townsfolk's information).
+            </p>
+            <div class="flex flex-wrap gap-2">
+                {
+                    [
+                        "Social Deduction",
+                        "Logic Puzzle",
+                        "Mobile Optimized",
+                        "Vanilla JS",
+                    ].map((tag) => (
+                        <span class="px-3 py-1 text-xs font-mono border border-surface-highlight rounded-full text-text-muted">
+                            {tag}
+                        </span>
+                    ))
+                }
+            </div>
+        </section>
+    </main>
+</Layout>
+
+<script>
+    document.getElementById("fullscreen-btn")?.addEventListener("click", () => {
+        const frame = document.getElementById(
+            "game-frame"
+        ) as HTMLIFrameElement;
+        if (frame) {
+            frame.requestFullscreen?.();
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+    });
+</script>
