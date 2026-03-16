@@ -132,7 +132,7 @@
   /* ============ GAME SCREEN ============ */
   .game-screen {
     display: flex; flex-direction: column; height: 100%;
-    animation: fadeIn 0.4s ease;
+    animation: fadeIn 0.4s ease; position: relative;
   }
 
   .game-header {
@@ -168,12 +168,13 @@
 
   .circle-area {
     flex: 1; display: flex; align-items: center; justify-content: center;
-    position: relative; min-height: 0; padding: 1rem;
+    position: relative; min-height: 0; padding: 2rem 2rem 1rem;
+    overflow: visible;
   }
 
   .player-circle {
     width: var(--circle-size); height: var(--circle-size);
-    position: relative;
+    position: relative; overflow: visible; flex-shrink: 0;
   }
 
   .player-node {
@@ -189,8 +190,9 @@
     width: 54px; height: 54px; border-radius: 50%;
     background: var(--surface-light); border: 2.5px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem; font-weight: 700; color: var(--text);
+    font-size: 1.5rem; font-weight: 700; color: var(--text);
     transition: all 0.3s; position: relative; overflow: hidden;
+    line-height: 1;
   }
 
   .player-node.selected .player-avatar { border-color: var(--accent); box-shadow: 0 0 16px var(--accent-dim); }
@@ -199,8 +201,8 @@
 
   .player-name {
     position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
-    font-size: 0.65rem; font-weight: 600; white-space: nowrap;
-    color: var(--text-muted); text-align: center;
+    font-size: 0.75rem; font-weight: 700; white-space: nowrap;
+    color: var(--text-muted); text-align: center; font-family: var(--font-mono);
     max-width: 70px; overflow: hidden; text-overflow: ellipsis;
   }
 
@@ -227,13 +229,13 @@
   /* Claim Panel (bottom sheet) */
   .claim-panel {
     background: var(--surface); border-top: 1px solid var(--border);
-    padding: 1rem 1.25rem 1.5rem; flex-shrink: 0;
-    transition: all 0.3s ease; max-height: 45vh; overflow-y: auto;
+    padding: 1rem 1.25rem 0.75rem; flex-shrink: 0;
+    transition: all 0.3s ease; max-height: 35vh; overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .claim-panel.empty {
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1.25rem;
   }
 
   .claim-header {
@@ -300,26 +302,36 @@
   }
 
   /* ============ ACCUSATION MODE ============ */
-  .accuse-overlay {
-    position: absolute; inset: 0; background: rgba(8, 8, 15, 0.85);
-    z-index: 50; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    animation: fadeIn 0.3s ease; padding: 1.5rem;
+  .accuse-banner {
+    background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(168,85,247,0.1));
+    border: 1px solid var(--demon); border-radius: 12px;
+    padding: 0.75rem 1rem; text-align: center;
+    animation: fadeIn 0.3s ease;
   }
 
   .accuse-prompt {
-    font-size: 1.3rem; font-weight: 700; color: var(--demon);
-    text-align: center; margin-bottom: 0.5rem;
+    font-size: 1rem; font-weight: 700; color: var(--demon); margin-bottom: 0.25rem;
   }
 
   .accuse-sub {
-    font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 1.5rem;
+    font-size: 0.75rem; color: var(--text-muted);
   }
 
   .accuse-cancel {
-    margin-top: 1.5rem; padding: 0.75rem 2rem; border-radius: 10px;
+    margin-top: 0.5rem; padding: 0.5rem 1.5rem; border-radius: 8px;
     background: var(--surface); border: 1px solid var(--border);
-    color: var(--text-muted); font-size: 0.9rem; cursor: pointer; font-family: var(--font);
+    color: var(--text-muted); font-size: 0.8rem; cursor: pointer; font-family: var(--font);
+  }
+
+  /* Pulsing red ring on nodes during accuse mode */
+  .player-node.accuse-target .player-avatar {
+    border-color: var(--demon);
+    animation: accusePulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes accusePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+    50% { box-shadow: 0 0 12px 4px rgba(239,68,68,0.3); }
   }
 
   /* ============ REVEAL SCREEN ============ */
@@ -364,8 +376,8 @@
   .reveal-player .rp-avatar {
     width: 40px; height: 40px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
-    border: 2px solid var(--border);
+    font-weight: 700; font-size: 1.2rem; flex-shrink: 0;
+    border: 2px solid var(--border); line-height: 1;
   }
 
   .reveal-player.team-townsfolk .rp-avatar { background: var(--good); color: white; border-color: var(--good); }
@@ -467,7 +479,7 @@
   /* ============ RESPONSIVE ============ */
   @media (min-width: 500px) {
     :root { --circle-size: 380px; }
-    .player-avatar { width: 60px; height: 60px; font-size: 1.3rem; }
+    .player-avatar { width: 60px; height: 60px; font-size: 1.6rem; }
     .player-node { width: 60px; height: 60px; }
   }
 
@@ -497,11 +509,15 @@
 
 // === CONSTANTS ===
 
-const NAMES = [
-  'Aldric','Beatrix','Cedric','Dahlia','Edmund','Fiona','Gareth','Helena',
-  'Isolde','Jasper','Katarina','Leopold','Morgana','Nikolai','Ophelia',
-  'Percival','Quinn','Rosalind','Silas','Thalia','Ulric','Vivienne'
-];
+// Role icons used in player circle nodes
+const ROLE_ICONS = {
+  'Washerwoman': '🧺',
+  'Librarian': '📚',
+  'Investigator': '🔍',
+  'Chef': '🍳',
+  'Empath': '💜',
+  'Fortune Teller': '🔮',
+};
 
 const TOWNSFOLK_ROLES = {
   washerwoman: {
@@ -547,11 +563,6 @@ const OUTSIDER_ROLES = {
     name: 'Drunk',
     team: 'outsider',
     desc: 'You think you are a Townsfolk, but you are not. Your information is wrong.',
-  },
-  recluse: {
-    name: 'Recluse',
-    team: 'outsider',
-    desc: 'You might register as evil to information abilities.',
   }
 };
 
@@ -604,17 +615,15 @@ function generateGame(difficulty) {
   const config = DIFFICULTY_CONFIG[difficulty];
   const numPlayers = config.players;
 
-  // Pick names
-  const names = pickN(NAMES, numPlayers);
-
   // Pick Townsfolk roles from pool
   const townsfolkKeys = shuffle(Object.keys(TOWNSFOLK_ROLES));
   const assignedTownsfolkKeys = townsfolkKeys.slice(0, config.townsfolk);
 
-  // Create player array with seat indices
-  const players = names.map((name, i) => ({
+  // Create player array with numbered players
+  const players = Array.from({ length: numPlayers }, (_, i) => ({
     id: i,
-    name,
+    name: `#${i + 1}`,
+    number: i + 1,
     seatIndex: i,
     actualRole: null,
     actualTeam: null,
@@ -780,7 +789,6 @@ function generateClaim(player, allPlayers, numPlayers, demonSeat, minionSeats, o
     } else {
       // False info: pick 2 random players, claim a role neither actually has (or inaccurate)
       const pair = pickN(othersExcludingSelf, 2);
-      // Pick a role to attribute
       const roleToClaim = pick(Object.values(TOWNSFOLK_ROLES)).name;
       player.claimText = `One of ${pair[0].name} or ${pair[1].name} is the ${roleToClaim}.`;
       player.claimDetail = { type: 'pair', names: [pair[0].name, pair[1].name], role: roleToClaim };
@@ -1014,7 +1022,7 @@ function renderHowToPlay() {
       <h3>🔍 Deduction Tips</h3>
       <ul>
         <li>If two players claim the <strong>same role</strong>, at least one is lying.</li>
-        <li>Cross-reference claims — if the Washerwoman says "A or B is the Chef," check what the Chef claims.</li>
+        <li>Cross-reference claims — if the Washerwoman says "#2 or #5 is the Chef," check what the Chef claims.</li>
         <li>The Empath's neighbor count can confirm or deny evil in specific seats.</li>
         <li>The Chef's adjacent-evil-pair count constrains where evil can sit.</li>
         <li>Mark players as suspect (🔴) or cleared (🟢) to track your deductions.</li>
@@ -1064,7 +1072,7 @@ function renderGame() {
   // Calculate player positions in circle
   const positions = g.players.map((p, i) => {
     const angle = (i / n) * 2 * Math.PI - Math.PI / 2; // start from top
-    const radius = 0.42; // as fraction of circle size
+    const radius = 0.38; // as fraction of circle size — leaves room for node size + names
     const x = 50 + radius * 100 * Math.cos(angle);
     const y = 50 + radius * 100 * Math.sin(angle);
     return { x, y };
@@ -1102,6 +1110,7 @@ function renderGame() {
               isSelected ? 'selected' : '',
               p.mark === 'suspect' ? 'suspect' : '',
               p.mark === 'cleared' ? 'cleared' : '',
+              state.accuseMode ? 'accuse-target' : '',
             ].filter(Boolean).join(' ');
 
             const markHTML = p.mark === 'suspect'
@@ -1110,11 +1119,12 @@ function renderGame() {
               ? '<div class="player-mark mark-cleared">✓</div>'
               : '';
 
+            const roleIcon = ROLE_ICONS[p.claimedRole] || '❓';
             return `
               <div class="${classes}" data-player="${i}"
                    style="left: ${pos.x}%; top: ${pos.y}%;">
-                <div class="player-avatar">${p.name[0]}</div>
-                <div class="player-name">${p.name}</div>
+                <div class="player-avatar">${roleIcon}</div>
+                <div class="player-name">${p.number}</div>
                 ${markHTML}
               </div>
             `;
@@ -1122,10 +1132,16 @@ function renderGame() {
         </div>
       </div>
 
-      <div class="claim-panel ${selectedP ? '' : 'empty'}">
-        ${selectedP ? `
+      <div class="claim-panel ${selectedP || state.accuseMode ? '' : 'empty'}">
+        ${state.accuseMode ? `
+          <div class="accuse-banner">
+            <div class="accuse-prompt">⚔ Who is the Demon?</div>
+            <div class="accuse-sub">Tap the player you believe is the Demon</div>
+            <button class="accuse-cancel" id="cancel-accuse">Cancel</button>
+          </div>
+        ` : selectedP ? `
           <div class="claim-header">
-            <span class="claim-player-name">${selectedP.name}</span>
+            <span class="claim-player-name">Player ${selectedP.number}</span>
             <span class="claim-role-badge" style="background: ${roleCounts[selectedP.claimedRole] > 1 ? 'var(--gold)' : 'var(--good)'}">
               ${selectedP.claimedRole}${roleCounts[selectedP.claimedRole] > 1 ? ' ⚠' : ''}
             </span>
@@ -1143,23 +1159,14 @@ function renderGame() {
 
       <div class="action-bar">
         <button class="action-btn grimoire-btn" id="grimoire-btn-bottom">📖</button>
-        <button class="action-btn accuse-btn" id="accuse-btn">⚔ Accuse the Demon</button>
+        <button class="action-btn accuse-btn" id="accuse-btn" ${state.accuseMode ? 'style="display:none"' : ''}>⚔ Accuse the Demon</button>
       </div>
-
-      ${state.accuseMode ? `
-        <div class="accuse-overlay" id="accuse-overlay">
-          <div style="font-size: 3rem; margin-bottom: 0.5rem;">⚔</div>
-          <div class="accuse-prompt">Who is the Demon?</div>
-          <div class="accuse-sub">Tap the player you believe is the Demon</div>
-          <button class="accuse-cancel" id="cancel-accuse">Cancel</button>
-        </div>
-      ` : ''}
 
       ${state.confirmAccuse !== null ? `
         <div class="modal-overlay">
           <div class="modal">
-            <h3>Accuse ${g.players[state.confirmAccuse].name}?</h3>
-            <p>You believe <strong>${g.players[state.confirmAccuse].name}</strong> is the Demon. This will end the game and reveal all roles.</p>
+            <h3>Accuse Player ${g.players[state.confirmAccuse].number}?</h3>
+            <p>You believe <strong>Player ${g.players[state.confirmAccuse].number}</strong> is the Demon. This will end the game and reveal all roles.</p>
             <div class="modal-btns">
               <button class="modal-btn modal-cancel" id="cancel-confirm">Cancel</button>
               <button class="modal-btn modal-confirm" id="confirm-accuse">Accuse</button>
@@ -1291,8 +1298,8 @@ function renderReveal() {
         <div class="reveal-title ${r.won ? 'win' : 'lose'}">${r.won ? 'VICTORY!' : 'DEFEATED'}</div>
         <div class="reveal-subtitle">
           ${r.won
-            ? `You found the Demon! ${g.players[g.demonSeat].name} was the ${g.players[g.demonSeat].actualRole.name}.`
-            : `You accused ${g.players[r.accusedId].name}, but the Demon was ${g.players[g.demonSeat].name}!`
+            ? `You found the Demon! Player ${g.players[g.demonSeat].number} was the ${g.players[g.demonSeat].actualRole.name}.`
+            : `You accused Player ${g.players[r.accusedId].number}, but the Demon was Player ${g.players[g.demonSeat].number}!`
           }
         </div>
         ${r.score > 0 ? `<div class="reveal-score">⭐ +${r.score} points (Streak: ${state.streak})</div>` : ''}
@@ -1316,9 +1323,9 @@ function renderReveal() {
 
           return `
             <div class="reveal-player ${teamClass}" style="animation-delay: ${i * 0.08}s">
-              <div class="rp-avatar">${p.name[0]}</div>
+              <div class="rp-avatar">${ROLE_ICONS[p.claimedRole] || '❓'}</div>
               <div class="rp-info">
-                <div class="rp-name">${p.name}</div>
+                <div class="rp-name">Player ${p.number}</div>
                 <div class="rp-role">${roleLabel}</div>
                 <div class="rp-claim">Claimed: ${p.claimedRole} — "${p.claimText}"</div>
               </div>
@@ -1330,7 +1337,7 @@ function renderReveal() {
 
       ${g.poisonedSeat !== null ? `
         <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin: 0.5rem 0; line-height: 1.5;">
-          🧪 ${g.players[g.poisonedSeat].name} was <strong style="color: var(--minion)">poisoned</strong> by the Poisoner — their information was wrong.
+          🧪 Player ${g.players[g.poisonedSeat].number} was <strong style="color: var(--minion)">poisoned</strong> by the Poisoner — their information was wrong.
         </div>
       ` : ''}
 
