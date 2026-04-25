@@ -1,0 +1,13 @@
+---
+export const prerender = true;
+import Layout from "../../layouts/Layout.astro";
+import ScriptureMemoryTrainer from "../../components/scripture-memory/ScriptureMemoryTrainer";
+---
+
+<Layout
+    title="Scripture Memory | Cody Maughan"
+    description="A mobile-first memorization trainer for the 96 Doctrinal Mastery scripture passages."
+    showBackground={false}
+>
+    <ScriptureMemoryTrainer client:load />
+</Layout>
