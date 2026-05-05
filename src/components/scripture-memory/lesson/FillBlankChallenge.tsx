@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Challenge } from "../types";
 import { classNames } from "../ui";
+import { ChallengePanel } from "./ChallengePanel";
 import { ChallengeHeader } from "./ChallengeHeader";
 import { CheckButton } from "./CheckButton";
 
@@ -14,9 +15,9 @@ export function FillBlankChallenge({
   const [choice, setChoice] = useState("");
 
   return (
-    <article className="grid gap-5 rounded-lg border border-white/10 bg-white/[0.04] p-5 sm:p-7">
+    <ChallengePanel actions={<CheckButton disabled={!choice} onClick={() => onComplete(choice)} />}>
       <ChallengeHeader challenge={challenge} />
-      <p className="rounded-lg border border-white/10 bg-black/25 p-4 text-lg leading-8 text-white/85">
+      <p className="max-h-[min(30dvh,12rem)] overflow-y-auto rounded-lg border border-white/10 bg-black/25 p-4 text-base leading-7 text-white/85 sm:text-lg sm:leading-8">
         {challenge.blankedText}
       </p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -36,7 +37,6 @@ export function FillBlankChallenge({
           </button>
         ))}
       </div>
-      <CheckButton disabled={!choice} onClick={() => onComplete(choice)} />
-    </article>
+    </ChallengePanel>
   );
 }

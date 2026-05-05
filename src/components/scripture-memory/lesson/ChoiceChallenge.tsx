@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Challenge } from "../types";
 import { classNames } from "../ui";
+import { ChallengePanel } from "./ChallengePanel";
 import { ChallengeHeader } from "./ChallengeHeader";
 import { CheckButton } from "./CheckButton";
 
@@ -14,7 +15,7 @@ export function ChoiceChallenge({
   const [choice, setChoice] = useState("");
 
   return (
-    <article className="grid gap-5 rounded-lg border border-white/10 bg-white/[0.04] p-5 sm:p-7">
+    <ChallengePanel actions={<CheckButton disabled={!choice} onClick={() => onComplete(choice)} />}>
       <ChallengeHeader challenge={challenge} />
       <div className="grid gap-3">
         {challenge.options?.map((option) => (
@@ -33,7 +34,6 @@ export function ChoiceChallenge({
           </button>
         ))}
       </div>
-      <CheckButton disabled={!choice} onClick={() => onComplete(choice)} />
-    </article>
+    </ChallengePanel>
   );
 }

@@ -42,6 +42,15 @@ body {
   overflow-x: hidden;
 }
 
+body.scripture-memory-lesson-active {
+  overflow: hidden;
+}
+
+body.scripture-memory-lesson-active > nav,
+body.scripture-memory-lesson-active > footer {
+  display: none;
+}
+
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 8px;

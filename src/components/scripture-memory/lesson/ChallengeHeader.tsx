@@ -10,7 +10,7 @@ export function ChallengeHeader({ challenge }: { challenge: Challenge }) {
             ? "Key Phrase"
             : "Passage"}
       </div>
-      <h2 className="whitespace-pre-line text-2xl font-bold leading-tight text-white sm:text-3xl">
+      <h2 className="whitespace-pre-line text-xl font-bold leading-tight text-white sm:text-3xl">
         {challenge.prompt}
       </h2>
     </div>

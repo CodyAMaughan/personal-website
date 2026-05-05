@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { Challenge } from "../types";
+import { classNames } from "../ui";
+import { ChallengePanel } from "./ChallengePanel";
 import { ChallengeHeader } from "./ChallengeHeader";
 import { CheckButton } from "./CheckButton";
 
@@ -13,16 +15,17 @@ export function TypeChallenge({
   const [typed, setTyped] = useState("");
 
   return (
-    <article className="grid gap-5 rounded-lg border border-white/10 bg-white/[0.04] p-5 sm:p-7">
+    <ChallengePanel actions={<CheckButton disabled={!typed.trim()} onClick={() => onComplete(typed)} />}>
       <ChallengeHeader challenge={challenge} />
       <textarea
         value={typed}
         onChange={(event) => setTyped(event.currentTarget.value)}
-        rows={challenge.target === "reference" ? 2 : 8}
         placeholder={challenge.target === "reference" ? "Type the reference" : "Type from memory"}
-        className="w-full resize-y rounded-lg border border-white/10 bg-black/25 p-4 text-base leading-7 text-white outline-none transition placeholder:text-white/35 focus:border-emerald-300/60"
+        className={classNames(
+          "w-full resize-none rounded-lg border border-white/10 bg-black/25 p-4 text-base leading-7 text-white outline-none transition placeholder:text-white/35 focus:border-emerald-300/60",
+          challenge.target === "reference" ? "h-24" : "h-[min(34dvh,16rem)]",
+        )}
       />
-      <CheckButton disabled={!typed.trim()} onClick={() => onComplete(typed)} />
-    </article>
+    </ChallengePanel>
   );
 }

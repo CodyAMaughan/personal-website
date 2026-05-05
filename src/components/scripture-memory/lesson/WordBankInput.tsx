@@ -63,7 +63,10 @@ export function WordBankInput({
 
   return (
     <div className="grid gap-4">
-      <div className="min-h-24 rounded-lg border border-emerald-300/25 bg-emerald-300/10 p-3">
+      <div
+        data-testid="word-bank-answer"
+        className="min-h-20 max-h-[min(22dvh,11rem)] overflow-y-auto rounded-lg border border-emerald-300/25 bg-emerald-300/10 p-3"
+      >
         <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.14em] text-emerald-100/70">
           <span>Answer</span>
           <span>
@@ -87,7 +90,10 @@ export function WordBankInput({
           )}
         </div>
       </div>
-      <div className="max-h-80 overflow-y-auto rounded-lg border border-white/10 bg-black/20 p-3">
+      <div
+        data-testid="word-bank-available"
+        className="max-h-[min(34dvh,18rem)] overflow-y-auto rounded-lg border border-white/10 bg-black/20 p-3"
+      >
         <div className="mb-3 flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.14em] text-white/40">
           <span>Word Bank</span>
           <span>{availableWords.length} left</span>

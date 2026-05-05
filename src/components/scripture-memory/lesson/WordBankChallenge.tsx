@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Challenge } from "../types";
+import { ChallengePanel } from "./ChallengePanel";
 import { ChallengeHeader } from "./ChallengeHeader";
 import { CheckButton } from "./CheckButton";
 import {
@@ -25,7 +26,14 @@ export function WordBankChallenge({
   }, [challenge]);
 
   return (
-    <article className="grid gap-5 rounded-lg border border-white/10 bg-white/[0.04] p-5 sm:p-7">
+    <ChallengePanel
+      actions={
+        <CheckButton
+          disabled={selectedWords.length === 0 || availableWords.length > 0}
+          onClick={() => onComplete(selectedWords.map((word) => word.text).join(" "))}
+        />
+      }
+    >
       <ChallengeHeader challenge={challenge} />
       <WordBankInput
         availableWords={availableWords}
@@ -33,10 +41,6 @@ export function WordBankChallenge({
         onAvailableWordsChange={setAvailableWords}
         onSelectedWordsChange={setSelectedWords}
       />
-      <CheckButton
-        disabled={selectedWords.length === 0 || availableWords.length > 0}
-        onClick={() => onComplete(selectedWords.map((word) => word.text).join(" "))}
-      />
-    </article>
+    </ChallengePanel>
   );
 }
