@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build && pagefind --site dist",
+    "scripture:audio": "node scripts/scripture-memory/build-church-audio.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },

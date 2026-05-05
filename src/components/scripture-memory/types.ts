@@ -23,6 +23,31 @@ export interface Challenge {
   chunkVerse?: string;
 }
 
+export interface ChallengeResult {
+  passageId: string;
+  target: MasteryTarget;
+  kind: ChallengeKind;
+  score: number;
+  masteryScore?: number;
+  answer?: string;
+  expected?: string;
+}
+
+export type AppScreen = "home" | "paths" | "path" | "stats" | "library" | "lesson";
+
+export interface ChallengeFeedback {
+  score: number;
+  answer: string;
+  expected: string;
+  target: MasteryTarget;
+  kind: ChallengeKind;
+}
+
+export interface PracticeLabel {
+  title: string;
+  subtitle: string;
+}
+
 export interface PassageProgress {
   passageId: string;
   referenceMastery: number;
@@ -35,12 +60,21 @@ export interface PassageProgress {
   lastPracticedAt?: string;
 }
 
+export interface PathStepProgress {
+  stepId: string;
+  bestScore: number;
+  attempts: number;
+  completed: boolean;
+  lastPracticedAt?: string;
+}
+
 export interface AppProgress {
   version: 1;
   streak: number;
   lastPracticeDate?: string;
   totalSessions: number;
   passages: Record<string, PassageProgress>;
+  steps: Record<string, PathStepProgress>;
 }
 
 export interface VoiceAttempt {
@@ -50,6 +84,11 @@ export interface VoiceAttempt {
   error?: string;
 }
 
+export type ReadAloudVoice = "female" | "male";
+
 export interface AppSettings {
   voiceEnabled: boolean;
+  readAloudVoice: ReadAloudVoice;
+  selectedPlanId?: string;
+  selectedTrackId?: string;
 }
