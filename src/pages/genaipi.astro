@@ -1,0 +1,188 @@
+---
+export const prerender = true;
+import Layout from "../layouts/Layout.astro";
+import { Image } from "astro:assets";
+import procodeLogo from "../assets/images/procode-logo.png";
+import libreMotionLogo from "../assets/images/libre-motion-logo.png";
+import ghostWriterLogo from "../assets/images/ghost-writer-logo.png";
+import autographLogo from "../assets/images/autograph-logo.png";
+
+const projects = [
+    {
+        name: "ProCode",
+        tag: "Medical-coding RAG on FastAPI + pgvector. In production.",
+        logo: procodeLogo,
+        link: "https://procode.health",
+        accent: "#D62566",
+    },
+    {
+        name: "LibreMotion",
+        tag: "Agentic Remotion pipeline. It rendered this video.",
+        logo: libreMotionLogo,
+        link: "/libremotion",
+        accent: "#06b6d4",
+    },
+    {
+        name: "Follow Him Scripture Shorts",
+        tag: "Daily channel — batch-produced weekly in ~30 minutes. 92 days unbroken.",
+        logo: null,
+        link: "/follow-him-scripture-shorts",
+        accent: "#4ade80",
+    },
+    {
+        name: "Ghost Writer",
+        tag: "Party game where AI can ghost-write your answers.",
+        logo: ghostWriterLogo,
+        link: "https://playghostwriter.online",
+        accent: "#4ade80",
+    },
+    {
+        name: "Bunked",
+        tag: "Cryptographic provenance for human creativity.",
+        logo: autographLogo,
+        link: "https://autograph.art",
+        accent: "#f59e0b",
+    },
+];
+---
+
+<Layout
+    title="For Jon Cheney & the GenAIPI talent network | Cody Maughan"
+    description="A 40-second pitch video for Jon Cheney and the GenAIPI talent network. Builder. Shipper. Leader."
+    showBackground={true}
+>
+    <main class="max-w-5xl mx-auto px-6 py-16 md:py-20 space-y-16" data-pagefind-body>
+
+        <!-- Hero -->
+        <section class="text-center space-y-5">
+            <p
+                class="text-xs md:text-sm uppercase tracking-[0.35em] text-primary font-mono"
+            >
+                For Jon Cheney · GenAIPI Talent Network
+            </p>
+            <h1
+                class="text-4xl md:text-6xl font-bold text-white tracking-tight"
+            >
+                Who is Cody Maughan?
+            </h1>
+            <p class="text-lg text-text-muted max-w-2xl mx-auto">
+                A 40-second answer, rendered by my own pipeline.
+            </p>
+        </section>
+
+        <!-- Video -->
+        <section
+            class="rounded-2xl border border-white/10 overflow-hidden bg-black shadow-2xl"
+        >
+            <video
+                src="/videos/genaipi-pitch.mp4"
+                controls
+                autoplay
+                muted
+                playsinline
+                class="w-full aspect-video block"
+                poster="/videos/genaipi-pitch-poster.jpg"
+            ></video>
+        </section>
+
+        <!-- Pitch copy -->
+        <section
+            class="max-w-3xl mx-auto space-y-5 text-lg text-gray-300 leading-relaxed"
+        >
+            <p>
+                Your post named two <span class="text-white font-semibold">fCAIO</span> shapes — business operators fluent at the C-level, and active builders with multi-platform AI chops. I've been doing both at once for six years.
+            </p>
+            <p>
+                <span class="text-white font-semibold">Enterprise:</span> I led an AI team at Mastercard on a regulated entity-standardization workflow. Q4 → Q1 → Q2 throughput went <span class="font-mono text-primary">400 → 5K → 100K</span> entities. Real shipped values.
+            </p>
+            <p>
+                <span class="text-white font-semibold">Solo:</span> Five things in production, more on deck.
+            </p>
+        </section>
+
+        <!-- Projects -->
+        <section class="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            {
+                projects.map((p) => (
+                    <a
+                        href={p.link}
+                        class="group flex items-center gap-5 p-5 rounded-2xl border border-white/10 bg-surface/40 backdrop-blur-sm hover:border-primary/40 hover:bg-surface/70 transition-all"
+                        style={`box-shadow: 0 0 0 1px transparent; --accent: ${p.accent};`}
+                    >
+                        <div
+                            class="w-14 h-14 rounded-xl bg-surface flex items-center justify-center overflow-hidden flex-shrink-0 border border-white/5"
+                        >
+                            {p.logo ? (
+                                <Image
+                                    src={p.logo}
+                                    alt={`${p.name} logo`}
+                                    width={56}
+                                    height={56}
+                                    class="w-full h-full object-contain"
+                                />
+                            ) : (
+                                <span
+                                    class="font-mono text-2xl font-bold"
+                                    style={`color: ${p.accent}`}
+                                >
+                                    {p.name.charAt(0)}
+                                </span>
+                            )}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div
+                                class="text-lg font-bold text-white group-hover:text-primary transition-colors"
+                            >
+                                {p.name}
+                            </div>
+                            <div class="text-sm text-text-muted mt-1 leading-snug">
+                                {p.tag}
+                            </div>
+                        </div>
+                    </a>
+                ))
+            }
+        </section>
+
+        <!-- Close -->
+        <section
+            class="text-center space-y-6 pt-12 border-t border-white/10"
+        >
+            <p
+                class="text-3xl md:text-4xl font-bold text-primary tracking-tight"
+                style="text-shadow: 0 0 30px rgba(74,222,128,0.4);"
+            >
+                I'd like to show up.
+            </p>
+            <div
+                class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 font-mono text-sm text-text-muted"
+            >
+                <a
+                    href="mailto:codyamaughan@gmail.com"
+                    class="hover:text-primary transition-colors"
+                    >codyamaughan@gmail.com</a
+                >
+                <span class="text-white/20">·</span>
+                <a
+                    href="https://www.linkedin.com/in/cody-maughan-1817739b/"
+                    target="_blank"
+                    rel="noopener"
+                    class="hover:text-primary transition-colors">LinkedIn</a
+                >
+                <span class="text-white/20">·</span>
+                <a
+                    href="https://github.com/CodyAMaughan"
+                    target="_blank"
+                    rel="noopener"
+                    class="hover:text-primary transition-colors">GitHub</a
+                >
+                <span class="text-white/20">·</span>
+                <a
+                    href="/projects"
+                    class="hover:text-primary transition-colors"
+                    >More work</a
+                >
+            </div>
+        </section>
+    </main>
+</Layout>
