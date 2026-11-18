@@ -60,10 +60,10 @@ export const PROJECTS: Project[] = [
     },
     {
         title: "Autograph",
-        hook: "The 'Blue Check' for human creativity. A blockchain-based provenance protocol that allows artists to cryptographically sign their work, distinguishing human effort from AI-generated noise.",
-        description: "As AI content floods the internet, provenance becomes the new currency of trust. Autograph provides a decentralized, immutable ledger for human creativity. It's a protocol for truth in a world of synthetic media.",
+        hook: "The 'Blue Check' for human creativity. A provenance protocol that lets artists cryptographically sign their work — distinguishing human effort from AI-generated content in a world saturated by both.",
+        description: "As AI content floods the internet, provenance becomes the new currency of trust. Autograph is a protocol for verifying human creativity: detecting AI-generated work, surfacing the human authors behind real content, and giving artists a way to prove their hand in what they make.",
         link: "https://autograph.art",
-        tags: ["Blockchain", "Web3", "Provenance"],
+        tags: ["AI", "Provenance", "Content Detection"],
         featured: true,
         primaryColor: "#ffffff", // Pure White
         secondaryColor: "#f59e0b", // Amber/Gold

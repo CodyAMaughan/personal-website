@@ -6,6 +6,15 @@ export const POST: APIRoute = async ({ request }) => {
     try {
         const data = await request.json();
 
+        // Honeypot check — if the hidden field is filled, it's a bot.
+        // Return success to avoid signaling the trap, but don't forward.
+        if (data.honeypot && data.honeypot.trim() !== '') {
+            return new Response(JSON.stringify({ message: "Success" }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" }
+            });
+        }
+
         // Validate required fields
         if (!data.name || data.name.trim() === '') {
             return new Response(JSON.stringify({ message: "Name is required" }), {

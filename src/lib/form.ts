@@ -15,6 +15,7 @@ export interface ContactFormData {
     email: string;
     budget: string;
     message: string;
+    honeypot?: string;
 }
 
 interface SubmitResult {

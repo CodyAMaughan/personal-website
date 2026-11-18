@@ -1,0 +1,52 @@
+---
+export const prerender = true;
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+    title="Resume | Cody Maughan"
+    description="Cody Maughan — Forward Deployed Engineer · Agentic AI. Senior ML engineer with 8+ years shipping production agentic AI at enterprise scale."
+>
+    <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3 mb-6">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Resume
+                </h1>
+                <p class="text-text-muted mt-1">
+                    Forward Deployed Engineer · Agentic AI
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <a
+                    href="/resume.pdf"
+                    download
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-black font-semibold hover:opacity-90 transition-opacity text-sm"
+                >
+                    Download PDF
+                </a>
+                <a
+                    href="/resume.pdf"
+                    target="_blank"
+                    rel="noopener"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-text hover:bg-white/5 transition-colors text-sm"
+                >
+                    Open in new tab
+                </a>
+            </div>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02] shadow-2xl">
+            <iframe
+                src="/resume.pdf"
+                title="Cody Maughan Resume"
+                class="w-full"
+                style="height: 80vh; min-height: 600px; background: white;"
+            ></iframe>
+        </div>
+
+        <p class="text-xs text-text-muted mt-4 text-center">
+            Trouble viewing the embed? <a href="/resume.pdf" class="text-primary hover:underline">Open the PDF directly</a>.
+        </p>
+    </main>
+</Layout>

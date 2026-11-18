@@ -4,9 +4,10 @@ import { submitContactForm, type FormStatus } from '../lib/form';
 
 const BUDGET_OPTIONS = [
     { value: '', label: 'Select a budget range...' },
-    { value: '< $2k', label: '< $2k' },
-    { value: '$2k - $5k', label: '$2k - $5k' },
-    { value: '$5k+', label: '$5k+' },
+    { value: 'Discovery sprint (~$5k)', label: 'Discovery sprint (~$5k)' },
+    { value: 'Prototype engagement ($15k – $35k)', label: 'Prototype engagement ($15k – $35k)' },
+    { value: '$35k+ / multi-month', label: '$35k+ / multi-month' },
+    { value: 'Not sure yet', label: 'Not sure yet' },
 ];
 
 export const ContactForm = () => {
@@ -30,7 +31,7 @@ export const ContactForm = () => {
         setStatus('submitting');
         setErrorMessage('');
 
-        const result = await submitContactForm({ name, email, budget, message });
+        const result = await submitContactForm({ name, email, budget, message, honeypot });
 
         if (result.success) {
             setStatus('success');

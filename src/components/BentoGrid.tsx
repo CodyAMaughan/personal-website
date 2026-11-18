@@ -149,7 +149,7 @@ export const BentoGrid = ({ optimizedLogos = {} }: { optimizedLogos?: Record<str
                             Selected Work
                         </h2>
                         <p className="text-text-muted max-w-lg text-lg">
-                            A showcase of technical products bridging AI, Blockchain, and Healthcare.
+                            A showcase of agentic AI products across creative tools, healthcare, and content provenance.
                         </p>
                     </div>
 
