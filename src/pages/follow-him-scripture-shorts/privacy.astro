@@ -1,0 +1,32 @@
+---
+export const prerender = true;
+import Layout from "../../layouts/Layout.astro";
+const updated = "November 17, 2026";
+---
+
+<Layout title="Privacy Policy | Follow Him Scripture Shorts" description="Privacy policy for the Follow Him Scripture Shorts publishing tool.">
+  <main class="pt-20">
+    <section class="max-w-3xl mx-auto px-6 py-20 text-text-muted leading-relaxed space-y-6">
+      <a href="/follow-him-scripture-shorts" class="text-sm font-mono hover:text-primary transition-colors inline-block">← Follow Him Scripture Shorts</a>
+      <h1 class="text-4xl font-bold text-white">Privacy Policy</h1>
+      <p class="text-sm font-mono">Last updated {updated}</p>
+
+      <p>Follow Him Scripture Shorts is a personal, non-commercial tool operated by Cody Maughan. It creates short scripture videos and publishes them to the Follow Him Scripture Shorts channels that Cody Maughan owns. It is not offered to the public and has no other users.</p>
+
+      <h2 class="text-2xl font-semibold text-white pt-4">Information the tool accesses</h2>
+      <p>When the owner connects a YouTube or X account, the tool receives OAuth access and refresh tokens and basic channel/profile information (such as the channel ID and name). It uses the YouTube Data API only to upload videos and set their titles, descriptions, and publishing schedule on the owner's own channel.</p>
+
+      <h2 class="text-2xl font-semibold text-white pt-4">How it is stored and used</h2>
+      <p>Tokens and account details are stored locally on the owner's own computer and are used only to publish the owner's videos. They are never sold, shared with third parties, or used for advertising. No data about viewers or other Google users is collected.</p>
+
+      <h2 class="text-2xl font-semibold text-white pt-4">Google API Services</h2>
+      <p>Use of information received from Google APIs adheres to the <a class="text-primary hover:underline" href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements. This tool uses YouTube API Services; see the <a class="text-primary hover:underline" href="https://policies.google.com/privacy">Google Privacy Policy</a>.</p>
+
+      <h2 class="text-2xl font-semibold text-white pt-4">Revoking access and deletion</h2>
+      <p>Access can be revoked at any time from <a class="text-primary hover:underline" href="https://myaccount.google.com/permissions">Google Account permissions</a> or X's connected apps settings. Revoking access or disconnecting the account in the tool removes the stored tokens.</p>
+
+      <h2 class="text-2xl font-semibold text-white pt-4">Contact</h2>
+      <p>Questions: <a class="text-primary hover:underline" href="mailto:followhimscriptureshorts@gmail.com">followhimscriptureshorts@gmail.com</a></p>
+    </section>
+  </main>
+</Layout>
