@@ -14,7 +14,12 @@ const videos = (
     new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf(),
 );
 
-const featuredVideo = videos.find((video) => video.data.featured) ?? videos[0];
+// Newest short is featured; the grid shows the next most recent ones.
+const RECENT_COUNT = 12;
+const featuredVideo = videos[0];
+const recentVideos = videos.slice(1, RECENT_COUNT + 1);
+const formatDate = (date: Date) =>
+  date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 const featuredIsVertical = featuredVideo?.data.aspectRatio === "9:16";
 const featuredMediaWrapperClass = featuredIsVertical
   ? "mx-auto w-full max-w-sm md:max-w-md"
@@ -172,7 +177,7 @@ const toAspectRatio = (ratio?: string) =>
           </div>
         ) : (
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {videos.map((video) => {
+            {recentVideos.map((video) => {
               const thumbnail =
                 getMuxThumbnail(video.data.muxPlaybackId) ||
                 getYouTubeThumbnail(video.data.youtubeId);
@@ -210,6 +215,9 @@ const toAspectRatio = (ratio?: string) =>
                     <h3 class="text-white font-semibold group-hover:text-primary transition-colors">
                       {video.data.title}
                     </h3>
+                    <p class="text-xs font-mono text-white/60">
+                      {formatDate(video.data.pubDate)}
+                    </p>
                     <p class="text-sm text-text-muted">
                       {video.data.description || "No description provided."}
                     </p>
@@ -222,7 +230,13 @@ const toAspectRatio = (ratio?: string) =>
       }
     </section>
 
-    <section class="flex justify-center">
+    <section class="flex flex-wrap justify-center gap-4">
+      <a
+        href="/libremotion/portfolio"
+        class="inline-flex items-center px-6 py-3 rounded-lg border border-white/25 text-white hover:border-white/60 hover:bg-white/10 transition-colors font-semibold"
+      >
+        Browse all {videos.length} shorts &rarr;
+      </a>
       <a
         href="https://www.youtube.com/@FollowHimScriptureShorts"
         target="_blank"
@@ -239,8 +253,8 @@ const toAspectRatio = (ratio?: string) =>
         <li>Weekly production cadence: Sundays.</li>
         <li>Publishing schedule: one short each day for the upcoming week.</li>
         <li>
-          Current platforms: YouTube and X (X automation still being
-          stabilized).
+          Current platforms: YouTube and X, published automatically. This page
+          updates daily as new shorts go live.
         </li>
       </ul>
     </section>
