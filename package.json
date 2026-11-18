@@ -20,6 +20,8 @@
     "@keystatic/core": "^0.5.48",
     "@mux/mux-player-react": "^3.10.2",
     "@pagefind/default-ui": "^1.4.0",
+    "@picovoice/porcupine-web": "^4.0.0",
+    "@picovoice/web-voice-processor": "^4.0.9",
     "@tailwindcss/vite": "^4.1.18",
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",

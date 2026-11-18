@@ -1,0 +1,30 @@
+---
+export const prerender = true;
+import Layout from "../../layouts/Layout.astro";
+import App from "../../components/claude-runner/App";
+import "../../styles/global.css";
+---
+
+<Layout title="claude-runner | Cody Maughan" showBackground={false}>
+    <main class="relative min-h-screen bg-background pt-24 pb-16">
+        <div class="max-w-2xl mx-auto px-4 mb-8">
+            <h1 class="text-3xl font-semibold mb-2">claude-runner</h1>
+            <p class="text-text-muted text-sm leading-relaxed">
+                A voice interface to Claude Code I built so I can talk to my agent on a run.
+                Hold the button, ask anything; the response comes back as a voice note with
+                full transport control. Wake-word and music coexistence land in a future build.
+                <br />
+                <span class="text-xs">
+                    The brain runs on my Mac; this page is the front-end. Set your backend URL
+                    in settings (or see the <a
+                        href="https://github.com/CodyAMaughan"
+                        class="text-primary hover:underline">repo</a
+                    >
+                    to run your own).
+                </span>
+            </p>
+        </div>
+
+        <App client:only="react" />
+    </main>
+</Layout>
