@@ -52,9 +52,12 @@ const getMuxThumbnail = (playbackId?: string) => {
   return `https://image.mux.com/${playbackId}/thumbnail.jpg?time=1`;
 };
 
-const getYouTubeThumbnail = (youtubeId?: string) => {
+const getYouTubeThumbnail = (youtubeId?: string, aspectRatio?: string) => {
   if (!youtubeId) return null;
-  return `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+  // Shorts have a native 9:16 thumbnail; hqdefault is 4:3 with letterboxing.
+  return aspectRatio === "9:16"
+    ? `https://i.ytimg.com/vi/${youtubeId}/oar2.jpg`
+    : `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
 };
 
 const toAspectRatio = (ratio?: string) =>
@@ -180,7 +183,7 @@ const toAspectRatio = (ratio?: string) =>
             {recentVideos.map((video) => {
               const thumbnail =
                 getMuxThumbnail(video.data.muxPlaybackId) ||
-                getYouTubeThumbnail(video.data.youtubeId);
+                getYouTubeThumbnail(video.data.youtubeId, video.data.aspectRatio);
               const aspectRatio = toAspectRatio(video.data.aspectRatio);
 
               return (

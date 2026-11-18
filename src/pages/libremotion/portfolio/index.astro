@@ -13,9 +13,12 @@ const getMuxThumbnail = (playbackId?: string) => {
   return `https://image.mux.com/${playbackId}/thumbnail.jpg?time=1`;
 };
 
-const getYouTubeThumbnail = (youtubeId?: string) => {
+const getYouTubeThumbnail = (youtubeId?: string, aspectRatio?: string) => {
   if (!youtubeId) return null;
-  return `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+  // Shorts have a native 9:16 thumbnail; hqdefault is 4:3 with letterboxing.
+  return aspectRatio === "9:16"
+    ? `https://i.ytimg.com/vi/${youtubeId}/oar2.jpg`
+    : `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
 };
 
 const projectLabel: Record<string, string> = {
@@ -55,7 +58,7 @@ const projectLabel: Record<string, string> = {
         <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {portfolioVideos.map((video) => {
             const muxThumb = getMuxThumbnail(video.data.muxPlaybackId);
-            const youtubeThumb = getYouTubeThumbnail(video.data.youtubeId);
+            const youtubeThumb = getYouTubeThumbnail(video.data.youtubeId, video.data.aspectRatio);
             const thumbnail = muxThumb || youtubeThumb;
             const isVertical = video.data.aspectRatio === "9:16";
             const aspectRatio = video.data.aspectRatio
