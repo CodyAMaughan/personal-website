@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
-import { BookOpen, Menu, Moon, ScrollText, Settings2, Sun, Undo2 } from "lucide-react";
+import { BookOpen, Menu, Moon, NotebookPen, ScrollText, Settings2, Sun, Undo2 } from "lucide-react";
 import { newGame, phaseLabel } from "./engine/state";
 import type { Game } from "./engine/types";
 import { decodeGame, encodeGame, useGame } from "./useGame";
 import { Button, cx, Sheet } from "./ui/common";
 import { DayScreen } from "./ui/DayScreen";
 import { GrimoireScreen } from "./ui/GrimoireScreen";
+import { InfoScreen } from "./ui/InfoScreen";
 import { NightScreen } from "./ui/NightScreen";
 import { ScriptScreen } from "./ui/ScriptScreen";
 import { SetupScreen } from "./ui/SetupScreen";
 
-type Tab = "phase" | "grimoire" | "script";
+type Tab = "phase" | "grimoire" | "info" | "script";
 
 export default function GrimoireApp() {
   const { game, commit, update, undo, canUndo } = useGame();
@@ -35,6 +36,7 @@ export default function GrimoireApp() {
   const tabs: { id: Tab; label: string; Icon: typeof Sun }[] = [
     { id: "phase", label: game.phase === "setup" ? "Setup" : game.phase === "night" ? "Night" : "Day", Icon: PhaseIcon },
     { id: "grimoire", label: "Grimoire", Icon: BookOpen },
+    { id: "info", label: "Info", Icon: NotebookPen },
     { id: "script", label: "Script", Icon: ScrollText },
   ];
 
@@ -67,11 +69,12 @@ export default function GrimoireApp() {
         {tab === "phase" && game.phase === "night" && <NightScreen game={game} commit={commit} update={update} openGrimoire={() => setTab("grimoire")} />}
         {tab === "phase" && game.phase === "day" && <DayScreen game={game} commit={commit} />}
         {tab === "grimoire" && (game.players.length ? <GrimoireScreen game={game} update={update} /> : <Empty />)}
+        {tab === "info" && (game.players.length ? <InfoScreen game={game} update={update} /> : <Empty />)}
         {tab === "script" && (game.scriptRoles.length ? <ScriptScreen game={game} /> : <Empty />)}
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-800 bg-zinc-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur" aria-label="Main">
-        <div className="mx-auto grid max-w-lg grid-cols-3">
+        <div className="mx-auto grid max-w-lg grid-cols-4">
           {tabs.map(({ id, label, Icon }) => (
             <button key={id} onClick={() => setTab(id)} aria-current={tab === id ? "page" : undefined} className={cx("flex min-h-16 flex-col items-center justify-center gap-0.5 text-sm", tab === id ? "text-amber-300" : "text-zinc-400")}>
               <Icon size={24} />

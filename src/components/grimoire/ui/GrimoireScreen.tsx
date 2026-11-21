@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { CircleDot, List, Plus, UserPlus } from "lucide-react";
-import { defaultAlignment, role, TEAM_LABEL } from "../engine/roles";
-import { addReminder, aliveNonTravellers, derivedReminders, kill, log, malfunction, uid } from "../engine/state";
+import { role, TEAM_LABEL } from "../engine/roles";
+import { bluffClashes, changeBelieves, changeRole, marionetteWarnings } from "../engine/setup";
+import { addReminder, aliveNonTravellers, clone, derivedReminders, kill, log, malfunction, uid } from "../engine/state";
 import type { Game, Player, Reminder } from "../engine/types";
 import { Button, Chip, cx, RoleIcon, SectionTitle, Sheet } from "./common";
 import { RolePicker } from "./RolePicker";
@@ -27,6 +28,7 @@ export function GrimoireScreen({ game, update }: { game: Game; update: (fn: (g: 
   const living = aliveNonTravellers(game).length;
 
   const inPlay = new Set(game.players.flatMap((p) => [p.role, p.believes ?? ""]));
+  const clashes = bluffClashes(game);
   const bluffOptions = game.scriptRoles.filter((id) => ["townsfolk", "outsider"].includes(role(id).team) && !inPlay.has(id));
 
   return (
@@ -51,10 +53,12 @@ export function GrimoireScreen({ game, update }: { game: Game; update: (fn: (g: 
       <div className="grid grid-cols-3 gap-2">
         {[0, 1, 2].map((i) => {
           const id = game.bluffs[i];
+          const clash = !!id && clashes.includes(id);
           return (
-            <button key={i} onClick={() => setBluffSlot(i)} className="flex min-h-24 flex-col items-center justify-center gap-1 rounded-xl border border-zinc-800 bg-zinc-900 p-2 text-sm hover:bg-zinc-800" aria-label={id ? `Bluff ${i + 1}: ${role(id).name}. Change.` : `Choose bluff ${i + 1}`}>
+            <button key={i} onClick={() => setBluffSlot(i)} className={cx("flex min-h-24 flex-col items-center justify-center gap-1 rounded-xl border p-2 text-sm hover:bg-zinc-800", clash ? "border-rose-600 bg-rose-950/50" : "border-zinc-800 bg-zinc-900")} aria-label={id ? `Bluff ${i + 1}: ${role(id).name}${clash ? ", in play" : ""}. Change.` : `Choose bluff ${i + 1}`}>
               {id ? <RoleIcon id={id} size={44} /> : <Plus />}
               <span>{id ? role(id).name : "Choose"}</span>
+              {clash && <span className="text-xs font-semibold text-rose-300">In play!</span>}
             </button>
           );
         })}
@@ -184,6 +188,7 @@ const GENERIC = ["Drunk", "Poisoned", "Safe", "Mad", "No Ability", "Dead", "Is T
 function PlayerSheet({ game, p, update, onClose }: { game: Game; p: Player; update: (fn: (g: Game) => void) => void; onClose: () => void }) {
   const [picking, setPicking] = useState<null | "role" | "believes">(null);
   const [custom, setCustom] = useState("");
+  const [changeNotes, setChangeNotes] = useState<string[]>([]);
   const idx = game.players.findIndex((q) => q.id === p.id);
   const mut = (fn: (q: Player, g: Game) => void) =>
     update((g) => {
@@ -229,6 +234,13 @@ function PlayerSheet({ game, p, update, onClose }: { game: Game; p: Player; upda
         <p className="mt-2 rounded-lg bg-amber-950/60 p-2 text-sm text-amber-100">
           ⚠ {p.name} {mal.join(" and ")}.
         </p>
+      )}
+      {[...changeNotes, ...(p.role === "marionette" ? marionetteWarnings(game) : [])].length > 0 && (
+        <ul role="status" className="mt-2 space-y-0.5 rounded-lg border border-violet-700 bg-violet-950/60 p-2 text-sm text-violet-100">
+          {[...new Set([...changeNotes, ...(p.role === "marionette" ? marionetteWarnings(game) : [])])].map((n) => (
+            <li key={n}>• {n}</li>
+          ))}
+        </ul>
       )}
 
       <div className="mt-3 grid grid-cols-2 gap-2">
@@ -347,17 +359,14 @@ function PlayerSheet({ game, p, update, onClose }: { game: Game; p: Player; upda
         roles={game.scriptRoles}
         allowAll
         onClose={() => setPicking(null)}
-        onPick={(id) =>
-          mut((q, g) => {
-            if (picking === "believes") q.believes = id;
-            else {
-              q.role = id;
-              q.alignment = role(id).team === "traveller" ? q.alignment : defaultAlignment(role(id).team);
-              if (id !== "drunk" && id !== "marionette" && id !== "lunatic") delete q.believes;
-              log(g, `${q.name} is now the ${role(id).name}.`);
-            }
-          })
-        }
+        onPick={(id) => {
+          // Worked out on a copy so the notes can be shown without setting state inside an updater.
+          const next = clone(game);
+          const notes = picking === "believes" ? changeBelieves(next, p.id, id) : changeRole(next, p.id, id);
+          log(next, picking === "believes" ? `${p.name} now thinks they are the ${role(id).name}.` : `${p.name} is now the ${role(id).name}.`);
+          update((g) => Object.assign(g, next));
+          setChangeNotes(notes);
+        }}
       />
     </Sheet>
   );

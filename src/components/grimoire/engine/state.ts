@@ -27,6 +27,7 @@ export function newGame(): Game {
     exorcisedDemon: false,
     pending: [],
     log: [],
+    told: [],
     winner: null,
   };
 }

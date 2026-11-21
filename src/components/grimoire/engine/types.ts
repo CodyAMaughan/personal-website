@@ -68,6 +68,27 @@ export interface StepChoice {
   targets: string[];
   option?: string;
   roles?: string[];
+  /** What the Storyteller decided to tell: the truth, the suggested false info, or their own. */
+  told?: "true" | "fake" | "custom";
+  custom?: { big?: string; players?: string[]; roles?: string[] };
+}
+
+/** What a player was shown, plus who it was shown to. */
+export interface ToldEntry {
+  id: string;
+  /** Night number, or 0 for something recorded by hand during the day. */
+  night: number;
+  day?: number;
+  playerIds: string[];
+  /** Character whose ability gave the info (or "generic"). */
+  role: string;
+  /** Plain-text summary, frozen when recorded. */
+  text: string;
+  /** Whether it matched the true info at the time. */
+  truthful: boolean;
+  /** The ability was drunk/poisoned when used. */
+  malfunctioning?: boolean;
+  note?: string;
 }
 
 export interface Game {
@@ -95,5 +116,7 @@ export interface Game {
   /** Prompts the Storyteller must resolve (Sweetheart, Barber, Boomdandy...). */
   pending: string[];
   log: LogEntry[];
+  /** Record of info given to players (older saves may not have it). */
+  told?: ToldEntry[];
   winner: Alignment | null;
 }

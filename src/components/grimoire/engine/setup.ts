@@ -180,6 +180,103 @@ export function placeSetupReminders(g: Game) {
   }
 }
 
+/** Add or remove setup reminders after a character change, without re-rolling ones still valid. */
+export function syncSetupReminders(g: Game): string[] {
+  const notes: string[] = [];
+  const holder = (label: string, roleId: string) => g.players.find((p) => p.reminders.some((r) => r.role === roleId && r.label === label));
+  const drop = (label: string, roleId: string) => {
+    for (const p of g.players) p.reminders = p.reminders.filter((r) => !(r.role === roleId && r.label === label));
+  };
+  const ftInPlay = g.players.some((p) => (p.believes ?? p.role) === "fortuneteller");
+  const rh = holder("Red Herring", "fortuneteller");
+  if (ftInPlay && !rh) {
+    const pickRh = pick(g.players.filter((p) => p.alignment === "good" && role(p.role).team !== "traveller"));
+    if (pickRh) {
+      addReminder(pickRh, "fortuneteller", "Red Herring", "never", 0);
+      notes.push(`Red Herring placed on ${pickRh.name}. Move it on the Grimoire if you'd rather.`);
+    }
+  } else if (!ftInPlay && rh) {
+    drop("Red Herring", "fortuneteller");
+    notes.push("No Fortune Teller in play: Red Herring removed.");
+  }
+  const pm = g.players.find((p) => p.role === "puzzlemaster");
+  const pmDrunk = holder("Drunk", "puzzlemaster");
+  if (pm && !pmDrunk) {
+    const d = pick(g.players.filter((p) => p.id !== pm.id && p.alignment === "good"));
+    if (d) {
+      addReminder(d, "puzzlemaster", "Drunk", "never", 0);
+      notes.push(`Puzzlemaster's drunk placed on ${d.name}.`);
+    }
+  } else if (!pm && pmDrunk) {
+    drop("Drunk", "puzzlemaster");
+    notes.push("No Puzzlemaster in play: its Drunk token removed.");
+  }
+  return notes;
+}
+
+/** Bluffs that clash with a character now in play (held or believed). */
+export function bluffClashes(g: Game): string[] {
+  const inPlay = new Set(g.players.flatMap((p) => [p.role, p.believes ?? ""]));
+  return g.bluffs.filter((id) => inPlay.has(id));
+}
+
+/** Warnings about the Marionette's seat. */
+export function marionetteWarnings(g: Game): string[] {
+  const n = g.players.length;
+  const mi = g.players.findIndex((p) => p.role === "marionette");
+  if (mi < 0) return [];
+  const neighbours = [g.players[(mi + 1) % n], g.players[(mi - 1 + n) % n]];
+  return neighbours.some((p) => role(p.role).team === "demon") ? [] : ["The Marionette must sit next to the Demon: move a seat on the player sheet."];
+}
+
+/** Change a player's character after the deal, keeping setup-dependent state consistent. */
+export function changeRole(g: Game, playerId: string, id: string): string[] {
+  const p = g.players.find((q) => q.id === playerId);
+  if (!p) return [];
+  const prev = p.believes;
+  p.role = id;
+  if (role(id).team !== "traveller") p.alignment = defaultAlignment(role(id).team);
+  delete p.believes;
+  return afterCharacterChange(g, p, prev);
+}
+
+/** Change what a Drunk / Marionette / Lunatic thinks they are. */
+export function changeBelieves(g: Game, playerId: string, id: string): string[] {
+  const p = g.players.find((q) => q.id === playerId);
+  if (!p) return [];
+  const prev = p.believes;
+  p.believes = id;
+  return afterCharacterChange(g, p, prev);
+}
+
+const BELIEVERS = ["drunk", "marionette", "lunatic"];
+
+function afterCharacterChange(g: Game, p: Player, prevBelieves: string | undefined): string[] {
+  const notes: string[] = [];
+  // Fill in anyone who needs a believed character and lacks one (a new Demon also updates the Lunatic).
+  for (const q of g.players) {
+    if (!BELIEVERS.includes(q.role)) continue;
+    if (!q.believes || (q.role === "lunatic" && role(q.believes).team !== "demon")) assignBelievesFor(g, q);
+    else if (q.role === "lunatic" && q.id !== p.id && role(p.role).team === "demon") q.believes = p.role;
+  }
+  if (p.believes && p.believes !== prevBelieves) notes.push(`${p.name} thinks they are the ${role(p.believes).name}.`);
+  if (p.believes && g.players.some((q) => q.id !== p.id && q.role === p.believes)) notes.push(`Someone really is the ${role(p.believes).name} too.`);
+  notes.push(...syncSetupReminders(g));
+  notes.push(...marionetteWarnings(g));
+  const clash = bluffClashes(g);
+  if (clash.length) notes.push(`Bluff ${clash.map((id) => role(id).name).join(", ")} is now in play: pick another on the Grimoire.`);
+  return notes;
+}
+
+function assignBelievesFor(g: Game, p: Player) {
+  if (p.role === "lunatic") {
+    p.believes = g.players.find((q) => role(q.role).team === "demon")?.role ?? byTeam(g.scriptRoles, "demon")[0];
+    return;
+  }
+  const used = new Set(g.players.flatMap((q) => [q.role, q.believes ?? ""]));
+  p.believes = shuffle(byTeam(g.scriptRoles, "townsfolk").filter((id) => !used.has(id) && !g.bluffs.includes(id)))[0] ?? shuffle(byTeam(g.scriptRoles, "townsfolk").filter((id) => !used.has(id)))[0];
+}
+
 export function suggestBluffs(g: Game): string[] {
   const inPlay = new Set(g.players.flatMap((p) => [p.role, p.believes ?? ""]));
   const tf = shuffle(byTeam(g.scriptRoles, "townsfolk").filter((id) => !inPlay.has(id)));

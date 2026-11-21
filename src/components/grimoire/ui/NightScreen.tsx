@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Check, ChevronRight, Eye, SkipForward } from "lucide-react";
-import { buildQueue, completeStep, viewStep, type Step, type StepView } from "../engine/night";
+import { BookOpen, Check, ChevronRight, Eye, Minus, Plus, SkipForward, TriangleAlert } from "lucide-react";
+import { buildQueue, completeStep, customFrom, describeCard, viewStep, type InfoSpec, type Step, type StepView } from "../engine/night";
 import { role } from "../engine/roles";
 import { malfunction, player } from "../engine/state";
-import type { Game } from "../engine/types";
+import type { Game, StepChoice } from "../engine/types";
 import { Button, Chip, cx, PlayerButton, RoleIcon, SectionTitle } from "./common";
 import { ShowCard } from "./ShowCard";
 
@@ -110,7 +110,7 @@ function StepCard({ game, step, view, update, onDone, onSkip, openGrimoire }: { 
   const choice = game.choices[step.key] ?? { targets: [] };
   const mal = p && step.kind === "role" ? malfunction(game, p) : [];
 
-  const setChoice = (fn: (c: { targets: string[]; option?: string; roles?: string[] }) => void) =>
+  const setChoice = (fn: (c: StepChoice) => void) =>
     update((g) => {
       const c = g.choices[step.key] ?? { targets: [] };
       fn(c);
@@ -142,12 +142,14 @@ function StepCard({ game, step, view, update, onDone, onSkip, openGrimoire }: { 
       </header>
 
       {mal.length > 0 && !view.skip && (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {mal.map((m) => (
-            <Chip key={m} tone="warn">
-              {m}
-            </Chip>
-          ))}
+        <div role="note" className="mt-3 flex gap-2 rounded-xl border-2 border-amber-500 bg-amber-950/70 p-3 text-amber-100">
+          <TriangleAlert className="mt-0.5 shrink-0 text-amber-400" size={22} />
+          <div>
+            <p className="font-bold uppercase tracking-wide text-amber-300">Drunk or poisoned</p>
+            <p className="text-sm">
+              {p!.name} {mal.join(" and ")}. Their ability doesn't work tonight.
+            </p>
+          </div>
         </div>
       )}
 
@@ -199,6 +201,8 @@ function StepCard({ game, step, view, update, onDone, onSkip, openGrimoire }: { 
         </dl>
       )}
 
+      {view.info && !view.skip && <AnswerPicker game={game} info={view.info} choice={choice} malfunctioning={mal.length > 0} setChoice={setChoice} shown={view.show ? describeCard(game, view.show) : null} />}
+
       {view.caveats.length > 0 && (
         <ul className="mt-3 space-y-1 text-sm text-amber-200">
           {view.caveats.map((c) => (
@@ -233,12 +237,124 @@ function StepCard({ game, step, view, update, onDone, onSkip, openGrimoire }: { 
             <SkipForward size={18} /> Skip
           </Button>
         )}
-        <Button variant="primary" className={cx((view.skip || step.kind === "dawn") && "col-span-2")} onClick={onDone} disabled={needs > 0}>
-          <Check size={20} /> {step.kind === "dawn" ? "Start the day" : view.skip ? "Next" : needs > 0 ? `Choose ${needs} more` : "Done"}
+        <Button variant="primary" className={cx((view.skip || step.kind === "dawn") && "col-span-2")} onClick={onDone} disabled={needs > 0 || !!view.needsAnswer}>
+          <Check size={20} /> {step.kind === "dawn" ? "Start the day" : view.skip ? "Next" : needs > 0 ? `Choose ${needs} more` : view.needsAnswer ? "Choose what to tell" : "Done"}
         </Button>
       </div>
 
       {showing && view.show && <ShowCard card={view.show} game={game} onClose={() => setShowing(false)} />}
     </article>
+  );
+}
+
+/** Lets the Storyteller tell the truth, the suggested false info, or their own answer. */
+function AnswerPicker({ game, info, choice, malfunctioning, setChoice, shown }: { game: Game; info: InfoSpec; choice: StepChoice; malfunctioning: boolean; setChoice: (fn: (c: StepChoice) => void) => void; shown: string | null }) {
+  const mode = choice.told ?? (malfunctioning ? undefined : "true");
+  const custom = choice.custom ?? customFrom(info, choice);
+  const setCustom = (fn: (cu: NonNullable<StepChoice["custom"]>) => void) =>
+    setChoice((c) => {
+      const cu = c.custom ?? customFrom(info, c);
+      fn(cu);
+      c.custom = cu;
+      c.told = "custom";
+    });
+  const modes: { id: NonNullable<StepChoice["told"]>; label: string }[] = [
+    { id: "true", label: "Tell the truth" },
+    ...(info.fake ? [{ id: "fake" as const, label: "Suggested false" }] : []),
+    { id: "custom", label: "My own answer" },
+  ];
+  const toggleIn = (xs: string[] | undefined, id: string, max: number) => {
+    const cur = xs ?? [];
+    if (cur.includes(id)) return cur.filter((x) => x !== id);
+    return max === 1 ? [id] : [...cur, id].slice(-max);
+  };
+
+  return (
+    <section className="mt-3 rounded-xl border border-zinc-700 bg-zinc-950 p-3" aria-label="What to tell them">
+      <p className="mb-2 text-sm font-semibold text-zinc-300">What do you tell them?</p>
+      <div className={cx("grid gap-1.5", modes.length === 3 ? "grid-cols-3" : "grid-cols-2")}>
+        {modes.map((m) => (
+          <button
+            key={m.id}
+            aria-pressed={mode === m.id}
+            onClick={() =>
+              setChoice((c) => {
+                if (m.id === "custom" && !c.custom) c.custom = customFrom(info, c);
+                c.told = m.id;
+              })
+            }
+            className={cx(
+              "min-h-12 rounded-xl border px-2 text-sm font-medium leading-tight",
+              mode === m.id ? (m.id === "true" ? "border-sky-400 bg-sky-500/20 text-sky-100" : "border-amber-400 bg-amber-400/20 text-amber-100") : "border-zinc-700 bg-zinc-900 text-zinc-300",
+            )}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      {mode === "custom" && (
+        <div className="mt-3 space-y-3">
+          {info.edit.big === "yesno" && (
+            <div className="grid grid-cols-2 gap-1.5">
+              {["YES", "NO"].map((y) => (
+                <button key={y} aria-pressed={custom.big === y} onClick={() => setCustom((cu) => (cu.big = y))} className={cx("min-h-12 rounded-xl border text-lg font-bold", custom.big === y ? "border-amber-400 bg-amber-400/20" : "border-zinc-700")}>
+                  {y}
+                </button>
+              ))}
+            </div>
+          )}
+          {info.edit.big === "number" && (
+            <div className="flex items-center justify-center gap-4">
+              <Button variant="ghost" ariaLabel="One less" onClick={() => setCustom((cu) => (cu.big = String(Math.max(0, (Number(cu.big) || 0) - 1))))}>
+                <Minus />
+              </Button>
+              <span className="w-16 text-center text-4xl font-black tabular-nums" aria-live="polite">
+                {custom.big ?? "0"}
+              </span>
+              <Button variant="ghost" ariaLabel="One more" onClick={() => setCustom((cu) => (cu.big = String((Number(cu.big) || 0) + 1)))}>
+                <Plus />
+              </Button>
+            </div>
+          )}
+          {info.edit.players && (
+            <div>
+              <p className="mb-1 text-xs text-zinc-400">
+                Players to show ({custom.players?.length ?? 0}/{info.edit.players})
+              </p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {game.players.map((q) => (
+                  <PlayerButton key={q.id} p={q} selected={custom.players?.includes(q.id)} onClick={() => setCustom((cu) => (cu.players = toggleIn(cu.players, q.id, info.edit.players!)))} sub={role(q.role).name} />
+                ))}
+              </div>
+            </div>
+          )}
+          {info.edit.roles && (
+            <div>
+              <p className="mb-1 text-xs text-zinc-400">
+                Character{info.edit.roles > 1 ? "s" : ""} to show ({custom.roles?.length ?? 0}/{info.edit.roles})
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {(info.edit.roleFrom ?? game.scriptRoles).map((id) => (
+                  <button key={id} aria-pressed={custom.roles?.includes(id)} onClick={() => setCustom((cu) => (cu.roles = toggleIn(cu.roles, id, info.edit.roles!)))} className={cx("flex min-h-11 items-center gap-2 rounded-full border px-2 pr-3 text-sm", custom.roles?.includes(id) ? "border-amber-400 bg-amber-400/15" : "border-zinc-700")}>
+                    <RoleIcon id={id} size={26} /> {role(id).name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <p className={cx("mt-3 text-sm", shown ? "text-zinc-200" : "text-amber-300")}>
+        {shown ? (
+          <>
+            They’ll see: <span className="font-semibold">{shown}</span>
+          </>
+        ) : (
+          "Choose what to tell them. It’s saved to the Info tab when you tap Done."
+        )}
+      </p>
+    </section>
   );
 }

@@ -1,6 +1,7 @@
 import { cleanNightText, NIGHT_ORDER, role, TEAM_LABEL } from "./roles";
 import {
   addReminder,
+  uid,
   aliveNeighbours,
   aliveNonTravellers,
   checkWin,
@@ -15,7 +16,7 @@ import {
   startDay,
   team,
 } from "./state";
-import type { Game, Player, StepChoice, Team } from "./types";
+import type { Game, Player, StepChoice, Team, ToldEntry } from "./types";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -57,6 +58,13 @@ export interface ShowCard {
   text?: string;
 }
 
+/** Info a step gives: the true card, a suggested false one, and which parts the Storyteller may edit. */
+export interface InfoSpec {
+  truth: ShowCard;
+  fake?: ShowCard;
+  edit: { big?: "number" | "yesno"; players?: number; roles?: number; roleFrom?: string[]; heading?: string };
+}
+
 export interface StepView {
   title: string;
   skip?: string;
@@ -70,6 +78,9 @@ export interface StepView {
   show?: ShowCard;
   /** Show a "view grimoire" shortcut (Spy, Widow...). */
   grimoire?: boolean;
+  info?: InfoSpec;
+  /** The Storyteller still has to choose what to tell. */
+  needsAnswer?: boolean;
 }
 
 interface Ctx {
@@ -125,11 +136,6 @@ function misregisterCaveats(g: Game, ids?: string[]): string[] {
   return out;
 }
 
-function malCaveat(x: Ctx): string[] {
-  if (!x.mal.length || !x.p) return [];
-  return [`${x.p.name} ${x.mal.join(" and ")} — their ability doesn't work. Give false (or any) information.`];
-}
-
 function notInPlay(g: Game, t: Team) {
   const used = new Set(g.players.flatMap((p) => [p.role, p.believes ?? ""]));
   return g.scriptRoles.filter((id) => role(id).team === t && !used.has(id));
@@ -138,6 +144,63 @@ function notInPlay(g: Game, t: Team) {
 function yesNo(b: boolean) {
   return b ? "YES" : "NO";
 }
+
+function numberInfo(heading: string, truth: number, fake: number): InfoSpec {
+  return { truth: { heading, big: String(truth) }, fake: { heading, big: String(Math.max(0, fake)) }, edit: { big: "number" } };
+}
+
+function yesNoInfo(heading: string, truth: boolean, players?: string[]): InfoSpec {
+  return { truth: { heading, big: yesNo(truth), players }, fake: { heading, big: yesNo(!truth), players }, edit: { big: "yesno" } };
+}
+
+function roleInfo(g: Game, heading: string, truth: string, fake: string | undefined): InfoSpec {
+  return {
+    truth: { heading, roles: [truth] },
+    fake: fake ? { heading, roles: [fake] } : undefined,
+    edit: { roles: 1, roleFrom: g.scriptRoles.filter((id) => role(id).team !== "traveller") },
+  };
+}
+
+/** The card for the Storyteller's choice, or undefined if they haven't chosen yet. */
+export function toldCard(info: InfoSpec, c: StepChoice, malfunctioning: boolean): ShowCard | undefined {
+  const mode = c.told ?? (malfunctioning ? undefined : "true");
+  if (mode === "true") return info.truth;
+  if (mode === "fake") return info.fake ?? info.truth;
+  if (mode === "custom") {
+    const cu = c.custom ?? {};
+    return {
+      heading: info.edit.heading ?? info.truth.heading,
+      big: info.edit.big ? cu.big : undefined,
+      players: info.edit.players ? cu.players : info.truth.players,
+      roles: info.edit.roles ? cu.roles : info.truth.roles,
+      text: info.truth.text,
+    };
+  }
+  return undefined;
+}
+
+/** Starting point for a custom answer: whatever the card would otherwise say. */
+export function customFrom(info: InfoSpec, c: StepChoice): NonNullable<StepChoice["custom"]> {
+  const base = (c.told === "fake" && info.fake) || info.truth;
+  return {
+    big: info.edit.big ? base.big ?? (info.edit.big === "yesno" ? "YES" : "0") : undefined,
+    players: info.edit.players ? (base.players ?? []).slice(0, info.edit.players) : undefined,
+    roles: info.edit.roles ? (base.roles ?? []).slice(0, info.edit.roles) : undefined,
+  };
+}
+
+export function describeCard(g: Game, card: ShowCard): string {
+  const parts = [
+    card.players?.length ? card.players.map((id) => name(g, id)).join(" / ") : "",
+    card.roles?.length ? card.roles.map((id) => role(id).name).join(" / ") : "",
+    card.big ?? "",
+    card.text ?? "",
+  ].filter(Boolean);
+  return `${card.heading}${parts.length ? ` — ${parts.join(" · ")}` : ""}`;
+}
+
+const sameCard = (a: ShowCard, b: ShowCard) =>
+  (a.big ?? "") === (b.big ?? "") && (a.players ?? []).join() === (b.players ?? []).join() && [...(a.roles ?? [])].sort().join() === [...(b.roles ?? [])].sort().join();
 
 /* ------------------------------------------------------------------ */
 /* Handlers                                                            */
@@ -149,25 +212,26 @@ function pairInfo(t: Team): Handler {
       const g = x.g;
       const cands = others(x).filter((p) => isTeam(p, t));
       const truth = stablePick(cands, seed(x, "t"));
-      if (!x.mal.length) {
-        if (!truth) {
-          v.lines.push({ label: "True info", value: `No ${TEAM_LABEL[t]}s in play — show 0`, tone: "good" });
-          v.show = { heading: `There are no ${TEAM_LABEL[t]}s in play`, big: "0" };
-        } else {
-          const decoy = stablePick(others(x).filter((p) => p.id !== truth.id), seed(x, "d"))!;
-          const pair = hash(seed(x, "o")) % 2 ? [truth, decoy] : [decoy, truth];
-          v.lines.push({ label: "True info", value: `${role(truth.role).name}: ${pair.map((p) => p.name).join(" or ")}`, tone: "good" });
-          v.lines.push({ label: "Real one", value: `${truth.name} (decoy: ${decoy.name})`, tone: "muted" });
-          v.show = { heading: "One of these players is the", roles: [truth.role], players: pair.map((p) => p.id) };
-        }
+      let truthCard: ShowCard;
+      if (!truth) {
+        v.lines.push({ label: "True info", value: `No ${TEAM_LABEL[t]}s in play — show 0`, tone: "good" });
+        truthCard = { heading: `There are no ${TEAM_LABEL[t]}s in play`, big: "0" };
       } else {
-        const fakeRole = stablePick(notInPlay(g, t).length ? notInPlay(g, t) : g.scriptRoles.filter((id) => role(id).team === t), seed(x, "fr"));
-        const a = stablePick(others(x), seed(x, "fa"))!;
-        const b = stablePick(others(x).filter((p) => p.id !== a.id), seed(x, "fb"))!;
-        v.lines.push({ label: "Suggested (false)", value: `${role(fakeRole).name}: ${a.name} or ${b.name}`, tone: "warn" });
-        if (truth) v.lines.push({ label: "Actual", value: `${truth.name} is the ${role(truth.role).name}`, tone: "muted" });
-        v.show = { heading: "One of these players is the", roles: fakeRole ? [fakeRole] : [], players: [a.id, b.id] };
+        const decoy = stablePick(others(x).filter((p) => p.id !== truth.id), seed(x, "d"))!;
+        const pair = hash(seed(x, "o")) % 2 ? [truth, decoy] : [decoy, truth];
+        v.lines.push({ label: "True info", value: `${role(truth.role).name}: ${pair.map((p) => p.name).join(" or ")}`, tone: "good" });
+        v.lines.push({ label: "Real one", value: `${truth.name} (decoy: ${decoy.name})`, tone: "muted" });
+        truthCard = { heading: "One of these players is the", roles: [truth.role], players: pair.map((p) => p.id) };
       }
+      const fakeRole = stablePick(notInPlay(g, t).length ? notInPlay(g, t) : g.scriptRoles.filter((id) => role(id).team === t), seed(x, "fr"));
+      const a = stablePick(others(x), seed(x, "fa"))!;
+      const b = stablePick(others(x).filter((p) => p.id !== a.id), seed(x, "fb"))!;
+      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: `${role(fakeRole).name}: ${a.name} or ${b.name}`, tone: "warn" });
+      v.info = {
+        truth: truthCard,
+        fake: { heading: "One of these players is the", roles: fakeRole ? [fakeRole] : [], players: [a.id, b.id] },
+        edit: { players: 2, roles: 1, roleFrom: g.scriptRoles.filter((id) => role(id).team === t), heading: "One of these players is the" },
+      };
       v.caveats.push(...misregisterCaveats(g));
       if (t === "outsider" && g.players.some((p) => p.role === "drunk")) v.caveats.push("Remember the Drunk is an Outsider (show the Drunk token).");
       v.options = [{ id: String((Number(x.c.option) || 0) + 1), label: "Suggest a different pair" }];
@@ -244,11 +308,11 @@ const H: Record<string, Handler> = {
         const a = ps[i], b = ps[(i + 1) % ps.length];
         if (ps.length > 1 && a.alignment === "evil" && b.alignment === "evil") pairs++;
       }
-      const shown = x.mal.length ? (pairs === 0 ? 1 : pairs - 1) : pairs;
-      v.lines.push({ label: "True pairs", value: String(pairs), tone: x.mal.length ? "muted" : "good" });
-      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: String(shown), tone: "warn" });
+      const fake = pairs === 0 ? 1 : pairs - 1;
+      v.lines.push({ label: "True pairs", value: String(pairs), tone: "good" });
+      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: String(fake), tone: "warn" });
       v.caveats.push(...misregisterCaveats(x.g));
-      v.show = { heading: "Pairs of evil players", big: String(shown) };
+      v.info = numberInfo("Pairs of evil players", pairs, fake);
     },
   },
 
@@ -256,12 +320,12 @@ const H: Record<string, Handler> = {
     view(x, v) {
       const ns = aliveNeighbours(x.g, x.p!.id);
       const evil = ns.filter((p) => p.alignment === "evil").length;
-      const shown = x.mal.length ? (evil === 0 ? 1 : 0) : evil;
+      const fake = evil === 0 ? 1 : 0;
       v.lines.push({ label: "Alive neighbours", value: ns.map((p) => p.name).join(" & ") || "—", tone: "muted" });
-      v.lines.push({ label: "True count", value: evilWord(evil), tone: x.mal.length ? "muted" : "good" });
-      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: String(shown), tone: "warn" });
+      v.lines.push({ label: "True count", value: evilWord(evil), tone: "good" });
+      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: String(fake), tone: "warn" });
       v.caveats.push(...misregisterCaveats(x.g, ns.map((p) => p.id)));
-      v.show = { heading: "Evil alive neighbours", big: String(shown) };
+      v.info = numberInfo("Evil alive neighbours", evil, fake);
     },
   },
 
@@ -273,10 +337,10 @@ const H: Record<string, Handler> = {
       if (rh) v.lines.push({ label: "Red herring", value: rh.name, tone: "muted" });
       if (ts.length === 2) {
         const yes = ts.some((p) => isTeam(p, "demon") || hasReminder(p, "Red Herring"));
-        v.lines.push({ label: "True answer", value: yesNo(yes), tone: x.mal.length ? "muted" : "good" });
+        v.lines.push({ label: "True answer", value: yesNo(yes), tone: "good" });
         if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: yesNo(!yes), tone: "warn" });
         v.caveats.push(...misregisterCaveats(x.g, ts.map((p) => p.id)).filter((c) => c.includes("Recluse")));
-        v.show = { heading: "Is one of them the Demon?", big: yesNo(x.mal.length ? !yes : yes), players: ts.map((p) => p.id) };
+        v.info = yesNoInfo("Is one of them the Demon?", yes, ts.map((p) => p.id));
       }
     },
   },
@@ -289,10 +353,10 @@ const H: Record<string, Handler> = {
         return;
       }
       const fake = stablePick(x.g.scriptRoles.filter((id) => id !== ex.role && !["traveller"].includes(role(id).team)), seed(x));
-      v.lines.push({ label: "Executed", value: `${ex.name} — ${role(ex.role).name}`, tone: x.mal.length ? "muted" : "good" });
+      v.lines.push({ label: "Executed", value: `${ex.name} — ${role(ex.role).name}`, tone: "good" });
       if (x.mal.length && fake) v.lines.push({ label: "Suggested (false)", value: role(fake).name, tone: "warn" });
       v.caveats.push(...misregisterCaveats(x.g, [ex.id]));
-      v.show = { heading: `${ex.name} was the`, roles: [x.mal.length && fake ? fake : ex.role] };
+      v.info = roleInfo(x.g, `${ex.name} was the`, ex.role, fake);
     },
   },
 
@@ -319,10 +383,10 @@ const H: Record<string, Handler> = {
       const t = player(x.g, x.c.targets[0]);
       if (t) {
         const fake = stablePick(x.g.scriptRoles.filter((id) => id !== t.role), seed(x));
-        v.lines.push({ label: "True", value: `${t.name} is the ${role(t.role).name}`, tone: x.mal.length ? "muted" : "good" });
+        v.lines.push({ label: "True", value: `${t.name} is the ${role(t.role).name}`, tone: "good" });
         if (x.mal.length && fake) v.lines.push({ label: "Suggested (false)", value: role(fake).name, tone: "warn" });
         v.caveats.push(...misregisterCaveats(x.g, [t.id]));
-        v.show = { heading: `${t.name} is the`, roles: [x.mal.length && fake ? fake : t.role] };
+        v.info = roleInfo(x.g, `${t.name} is the`, t.role, fake);
       }
     },
   },
@@ -497,11 +561,11 @@ const H: Record<string, Handler> = {
       let best = Infinity;
       for (const [, i] of demons) for (const [, j] of minions) best = Math.min(best, Math.min(Math.abs(i - j), n - Math.abs(i - j)));
       const truth = Number.isFinite(best) ? best : 0;
-      const shown = x.mal.length ? (truth === 1 ? 2 : truth - 1) : truth;
-      v.lines.push({ label: "Steps Demon → nearest Minion", value: String(truth), tone: x.mal.length ? "muted" : "good" });
-      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: String(shown), tone: "warn" });
+      const fake = truth === 1 ? 2 : truth - 1;
+      v.lines.push({ label: "Steps Demon → nearest Minion", value: String(truth), tone: "good" });
+      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: String(fake), tone: "warn" });
       v.caveats.push(...misregisterCaveats(x.g));
-      v.show = { heading: "Steps from the Demon to its nearest Minion", big: String(shown) };
+      v.info = numberInfo("Steps from the Demon to its nearest Minion", truth, fake);
     },
   },
 
@@ -516,17 +580,20 @@ const H: Record<string, Handler> = {
         return goodT ? tm === "minion" || tm === "demon" : tm === "townsfolk" || tm === "outsider";
       });
       const decoy = stablePick(opp.filter((id) => !x.g.players.some((p) => p.role === id)).length ? opp.filter((id) => !x.g.players.some((p) => p.role === id)) : opp, seed(x));
-      let pair = [t.role, decoy ?? ""];
-      if (x.mal.length) {
-        const sameSide = x.g.scriptRoles.filter((id) => id !== t.role && (["townsfolk", "outsider"].includes(role(id).team) === goodT));
-        pair = [stablePick(sameSide, seed(x, "f")) ?? "", decoy ?? ""];
-      }
-      pair = pair.filter(Boolean);
-      if (hash(seed(x, "o")) % 2) pair.reverse();
-      v.lines.push({ label: "True character", value: `${t.name} is the ${role(t.role).name}`, tone: x.mal.length ? "muted" : "good" });
-      v.lines.push({ label: x.mal.length ? "Suggested (false)" : "Show", value: pair.map((id) => role(id).name).join(" + "), tone: x.mal.length ? "warn" : "good" });
+      const sameSide = x.g.scriptRoles.filter((id) => id !== t.role && (["townsfolk", "outsider"].includes(role(id).team) === goodT));
+      const flip = hash(seed(x, "o")) % 2 === 1;
+      const order = (xs: string[]) => (flip ? xs.filter(Boolean).reverse() : xs.filter(Boolean));
+      const truePair = order([t.role, decoy ?? ""]);
+      const fakePair = order([stablePick(sameSide, seed(x, "f")) ?? "", decoy ?? ""]);
+      v.lines.push({ label: "True character", value: `${t.name} is the ${role(t.role).name}`, tone: "good" });
+      v.lines.push({ label: "True info", value: truePair.map((id) => role(id).name).join(" + "), tone: "good" });
+      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: fakePair.map((id) => role(id).name).join(" + "), tone: "warn" });
       v.caveats.push(...misregisterCaveats(x.g, [t.id]));
-      v.show = { heading: `${t.name} is one of these`, roles: pair };
+      v.info = {
+        truth: { heading: `${t.name} is one of these`, roles: truePair },
+        fake: { heading: `${t.name} is one of these`, roles: fakePair },
+        edit: { roles: 2, roleFrom: x.g.scriptRoles },
+      };
       v.options = [{ id: String((Number(x.c.option) || 0) + 1), label: "Suggest a different decoy" }];
     },
   },
@@ -541,10 +608,10 @@ const H: Record<string, Handler> = {
       const ts = x.c.targets.map((id) => player(x.g, id)!).filter(Boolean);
       if (ts.length === 2) {
         const same = ts[0].alignment === ts[1].alignment;
-        v.lines.push({ label: "Same alignment?", value: yesNo(same), tone: x.mal.length ? "muted" : "good" });
+        v.lines.push({ label: "Same alignment?", value: yesNo(same), tone: "good" });
         if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: yesNo(!same), tone: "warn" });
         v.caveats.push(...misregisterCaveats(x.g, ts.map((p) => p.id)));
-        v.show = { heading: "Same alignment?", big: yesNo(x.mal.length ? !same : same), players: ts.map((p) => p.id) };
+        v.info = yesNoInfo("Same alignment?", same, ts.map((p) => p.id));
       }
     },
     apply(x) {
@@ -557,31 +624,30 @@ const H: Record<string, Handler> = {
     view(x, v) {
       const demons = x.g.players.filter((p) => isTeam(p, "demon")).map((p) => p.id);
       const voted = x.g.nominations.some((nm) => nm.voters.some((id) => demons.includes(id)));
-      v.lines.push({ label: "Did the Demon vote today?", value: yesNo(voted), tone: x.mal.length ? "muted" : "good" });
+      v.lines.push({ label: "Did the Demon vote today?", value: yesNo(voted), tone: "good" });
       if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: yesNo(!voted), tone: "warn" });
       v.caveats.push("Based on the votes you recorded on the Day screen.");
-      v.show = { heading: "Did the Demon vote today?", big: yesNo(x.mal.length ? !voted : voted) };
+      v.info = yesNoInfo("Did the Demon vote today?", voted);
     },
   },
 
   oracle: {
     view(x, v) {
       const n = x.g.players.filter((p) => !p.alive && p.alignment === "evil").length;
-      const shown = x.mal.length ? n + 1 : n;
-      v.lines.push({ label: "Dead evil players", value: String(n), tone: x.mal.length ? "muted" : "good" });
-      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: String(shown), tone: "warn" });
+      v.lines.push({ label: "Dead evil players", value: String(n), tone: "good" });
+      if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: String(n + 1), tone: "warn" });
       v.caveats.push(...misregisterCaveats(x.g, x.g.players.filter((p) => !p.alive).map((p) => p.id)));
-      v.show = { heading: "Dead evil players", big: String(shown) };
+      v.info = numberInfo("Dead evil players", n, n + 1);
     },
   },
 
   mathematician: {
     view(x, v) {
       const n = x.g.abnormal;
-      v.lines.push({ label: "Abnormal abilities since dawn", value: String(n), tone: x.mal.length ? "muted" : "good" });
+      v.lines.push({ label: "Abnormal abilities since dawn", value: String(n), tone: "good" });
       if (x.mal.length) v.lines.push({ label: "Suggested (false)", value: String(n + 1), tone: "warn" });
       v.caveats.push("Counted from steps where the acting player was drunk/poisoned. Adjust for anything else that worked abnormally.");
-      v.show = { heading: "Abilities that worked abnormally", big: String(x.mal.length ? n + 1 : n) };
+      v.info = numberInfo("Abilities that worked abnormally", n, n + 1);
     },
   },
 
@@ -845,13 +911,39 @@ export function viewStep(g: Game, step: Step): StepView {
     v.skip = `${x.p.name} is dead.`;
     return v;
   }
-  v.caveats.push(...malCaveat(x));
   if (h.view) h.view(x, v);
   else if (/chooses? (a|2) players?|might choose/i.test(v.official ?? "")) {
     const two = /2 players/.test(v.official ?? "");
     v.pick = { count: two ? 2 : 1, label: `${r.name} chooses`, optional: /might/.test(v.official ?? ""), allowSelf: true };
   }
+  if (v.info && !v.skip) {
+    v.show = toldCard(v.info, x.c, x.mal.length > 0);
+    v.needsAnswer = !v.show;
+  }
   return v;
+}
+
+/** Who sees a step's card. */
+function recipients(g: Game, step: Step): string[] {
+  if (step.kind === "minioninfo") return g.players.filter((p) => isTeam(p, "minion") && p.role !== "marionette").map((p) => p.id);
+  if (step.kind === "demoninfo" || step.roleId === "marionette") return g.players.filter((p) => isTeam(p, "demon")).map((p) => p.id);
+  return step.playerId ? [step.playerId] : [];
+}
+
+/** Add what was shown to the info record. Uses names from before the step's effects. */
+function recordTold(g0: Game, g: Game, step: Step, v: StepView, mal: string[]) {
+  if (!v.show) return;
+  const truthful = step.roleId === "lunatic" ? false : v.info ? sameCard(v.show, v.info.truth) : true;
+  const entry: ToldEntry = {
+    id: uid(),
+    night: g0.night,
+    playerIds: recipients(g0, step),
+    role: step.roleId ?? step.kind,
+    text: describeCard(g0, v.show),
+    truthful,
+    malfunctioning: mal.length > 0 || undefined,
+  };
+  g.told = [...(g.told ?? []), entry];
 }
 
 /** Complete a step: applies its effects and returns notes for the Storyteller. */
@@ -877,6 +969,7 @@ export function completeStep(g0: Game, step: Step, opts: { skipped?: boolean } =
       const picked = x.c.targets.map((id) => name(g, id));
       if (picked.length) log(g, `${role(step.roleId).name} (${x.p.name}) chose ${picked.join(" & ")}.`);
     }
+    recordTold(g0, g, step, v, x.mal);
   }
   if (!g.done.includes(step.key)) g.done.push(step.key);
   return { game: g, notes };
