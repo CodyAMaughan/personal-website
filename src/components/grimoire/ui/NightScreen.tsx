@@ -33,21 +33,22 @@ export function NightScreen({ game, commit, update, openGrimoire }: { game: Game
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   };
 
-  const doneCount = queue.filter((s, i) => game.done.includes(s.key) || views[i].skip).length;
+  // Count only the steps that actually happen tonight, so the number matches the step on screen.
+  const active = queue.filter((_, i) => !views[i].skip);
+  const doneCount = active.filter((s) => game.done.includes(s.key)).length;
+  const position = step ? active.findIndex((s) => s.key === step.key) + 1 : active.length;
 
   return (
     <div className="mx-auto max-w-lg px-3 pb-6">
       <div className="mb-3">
         <div className="flex items-center justify-between text-sm text-zinc-300">
-          <span>
-            Step {Math.min(doneCount + 1, queue.length)} of {queue.length}
-          </span>
+          <span>{position > 0 ? `Step ${position} of ${active.length}` : `Skipped step · ${doneCount} of ${active.length} done`}</span>
           <label className="flex min-h-10 items-center gap-2">
             <input type="checkbox" checked={showSkipped} onChange={(e) => setShowSkipped(e.target.checked)} className="h-5 w-5" /> Show skipped
           </label>
         </div>
-        <div className="mt-1 h-2 overflow-hidden rounded-full bg-zinc-800" role="progressbar" aria-valuemin={0} aria-valuemax={queue.length} aria-valuenow={doneCount}>
-          <div className="h-full bg-amber-400 transition-all" style={{ width: `${(doneCount / Math.max(1, queue.length)) * 100}%` }} />
+        <div className="mt-1 h-2 overflow-hidden rounded-full bg-zinc-800" role="progressbar" aria-valuemin={0} aria-valuemax={active.length} aria-valuenow={doneCount}>
+          <div className="h-full bg-amber-400 transition-all" style={{ width: `${(doneCount / Math.max(1, active.length)) * 100}%` }} />
         </div>
       </div>
 
@@ -66,7 +67,7 @@ export function NightScreen({ game, commit, update, openGrimoire }: { game: Game
       {step && view && !game.done.includes(step.key) && <StepCard key={step.key} game={game} step={step} view={view} update={update} onDone={() => finish(step)} onSkip={() => finish(step, true)} openGrimoire={openGrimoire} />}
 
       <SectionTitle>Tonight’s order</SectionTitle>
-      <ol className="grid gap-1">
+      <ol className="grid grid-cols-1 gap-1">
         {queue.map((s, i) => {
           const v = views[i];
           const done = game.done.includes(s.key);

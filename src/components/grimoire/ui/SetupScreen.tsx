@@ -2,10 +2,11 @@ import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Dices, Eye, EyeOff, Minus, Plus, Trash2 } from "lucide-react";
 import { role, TEAM_LABEL } from "../engine/roles";
 import { BUILT_IN_SCRIPTS, parseScript, type Script } from "../engine/scripts";
-import { byTeam, distribution, outsiderModifier, randomBag, seatPlayers, validateBag } from "../engine/setup";
+import { byTeam, changeBelieves, distribution, outsiderModifier, randomBag, seatPlayers, validateBag } from "../engine/setup";
 import { clone, log, startNight } from "../engine/state";
 import type { Game, Team } from "../engine/types";
 import { Button, Chip, cx, RoleIcon, SectionTitle } from "./common";
+import { RolePicker } from "./RolePicker";
 
 const NAMES_KEY = "grimoire:names";
 const CUSTOM_KEY = "grimoire:custom-scripts";
@@ -88,6 +89,15 @@ export function SetupScreen({ game, commit }: { game: Game; commit: (g: Game) =>
     const g = seatPlayers(game, names, bag, true);
     commit(g);
     setStage("reveal");
+  };
+
+  const setBelieves = (playerId: string, id: string): string[] => {
+    const g = clone(game);
+    const notes = changeBelieves(g, playerId, id);
+    const p = g.players.find((q) => q.id === playerId)!;
+    log(g, `${p.name} now thinks they are the ${role(id).name}.`);
+    commit(g);
+    return notes;
   };
 
   const begin = () => {
@@ -186,7 +196,7 @@ export function SetupScreen({ game, commit }: { game: Game; commit: (g: Game) =>
               <Plus />
             </Button>
           </div>
-          <ol className="grid gap-2">
+          <ol className="grid grid-cols-1 gap-2">
             {names.map((nm, i) => (
               <li key={i} className="flex items-center gap-1">
                 <span className="w-7 text-right text-sm tabular-nums text-zinc-500">{i + 1}</span>
@@ -269,7 +279,7 @@ export function SetupScreen({ game, commit }: { game: Game; commit: (g: Game) =>
         </section>
       )}
 
-      {stage === "reveal" && <Reveal game={game} onBegin={begin} onRedeal={deal} />}
+      {stage === "reveal" && <Reveal game={game} onBegin={begin} onRedeal={deal} onBelieves={setBelieves} />}
     </div>
   );
 }
@@ -306,9 +316,14 @@ function BagCounts({ bag, n }: { bag: string[]; n: number }) {
 }
 
 /** Pass-the-phone character reveal. */
-function Reveal({ game, onBegin, onRedeal }: { game: Game; onBegin: () => void; onRedeal: () => void }) {
+function Reveal({ game, onBegin, onRedeal, onBelieves }: { game: Game; onBegin: () => void; onRedeal: () => void; onBelieves: (playerId: string, id: string) => string[] }) {
   const [i, setI] = useState<number | null>(null);
   const [shown, setShown] = useState(false);
+  const [picking, setPicking] = useState<string | null>(null);
+  const [notes, setNotes] = useState<string[]>([]);
+  const pickFor = game.players.find((q) => q.id === picking);
+  // Characters someone else holds or believes they hold can't be chosen.
+  const taken = game.players.filter((q) => q.id !== picking).flatMap((q) => [q.role, q.believes ?? ""]);
   const p = i === null ? null : game.players[i];
 
   if (p) {
@@ -316,7 +331,8 @@ function Reveal({ game, onBegin, onRedeal }: { game: Game; onBegin: () => void; 
     const r = role(shownRole);
     const shownAlign = p.role === "marionette" || p.role === "drunk" ? "good" : p.role === "lunatic" ? "evil" : p.alignment;
     return (
-      <section className="flex min-h-[70dvh] flex-col items-center justify-center gap-6 text-center" aria-live="polite">
+      // Covers the whole screen, tab bar included, so the player holding the phone can't open the Grimoire.
+      <section role="dialog" aria-modal="true" aria-label="Character reveal" className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-6 overflow-y-auto bg-[#0f0f12] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] text-center" aria-live="polite">
         <p className="text-sm uppercase tracking-widest text-zinc-400">
           Seat {i! + 1} of {game.players.length}
         </p>
@@ -356,21 +372,41 @@ function Reveal({ game, onBegin, onRedeal }: { game: Game; onBegin: () => void; 
   return (
     <section aria-label="Deal">
       <SectionTitle>Seats</SectionTitle>
-      <ul className="grid gap-1.5">
+      <ul className="grid grid-cols-1 gap-1.5">
         {game.players.map((pl, k) => (
           <li key={pl.id} className="flex items-center gap-3 rounded-xl bg-zinc-900 px-3 py-2">
             <span className="w-5 text-right text-sm tabular-nums text-zinc-500">{k + 1}</span>
             <RoleIcon id={pl.role} alignment={pl.alignment} size={36} />
-            <span className="flex-1">
+            <span className="min-w-0 flex-1">
               <span className="block font-medium">{pl.name}</span>
               <span className="block text-sm text-zinc-400">
                 {role(pl.role).name}
-                {pl.believes && ` (thinks: ${role(pl.believes).name})`}
+                {pl.believes && <span className="text-amber-300"> · thinks {role(pl.believes).name}</span>}
               </span>
             </span>
+            {(pl.role === "drunk" || pl.role === "marionette" || pl.role === "lunatic") && (
+              <Button variant="ghost" className="shrink-0 border border-amber-700 text-sm text-amber-200" onClick={() => setPicking(pl.id)} ariaLabel={`Change who ${pl.name} thinks they are`}>
+                Change
+              </Button>
+            )}
           </li>
         ))}
       </ul>
+      {notes.length > 0 && (
+        <ul role="status" className="mt-2 space-y-0.5 rounded-lg border border-violet-700 bg-violet-950/60 p-2 text-sm text-violet-100">
+          {notes.map((n) => (
+            <li key={n}>• {n}</li>
+          ))}
+        </ul>
+      )}
+      <RolePicker
+        open={!!pickFor}
+        title={pickFor ? `${pickFor.name} (${role(pickFor.role).name}) thinks they are…` : ""}
+        roles={byTeam(game.scriptRoles, pickFor?.role === "lunatic" ? "demon" : "townsfolk")}
+        disabled={pickFor?.role === "lunatic" ? [] : taken}
+        onClose={() => setPicking(null)}
+        onPick={(id) => setNotes(onBelieves(picking!, id))}
+      />
       <div className="mt-4 grid gap-2">
         <Button variant="good" onClick={() => (setI(0), setShown(false))}>
           <Eye size={20} /> Pass the phone: reveal characters
@@ -382,7 +418,10 @@ function Reveal({ game, onBegin, onRedeal }: { game: Game; onBegin: () => void; 
           Start the first night
         </Button>
       </div>
-      <p className="mt-3 text-sm text-zinc-400">You can still change anything on the Grimoire tab after the game starts.</p>
+      <p className="mt-3 text-sm text-zinc-400">
+        {game.players.some((q) => q.role === "drunk" || q.role === "marionette" || q.role === "lunatic") && "Tap Change to pick who the Drunk (or Marionette / Lunatic) thinks they are. "}
+        You can still change anything on the Grimoire tab after the game starts.
+      </p>
     </section>
   );
 }

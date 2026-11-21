@@ -21,6 +21,7 @@ export function ShowCard({ card, game, onClose }: { card: Card; game: Game; onCl
       <p className="font-serif text-3xl leading-tight text-amber-200">{card.heading}</p>
       {names.length > 0 && <p className="text-4xl font-bold leading-tight">{names.join("  ·  ")}</p>}
       {card.big && <p className="text-[7rem] font-black leading-none tabular-nums">{card.big}</p>}
+      {card.text && <p className="text-2xl text-zinc-300">{card.text}</p>}
       {card.roles && card.roles.length > 0 && (
         <div className="flex flex-wrap items-start justify-center gap-5">
           {card.roles.map((id) => (
@@ -31,7 +32,6 @@ export function ShowCard({ card, game, onClose }: { card: Card; game: Game; onCl
           ))}
         </div>
       )}
-      {card.text && <p className="text-2xl text-zinc-300">{card.text}</p>}
       <span className="absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] text-sm text-zinc-500">Tap anywhere to close</span>
     </button>
   );

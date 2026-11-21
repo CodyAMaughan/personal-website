@@ -8,6 +8,7 @@ import {
   clone,
   demonKillBlocked,
   hasReminder,
+  healthy,
   kill,
   log,
   malfunction,
@@ -246,13 +247,17 @@ function killHandler(opts: { starpass?: boolean } = {}): Handler {
         v.skip = "The Exorcist chose the Demon — the Demon doesn't wake tonight.";
         return;
       }
+      if (x.p && becameDemonTonight(x.g, x.p)) {
+        v.skip = `${x.p.name} became the Demon tonight, so they don't choose again.`;
+        return;
+      }
       v.pick = { count: 1, label: "Demon's target", allowSelf: !!opts.starpass };
       const t = player(x.g, x.c.targets[0]);
       if (t) {
-        if (opts.starpass && t.id === x.p?.id) {
+        if (opts.starpass && t.id === x.p?.id && !x.mal.length) {
           const minions = x.g.players.filter((p) => p.alive && isTeam(p, "minion"));
           v.lines.push({ label: "Star-pass", value: `${x.p!.name} dies and a Minion becomes the ${role(x.p!.role).name}.`, tone: "evil" });
-          const sw = minions.find((m) => m.role === "scarletwoman");
+          const sw = minions.find((m) => m.role === "scarletwoman" && healthy(x.g, m));
           if (sw && aliveNonTravellers(x.g).length >= 5) v.lines.push({ label: "Scarlet Woman", value: `${sw.name} catches it automatically.`, tone: "muted" });
           else v.options = minions.map((m) => ({ id: `heir:${m.id}`, label: `${m.name} becomes the Demon` }));
         } else {
@@ -268,7 +273,7 @@ function killHandler(opts: { starpass?: boolean } = {}): Handler {
       if (x.g.exorcisedDemon) return [];
       const t = player(x.g, x.c.targets[0]);
       if (!t || x.c.option === "nokill") return t ? [`${t.name} survives (Storyteller choice).`] : [];
-      if (opts.starpass && t.id === x.p?.id) {
+      if (opts.starpass && t.id === x.p?.id && !x.mal.length) {
         const notes = kill(x.g, t.id, "demon", "star-pass", { noWin: true });
         const demonAlive = x.g.players.some((p) => p.alive && isTeam(p, "demon"));
         if (!demonAlive) {
@@ -302,7 +307,8 @@ const H: Record<string, Handler> = {
 
   chef: {
     view(x, v) {
-      const ps = x.g.players.filter((p) => !isTeam(p, "traveller"));
+      // Travellers are seated players too: an evil Traveller can complete a pair, and a good one breaks it.
+      const ps = x.g.players;
       let pairs = 0;
       for (let i = 0; i < ps.length; i++) {
         const a = ps[i], b = ps[(i + 1) % ps.length];
@@ -829,6 +835,16 @@ const H: Record<string, Handler> = {
 /* Queue                                                               */
 /* ------------------------------------------------------------------ */
 
+/** A star-pass or Scarlet Woman catch tonight: the new Demon doesn't act again this night. */
+function becameDemonTonight(g: Game, p: Player): boolean {
+  return g.phase === "night" && p.reminders.some((r) => r.label === "Is The Demon" && r.night === g.night);
+}
+
+/** A Scarlet Woman who caught the Demon by day still wakes in her own slot to be told. */
+function swToldTonight(g: Game, p: Player): boolean {
+  return g.pending.includes("scarletwoman") && p.reminders.some((r) => r.role === "scarletwoman" && r.label === "Is The Demon");
+}
+
 /** The character a player wakes as. The Lunatic uses its own night entry. */
 function wakesAs(p: Player): string {
   if (p.role === "lunatic") return "lunatic";
@@ -844,7 +860,7 @@ export function buildQueue(g: Game): Step[] {
     else if (id === "minioninfo" || id === "demoninfo") {
       if (first) steps.push({ key: id, kind: id });
     } else {
-      const actors = g.players.filter((p) => wakesAs(p) === id || (id === "marionette" && p.role === "marionette"));
+      const actors = g.players.filter((p) => wakesAs(p) === id || (id === "marionette" && p.role === "marionette") || (id === "scarletwoman" && swToldTonight(g, p)));
       for (const p of actors) steps.push({ key: `${id}:${p.id}`, kind: "role", roleId: id, playerId: p.id });
     }
   }
