@@ -71,8 +71,9 @@ export function NightScreen({ game, commit, update, openGrimoire }: { game: Game
         {queue.map((s, i) => {
           const v = views[i];
           const done = game.done.includes(s.key);
-          if (v.skip && !showSkipped && i !== curIdx) return null;
           const p = player(game, s.playerId);
+          // Living characters stay listed when skipped (e.g. Undertaker with no execution) so it's clear why they don't wake.
+          if (v.skip && !showSkipped && i !== curIdx && !p?.alive) return null;
           return (
             <li key={s.key}>
               <button

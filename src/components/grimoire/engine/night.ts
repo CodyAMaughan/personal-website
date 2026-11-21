@@ -355,7 +355,7 @@ const H: Record<string, Handler> = {
     view(x, v) {
       const ex = player(x.g, x.g.executedToday ?? undefined);
       if (!ex) {
-        v.skip = "Nobody was executed today.";
+        v.skip = "Nobody was executed today (use Execute on the Day tab).";
         return;
       }
       const fake = stablePick(x.g.scriptRoles.filter((id) => id !== ex.role && !["traveller"].includes(role(id).team)), seed(x));
