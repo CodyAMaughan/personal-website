@@ -177,6 +177,9 @@ function GameMenu({ open, onClose, game, commit }: { open: boolean; onClose: () 
         >
           New game
         </Button>
+        <a href="/games" className="mt-2 text-center text-sm text-zinc-400 underline">
+          ← Back to all games
+        </a>
         <p className="mt-2 text-xs text-zinc-500">The game saves automatically on this device. Unofficial fan-made tool — not affiliated with The Pandemonium Institute.</p>
       </div>
     </Sheet>
