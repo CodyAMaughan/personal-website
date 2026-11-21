@@ -134,8 +134,17 @@ export function isDrunk(p: Player) {
   return p.role === "drunk" || p.reminders.some((r) => r.label === "Drunk");
 }
 
+/** Characters whose poison ends when no living player holds them any more (the Poisoner died, say). */
+const POISON_SOURCES = ["poisoner", "pukka"];
+
+function activePoison(g: Game, r: Reminder): boolean {
+  if (r.label !== "Poisoned") return false;
+  if (!POISON_SOURCES.includes(r.role)) return true;
+  return g.players.some((q) => q.alive && q.role === r.role);
+}
+
 export function isPoisoned(g: Game, p: Player) {
-  return p.reminders.some((r) => r.label === "Poisoned") || noDashiiVictims(g).includes(p.id);
+  return p.reminders.some((r) => activePoison(g, r)) || noDashiiVictims(g).includes(p.id);
 }
 
 /** Reasons this player's ability will not work right now (empty = healthy & real). */
@@ -145,8 +154,8 @@ export function malfunction(g: Game, p: Player): string[] {
   else if (p.reminders.some((r) => r.label === "Drunk")) why.push(`is drunk (${role(p.reminders.find((r) => r.label === "Drunk")!.role).name})`);
   if (p.role === "marionette") why.push(`is the Marionette (thinks they are the ${role(p.believes).name})`);
   if (p.role === "lunatic") why.push(`is the Lunatic (thinks they are the ${role(p.believes).name})`);
-  if (p.reminders.some((r) => r.label === "Poisoned")) {
-    const src = p.reminders.find((r) => r.label === "Poisoned")!.role;
+  if (p.reminders.some((r) => activePoison(g, r))) {
+    const src = p.reminders.find((r) => activePoison(g, r))!.role;
     why.push(`is poisoned (${role(src).name})`);
   } else if (noDashiiVictims(g).includes(p.id)) why.push("is poisoned (No Dashii neighbour)");
   return why;
@@ -197,8 +206,13 @@ export function kill(g: Game, id: string, cause: Cause, by?: string, opts: { noW
       sw.role = p.role;
       addReminder(sw, "scarletwoman", "Is The Demon", "never", g.night);
       log(g, `${sw.name} (Scarlet Woman) becomes the ${role(p.role).name}.`);
-      notes.push(`Scarlet Woman ${sw.name} is now the ${role(p.role).name}. Wake them tonight to tell them.`);
-      if (!g.pending.includes("scarletwoman")) g.pending.push("scarletwoman");
+      if (g.phase === "night") {
+        // Caught mid-night (star-pass or a night kill): tell her now, during this step.
+        notes.push(`Scarlet Woman ${sw.name} is now the ${role(p.role).name}. Wake them and show YOU ARE + the ${role(p.role).name} token.`);
+      } else {
+        notes.push(`Scarlet Woman ${sw.name} is now the ${role(p.role).name}. She wakes in the Scarlet Woman's place tonight to be told.`);
+        if (!g.pending.includes("scarletwoman")) g.pending.push("scarletwoman");
+      }
     }
   }
   // Grandmother dies if the demon kills the grandchild.
@@ -254,6 +268,19 @@ export function checkWin(g: Game) {
 /* ------------------------------------------------------------------ */
 /* Phases                                                              */
 /* ------------------------------------------------------------------ */
+
+/** End the day. A living, healthy Mayor wins for good if 3 players are alive and nobody was executed. */
+export function endDay(g: Game): string[] {
+  const living = aliveNonTravellers(g);
+  const mayor = living.find((p) => p.role === "mayor");
+  if (!g.winner && !g.executedToday && living.length === 3 && mayor && healthy(g, mayor)) {
+    g.winner = "good";
+    log(g, `Only 3 players alive and no execution with the Mayor (${mayor.name}) alive — good wins.`);
+    return ["Mayor win: 3 players alive and no execution today. Good wins."];
+  }
+  startNight(g);
+  return [];
+}
 
 export function startNight(g: Game) {
   g.phase = "night";

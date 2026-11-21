@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Gavel, Moon, Swords, Vote } from "lucide-react";
 import { role } from "../engine/roles";
-import { alive, aliveNonTravellers, clone, execute, hasReminder, name, nominate, slay, startNight } from "../engine/state";
+import { alive, clone, endDay, execute, hasReminder, name, nominate, slay } from "../engine/state";
 import type { Game } from "../engine/types";
 import { Button, Chip, cx, PlayerButton, SectionTitle, Sheet } from "./common";
 
@@ -24,7 +24,8 @@ export function DayScreen({ game, commit }: { game: Game; commit: (g: Game) => v
   const [notes, setNotes] = useState<string[]>([]);
   const [confirmExec, setConfirmExec] = useState<string | null>(null);
 
-  const living = aliveNonTravellers(game).length;
+  // Living Travellers count towards the votes needed (they're left out only of the "2 alive" and Scarlet Woman counts).
+  const living = alive(game).length;
   const threshold = Math.ceil(living / 2);
   const results = game.nominations.map((n) => ({ ...n, votes: tally(game, n.voters) }));
   const top = Math.max(0, ...results.map((r) => r.votes));
@@ -93,12 +94,7 @@ export function DayScreen({ game, commit }: { game: Game; commit: (g: Game) => v
         </Button>
         <Button
           variant="good"
-          onClick={() =>
-            act((g) => {
-              startNight(g);
-              return [];
-            })
-          }
+          onClick={() => act(endDay)}
         >
           <Moon size={20} /> Night {game.night + 1}
         </Button>
@@ -107,7 +103,7 @@ export function DayScreen({ game, commit }: { game: Game; commit: (g: Game) => v
       {results.length > 0 && (
         <>
           <SectionTitle>Today’s nominations</SectionTitle>
-          <ul className="grid gap-1.5">
+          <ul className="grid grid-cols-1 gap-1.5">
             {results.map((r, i) => (
               <li key={i}>
                 <button onClick={() => setVoting(i)} className="flex min-h-14 w-full items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900 px-3 text-left hover:bg-zinc-800">

@@ -15,7 +15,7 @@ export function InfoScreen({ game, update }: { game: Game; update: (fn: (g: Game
   return (
     <div className="mx-auto max-w-lg px-3 pb-6">
       <p className="mb-3 text-sm text-zinc-400">What each player has been shown, newest last. Night steps are recorded when you tap Done; add anything else by hand.</p>
-      <ol className="grid gap-2">
+      <ol className="grid grid-cols-1 gap-2">
         {game.players.map((p) => (
           <PlayerInfo key={p.id} game={game} p={p} entries={told.filter((e) => e.playerIds.includes(p.id))} update={update} expanded={open === p.id} onToggle={() => setOpen(open === p.id ? null : p.id)} />
         ))}
@@ -73,7 +73,7 @@ function PlayerInfo({ game, p, entries, update, expanded, onToggle }: { game: Ga
         <div className="border-t border-zinc-800 p-3">
           {mal.length > 0 && <p className="mb-2 rounded-lg bg-amber-950/60 p-2 text-sm text-amber-100">⚠ {p.name} {mal.join(" and ")}.</p>}
           {entries.length === 0 && <p className="text-sm text-zinc-500">Nothing told yet.</p>}
-          <ul className="grid gap-2">
+          <ul className="grid grid-cols-1 gap-2">
             {entries.map((e) => (
               <li key={e.id} className="rounded-lg bg-zinc-950 p-2">
                 <div className="flex items-start gap-2">

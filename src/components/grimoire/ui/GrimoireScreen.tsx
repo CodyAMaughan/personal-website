@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CircleDot, List, Plus, UserPlus } from "lucide-react";
 import { role, TEAM_LABEL } from "../engine/roles";
 import { bluffClashes, changeBelieves, changeRole, marionetteWarnings } from "../engine/setup";
-import { addReminder, aliveNonTravellers, clone, derivedReminders, kill, log, malfunction, uid } from "../engine/state";
+import { addReminder, alive, clone, derivedReminders, kill, log, malfunction, uid } from "../engine/state";
 import type { Game, Player, Reminder } from "../engine/types";
 import { Button, Chip, cx, RoleIcon, SectionTitle, Sheet } from "./common";
 import { RolePicker } from "./RolePicker";
@@ -25,7 +25,7 @@ export function GrimoireScreen({ game, update }: { game: Game; update: (fn: (g: 
   const [bluffSlot, setBluffSlot] = useState<number | null>(null);
   const [addingTraveller, setAddingTraveller] = useState(false);
   const selected = game.players.find((p) => p.id === sel) ?? null;
-  const living = aliveNonTravellers(game).length;
+  const living = alive(game).length;
 
   const inPlay = new Set(game.players.flatMap((p) => [p.role, p.believes ?? ""]));
   const clashes = bluffClashes(game);
@@ -150,7 +150,7 @@ function Circle({ game, onSelect }: { game: Game; onSelect: (id: string) => void
 
 function PlayerList({ game, onSelect }: { game: Game; onSelect: (id: string) => void }) {
   return (
-    <ol className="grid gap-1.5" aria-label="Players in seat order">
+    <ol className="grid grid-cols-1 gap-1.5" aria-label="Players in seat order">
       {game.players.map((p, i) => {
         const rem = statusChips(game, p);
         return (

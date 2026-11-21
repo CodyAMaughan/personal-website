@@ -31,7 +31,7 @@ export function ScriptScreen({ game }: { game: Game }) {
           return (
             <section key={t}>
               <SectionTitle>{TEAM_LABEL[t]}</SectionTitle>
-              <ul className="grid gap-2">
+              <ul className="grid grid-cols-1 gap-2">
                 {ids.map((id) => (
                   <li key={id} className={cx("flex gap-3 rounded-xl p-2", inPlay.has(id) ? "bg-zinc-900" : "bg-zinc-950")}>
                     <RoleIcon id={id} size={44} />
@@ -48,7 +48,7 @@ export function ScriptScreen({ game }: { game: Game }) {
           );
         })}
       {tab !== "chars" && (
-        <ol className="grid gap-2">
+        <ol className="grid grid-cols-1 gap-2">
           {nightList(tab === "first" ? NIGHT_ORDER.firstNight : NIGHT_ORDER.otherNight, tab === "first").map((id) => {
             const special: Record<string, string> = { dusk: "Dusk", dawn: "Dawn", minioninfo: "Minion info", demoninfo: "Demon info" };
             const text = special[id] ? "" : cleanNightText(tab === "first" ? role(id).firstNightReminder : role(id).otherNightReminder);
